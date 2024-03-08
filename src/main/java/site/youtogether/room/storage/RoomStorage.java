@@ -16,4 +16,12 @@ public class RoomStorage {
 		return roomStorage.containsKey(address);
 	}
 
+	public void save(String address, Room room) {
+		roomStorage.put(address, room);
+	}
+
+	public void remove(String address) {
+		roomStorage.remove(address);
+	}
+
 }
