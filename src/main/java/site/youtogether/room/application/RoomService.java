@@ -19,7 +19,7 @@ public class RoomService {
 
 	public RoomCode create(String address, RoomSettings roomSettings) {
 		Room room = createRoom(roomSettings);
-		User host = createHost(room, address);
+		User host = createHost(address);
 		room.addParticipant(address, host);
 
 		roomStorage.save(address, room);
@@ -35,7 +35,7 @@ public class RoomService {
 			.build();
 	}
 
-	private User createHost(Room room, String address) {
+	private User createHost(String address) {
 		return User.builder()
 			.address(address)
 			.nickname(RandomUtils.generateUserNickname())
