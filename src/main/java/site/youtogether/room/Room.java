@@ -1,35 +1,30 @@
 package site.youtogether.room;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.redis.core.RedisHash;
 
 import lombok.Builder;
 import lombok.Getter;
-import site.youtogether.user.User;
-import site.youtogether.util.RandomUtils;
-import site.youtogether.video.Video;
+import site.youtogether.util.AppConstants;
+import site.youtogether.util.RandomUtil;
 
+@RedisHash(value = "room", timeToLive = AppConstants.day)
 @Getter
 public class Room {
 
+	@Id
 	private final String code;
+
 	private final String title;
 	private final int capacity;
 	private final String password;
-	private final Map<String, User> participants = new ConcurrentHashMap<>();
-	private final Map<String, Video> playlist = new LinkedHashMap<>();
 
 	@Builder
 	public Room(String title, int capacity, String password) {
-		this.code = RandomUtils.generateRoomCode();
+		this.code = RandomUtil.generateRoomCode();
 		this.title = title;
 		this.capacity = capacity;
 		this.password = password;
-	}
-
-	public void addParticipant(String address, User user) {
-		participants.put(address, user);
 	}
 
 }
