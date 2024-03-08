@@ -15,8 +15,8 @@ public class Room {
 
 	private final String code;
 	private final String title;
-	private int capacity;
-	private String password;
+	private final int capacity;
+	private final String password;
 	private final Map<String, User> participants = new ConcurrentHashMap<>();
 	private final Map<String, Video> playlist = new LinkedHashMap<>();
 
