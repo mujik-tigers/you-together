@@ -10,7 +10,7 @@ import site.youtogether.room.dto.RoomSettings;
 @RestController
 public class RoomController {
 
-	@PostMapping("/room")
+	@PostMapping("/rooms")
 	public String createRoom(@Valid @RequestBody RoomSettings roomSettings) {
 		return "test success";
 	}
