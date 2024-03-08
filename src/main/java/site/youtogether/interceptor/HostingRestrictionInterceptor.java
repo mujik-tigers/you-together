@@ -7,19 +7,19 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import site.youtogether.room.storage.RoomStorage;
+import site.youtogether.room.infrastructure.RedisStorage;
 
 @Component
 @RequiredArgsConstructor
 public class HostingRestrictionInterceptor implements HandlerInterceptor {
 
-	private final RoomStorage roomStorage;
+	private final RedisStorage redisStorage;
 
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 		String address = request.getLocalAddr();
 
-		if (isRoomCreationRequest(request) && isAlreadyHosting(address)) {
+		if (isRoomCreationRequest(request) && (isAlreadyHosting(address)) || isAlreadyWatching(address)) {
 			return false;
 		}
 
@@ -31,7 +31,11 @@ public class HostingRestrictionInterceptor implements HandlerInterceptor {
 	}
 
 	private boolean isAlreadyHosting(String address) {
-		return roomStorage.existsByAddress(address);
+		return redisStorage.existsInHostingList(address);
+	}
+
+	private boolean isAlreadyWatching(String address) {
+		return redisStorage.existsInWatchingList(address);
 	}
 
 }
