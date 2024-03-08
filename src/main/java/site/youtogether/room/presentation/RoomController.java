@@ -22,7 +22,8 @@ public class RoomController {
 
 	@PostMapping("/rooms")
 	public ResponseEntity<ApiResponse<RoomCode>> createRoom(@Address String address, @Valid @RequestBody RoomSettings roomSettings) {
-		return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.created(roomService.create(address, roomSettings)));
+		return ResponseEntity.status(HttpStatus.CREATED)
+			.body(ApiResponse.created(roomService.create(address, roomSettings)));
 	}
 
 }
