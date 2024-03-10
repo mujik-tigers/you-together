@@ -5,10 +5,9 @@ import org.springframework.data.redis.core.RedisHash;
 
 import lombok.Builder;
 import lombok.Getter;
-import site.youtogether.util.AppConstants;
 import site.youtogether.util.RandomUtil;
 
-@RedisHash(value = "room", timeToLive = AppConstants.day)
+@RedisHash(value = "room")
 @Getter
 public class Room {
 

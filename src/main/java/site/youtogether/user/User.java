@@ -5,9 +5,8 @@ import org.springframework.data.redis.core.RedisHash;
 
 import lombok.Builder;
 import lombok.Getter;
-import site.youtogether.util.AppConstants;
 
-@RedisHash(value = "user", timeToLive = AppConstants.day)
+@RedisHash(value = "user")
 @Getter
 public class User {
 
