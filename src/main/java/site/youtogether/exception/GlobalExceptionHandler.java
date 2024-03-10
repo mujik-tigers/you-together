@@ -1,6 +1,7 @@
 package site.youtogether.exception;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -19,21 +20,31 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler(BindException.class)
 	public ResponseEntity<ApiResponse<Object>> handleBindException(BindException exception) {
-		return ResponseEntity.badRequest().body(
-			ApiResponse.of(HttpStatus.BAD_REQUEST,
-				exception.getBindingResult().getFieldErrors().stream()
-					.collect(Collectors.groupingBy(FieldError::getField))
-					.entrySet().stream()
-					.map(error -> {
-						Map<String, java.lang.Object> fieldError = new HashMap<>();
-						fieldError.put("field", error.getKey());
-						fieldError.put("message", error.getValue().stream()
-							.map(DefaultMessageSourceResolvable::getDefaultMessage)
-							.collect(Collectors.joining(", ")));
-						return fieldError;
-					})
-			)
-		);
+		return ResponseEntity.badRequest()
+			.body(ApiResponse.of(HttpStatus.BAD_REQUEST,
+					exception.getBindingResult().getFieldErrors().stream()
+						.collect(Collectors.groupingBy(FieldError::getField))
+						.entrySet().stream()
+						.map(error -> {
+							Map<String, Object> fieldError = new LinkedHashMap<>();
+							fieldError.put("type", error.getKey());
+							fieldError.put("message", error.getValue().stream()
+								.map(DefaultMessageSourceResolvable::getDefaultMessage)
+								.collect(Collectors.joining(", ")));
+							return fieldError;
+						})
+				)
+			);
+	}
+
+	@ExceptionHandler(CustomException.class)
+	public ResponseEntity<ApiResponse<Object>> handleCustomException(CustomException customException) {
+		Map<String, String> error = new LinkedHashMap<>(2);
+		error.put("type", customException.getClass().getSimpleName());
+		error.put("message", customException.getMessage());
+
+		return ResponseEntity.badRequest()
+			.body(ApiResponse.of(customException.getStatus(), List.of(error)));
 	}
 
 }
