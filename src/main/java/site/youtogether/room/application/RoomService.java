@@ -3,6 +3,7 @@ package site.youtogether.room.application;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
+import site.youtogether.exception.room.SingleRoomParticipationViolationException;
 import site.youtogether.room.Room;
 import site.youtogether.room.dto.RoomCode;
 import site.youtogether.room.dto.RoomSettings;
@@ -22,32 +23,29 @@ public class RoomService {
 	private final UserStorage userStorage;
 
 	public RoomCode create(String address, RoomSettings roomSettings) {
-		Room room = createRoom(roomSettings);
-		User host = createHost(address);
+		if (redisStorage.existsInActiveAddress(address)) {
+			throw new SingleRoomParticipationViolationException();
+		}
 
-		roomStorage.save(room);
-		userStorage.save(host);
-
-		redisStorage.addHostingAddress(address);
-		redisStorage.addParticipant(room.getCode(), address);
-
-		return new RoomCode(room);
-	}
-
-	private Room createRoom(RoomSettings roomSettings) {
-		return Room.builder()
+		Room room = Room.builder()
 			.title(roomSettings.getTitle())
 			.capacity(roomSettings.getCapacity())
 			.password(roomSettings.getPassword())
 			.build();
-	}
 
-	private User createHost(String address) {
-		return User.builder()
+		User host = User.builder()
 			.address(address)
 			.nickname(RandomUtil.generateUserNickname())
 			.role(Role.HOST)
 			.build();
+
+		roomStorage.save(room);
+		userStorage.save(host);
+
+		redisStorage.addActiveAddress(address);
+		redisStorage.addParticipant(room.getCode(), address);
+
+		return new RoomCode(room);
 	}
 
 }
