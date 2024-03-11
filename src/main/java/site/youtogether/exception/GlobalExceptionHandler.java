@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import site.youtogether.util.api.ApiResponse;
+import site.youtogether.util.api.ResponseResult;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -21,7 +22,7 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(BindException.class)
 	public ResponseEntity<ApiResponse<Object>> handleBindException(BindException exception) {
 		return ResponseEntity.badRequest()
-			.body(ApiResponse.of(HttpStatus.BAD_REQUEST,
+			.body(ApiResponse.of(HttpStatus.BAD_REQUEST, ResponseResult.EXCEPTION_OCCURRED,
 					exception.getBindingResult().getFieldErrors().stream()
 						.collect(Collectors.groupingBy(FieldError::getField))
 						.entrySet().stream()
@@ -44,7 +45,7 @@ public class GlobalExceptionHandler {
 		error.put("message", customException.getMessage());
 
 		return ResponseEntity.badRequest()
-			.body(ApiResponse.of(customException.getStatus(), List.of(error)));
+			.body(ApiResponse.of(customException.getStatus(), ResponseResult.EXCEPTION_OCCURRED, List.of(error)));
 	}
 
 }
