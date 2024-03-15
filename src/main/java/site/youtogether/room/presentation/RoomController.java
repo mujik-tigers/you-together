@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import site.youtogether.resolver.Address;
+import site.youtogether.resolver.SessionCode;
 import site.youtogether.room.application.RoomService;
 import site.youtogether.room.dto.RoomCode;
 import site.youtogether.room.dto.RoomSettings;
@@ -22,9 +22,9 @@ public class RoomController {
 	private final RoomService roomService;
 
 	@PostMapping("/rooms")
-	public ResponseEntity<ApiResponse<RoomCode>> createRoom(@Address String address, @Valid @RequestBody RoomSettings roomSettings) {
+	public ResponseEntity<ApiResponse<RoomCode>> createRoom(@SessionCode String sessionCode, @Valid @RequestBody RoomSettings roomSettings) {
 		return ResponseEntity.status(HttpStatus.CREATED)
-			.body(ApiResponse.created(ResponseResult.ROOM_CREATION_SUCCESS, roomService.create(address, roomSettings)));
+			.body(ApiResponse.created(ResponseResult.ROOM_CREATION_SUCCESS, roomService.create(sessionCode, roomSettings)));
 	}
 
 }
