@@ -22,28 +22,29 @@ public class RoomService {
 	private final RoomStorage roomStorage;
 	private final UserStorage userStorage;
 
-	public RoomCode create(String address, RoomSettings roomSettings) {
-		if (redisStorage.existsInActiveAddress(address)) {
+	public RoomCode create(String sessionCode, RoomSettings roomSettings) {
+		if (redisStorage.isParticipant(sessionCode)) {
 			throw new SingleRoomParticipationViolationException();
 		}
 
-		Room room = Room.builder()
-			.title(roomSettings.getTitle())
-			.capacity(roomSettings.getCapacity())
-			.password(roomSettings.getPassword())
-			.build();
-
+		User user = userStorage.findById(sessionCode).orElseThrow();
 		User host = User.builder()
-			.address(address)
+			.sessionCode(user.getSessionCode())
+			.address(user.getAddress())
 			.nickname(RandomUtil.generateUserNickname())
 			.role(Role.HOST)
 			.build();
 
-		roomStorage.save(room);
-		userStorage.save(host);
+		Room room = Room.builder()
+			.capacity(roomSettings.getCapacity())
+			.title(roomSettings.getTitle())
+			.password(roomSettings.getPassword())
+			.host(host)
+			.build();
 
-		redisStorage.addActiveAddress(address);
-		redisStorage.addParticipant(room.getCode(), address);
+		userStorage.save(host);
+		roomStorage.save(room);
+		redisStorage.addParticipant(sessionCode);
 
 		return new RoomCode(room);
 	}

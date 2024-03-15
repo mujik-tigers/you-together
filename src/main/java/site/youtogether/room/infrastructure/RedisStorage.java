@@ -13,17 +13,12 @@ public class RedisStorage {
 
 	private final RedisTemplate<String, String> redisStringTemplate;
 
-	public Boolean existsInActiveAddress(String address) {
-		return redisStringTemplate.opsForSet().isMember(ACTIVE_ADDRESS_KEY, address);
+	public Boolean isParticipant(String sessionCode) {
+		return redisStringTemplate.opsForSet().isMember(PARTICIPANTS_KEY, sessionCode);
 	}
 
-	public void addActiveAddress(String address) {
-		redisStringTemplate.opsForSet().add(ACTIVE_ADDRESS_KEY, address);
-	}
-
-	public void addParticipant(String roomCode, String address) {
-		String participantKey = PARTICIPANTS_KEY_PREFIX + roomCode;
-		redisStringTemplate.opsForSet().add(participantKey, address);
+	public void addParticipant(String sessionCode) {
+		redisStringTemplate.opsForSet().add(PARTICIPANTS_KEY, sessionCode);
 	}
 
 }

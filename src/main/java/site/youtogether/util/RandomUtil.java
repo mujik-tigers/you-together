@@ -22,6 +22,17 @@ public final class RandomUtil {
 	}
 
 	/**
+	 * generate random session code
+	 * length is 20
+	 * using a-z A-Z 0-9
+	 */
+	public static String generateSessionCode() {
+		String randomString = UUID.randomUUID().toString().replaceAll("-", "");
+
+		return randomString.substring(0, 20);
+	}
+
+	/**
 	 * generate random user nickname
 	 * sample list size is 20
 	 */
