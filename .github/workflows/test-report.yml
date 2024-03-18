@@ -16,6 +16,12 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    services:
+      redis:
+        image: redis:latest
+        ports:
+          - 6380:6379
+
     steps:
       - name: Check out
         uses: actions/checkout@v3
