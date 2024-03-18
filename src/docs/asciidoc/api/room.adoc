@@ -1,0 +1,15 @@
+[[Room-API]]
+== Room API
+
+[[create-room-success]]
+=== 방 생성 성공
+
+==== HTTP Request
+
+include::{snippets}/create-room-success/http-request.adoc[]
+include::{snippets}/create-room-success/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/create-room-success/http-response.adoc[]
+include::{snippets}/create-room-success/response-fields.adoc[]
