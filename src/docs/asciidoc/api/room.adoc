@@ -13,3 +13,16 @@ include::{snippets}/create-room-success/request-fields.adoc[]
 
 include::{snippets}/create-room-success/http-response.adoc[]
 include::{snippets}/create-room-success/response-fields.adoc[]
+
+[[create-room-fail-room-setting-error]]
+=== 방 생성 실패: 요청 데이터 오류가 발생했습니다
+
+==== HTTP Request
+
+include::{snippets}/create-room-fail-room-setting-error/http-request.adoc[]
+include::{snippets}/create-room-fail-room-setting-error/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/create-room-fail-room-setting-error/http-response.adoc[]
+include::{snippets}/create-room-fail-room-setting-error/response-fields.adoc[]
