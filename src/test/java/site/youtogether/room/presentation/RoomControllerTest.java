@@ -76,13 +76,43 @@ class RoomControllerTest extends RestDocsSupport {
 
 	@Test
 	@DisplayName("방 생성 실패: 요청 데이터 오류가 발생했습니다")
-	void createRoomFail_RoomSettingError() {
+	void createRoomFail_RoomSettingError() throws Exception {
 		// given
+		// Setting up request data for creating a room
+		RoomSettings roomSettings = RoomSettings.builder()
+			.title(" ")
+			.capacity(11)
+			.password("a1b2")
+			.build();
 
-		// when
-
-		// then
-
+		// when / then
+		mockMvc.perform(post("/rooms")
+				.content(objectMapper.writeValueAsString(roomSettings))
+				.contentType(MediaType.APPLICATION_JSON))
+			.andDo(print())
+			.andExpect(status().isBadRequest())
+			.andExpect(cookie().doesNotExist(cookieProperties.getName()))
+			.andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
+			.andExpect(jsonPath("$.status").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
+			.andExpect(jsonPath("$.result").value(ResponseResult.EXCEPTION_OCCURRED.getDescription()))
+			.andExpect(jsonPath("$.data").isArray())
+			.andDo(document("create-room-fail-room-setting-error",
+				preprocessRequest(prettyPrint()),
+				preprocessResponse(prettyPrint()),
+				requestFields(
+					fieldWithPath("title").type(JsonFieldType.STRING).description("제목"),
+					fieldWithPath("capacity").type(JsonFieldType.NUMBER).description("정원"),
+					fieldWithPath("password").type(JsonFieldType.STRING).description("비밀번호").optional()
+				),
+				responseFields(
+					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
+					fieldWithPath("status").type(JsonFieldType.STRING).description("상태"),
+					fieldWithPath("result").type(JsonFieldType.STRING).description("결과"),
+					fieldWithPath("data").type(JsonFieldType.ARRAY).description("응답 데이터"),
+					fieldWithPath("data[].type").type(JsonFieldType.STRING).description("오류 타입"),
+					fieldWithPath("data[].message").type(JsonFieldType.STRING).description("오류 메시지")
+				)
+			));
 	}
 
 	@Test
