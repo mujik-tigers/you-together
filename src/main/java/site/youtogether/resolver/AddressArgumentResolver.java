@@ -26,7 +26,7 @@ public class AddressArgumentResolver implements HandlerMethodArgumentResolver {
 		HttpServletRequest request = webRequest.getNativeRequest(HttpServletRequest.class);
 
 		assert request != null;
-		return request.getLocalAddr();
+		return request.getRemoteAddr();
 	}
 
 }
