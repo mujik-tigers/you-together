@@ -7,6 +7,7 @@ import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static site.youtogether.exception.ErrorType.*;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,7 +15,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
 
+import jakarta.servlet.http.Cookie;
 import site.youtogether.RestDocsSupport;
+import site.youtogether.exception.room.SingleRoomParticipationViolationException;
 import site.youtogether.room.dto.RoomCode;
 import site.youtogether.room.dto.RoomSettings;
 import site.youtogether.util.api.ResponseResult;
@@ -117,13 +120,48 @@ class RoomControllerTest extends RestDocsSupport {
 
 	@Test
 	@DisplayName("방 생성 실패: 다수의 방에 참가할 수 없습니다")
-	void createRoomFail_SingleRoomParticipantViolation() {
+	void createRoomFail_SingleRoomParticipantViolation() throws Exception {
 		// given
+		// Setting up session cookie and request data for creating a room
+		// This indicates that a session cookie is already present, implying participation in a room
+		Cookie sessionCookie = new Cookie(cookieProperties.getName(), "a85192c998454a1ea055");
+		RoomSettings roomSettings = RoomSettings.builder()
+			.title("재밌는 쇼츠 같이 보기")
+			.capacity(10)
+			.password(null)
+			.build();
 
-		// when
-
-		// then
-
+		// when / then
+		mockMvc.perform(post("/rooms")
+				.content(objectMapper.writeValueAsString(roomSettings))
+				.contentType(MediaType.APPLICATION_JSON)
+				.cookie(sessionCookie))
+			.andDo(print())
+			.andExpect(status().isBadRequest())
+			.andExpect(cookie().doesNotExist(cookieProperties.getName()))
+			.andExpect(jsonPath("$.code").value(SINGLE_ROOM_PARTICIPATION_VIOLATION.getStatus().value()))
+			.andExpect(jsonPath("$.status").value(SINGLE_ROOM_PARTICIPATION_VIOLATION.getStatus().getReasonPhrase()))
+			.andExpect(jsonPath("$.result").value(ResponseResult.EXCEPTION_OCCURRED.getDescription()))
+			.andExpect(jsonPath("$.data").isArray())
+			.andExpect(jsonPath("$.data[0].type").value(SingleRoomParticipationViolationException.class.getSimpleName()))
+			.andExpect(jsonPath("$.data[0].message").value(SINGLE_ROOM_PARTICIPATION_VIOLATION.getMessage()))
+			.andDo(document("create-room-fail-single-room-participant-violation",
+				preprocessRequest(prettyPrint()),
+				preprocessResponse(prettyPrint()),
+				requestFields(
+					fieldWithPath("title").type(JsonFieldType.STRING).description("제목"),
+					fieldWithPath("capacity").type(JsonFieldType.NUMBER).description("정원"),
+					fieldWithPath("password").type(JsonFieldType.STRING).description("비밀번호").optional()
+				),
+				responseFields(
+					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
+					fieldWithPath("status").type(JsonFieldType.STRING).description("상태"),
+					fieldWithPath("result").type(JsonFieldType.STRING).description("결과"),
+					fieldWithPath("data").type(JsonFieldType.ARRAY).description("응답 데이터"),
+					fieldWithPath("data[].type").type(JsonFieldType.STRING).description("오류 타입"),
+					fieldWithPath("data[].message").type(JsonFieldType.STRING).description("오류 메시지")
+				)
+			));
 	}
 
 }
