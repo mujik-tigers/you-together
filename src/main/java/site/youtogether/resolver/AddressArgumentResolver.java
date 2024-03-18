@@ -8,14 +8,13 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
 import jakarta.servlet.http.HttpServletRequest;
-import site.youtogether.util.AppConstants;
 
 @Component
-public class SessionCodeArgumentResolver implements HandlerMethodArgumentResolver {
+public class AddressArgumentResolver implements HandlerMethodArgumentResolver {
 
 	@Override
 	public boolean supportsParameter(MethodParameter parameter) {
-		boolean hasAddressAnnotation = parameter.hasParameterAnnotation(SessionCode.class);
+		boolean hasAddressAnnotation = parameter.hasParameterAnnotation(Address.class);
 		boolean isStringType = String.class.isAssignableFrom(parameter.getParameterType());
 
 		return hasAddressAnnotation && isStringType;
@@ -27,7 +26,7 @@ public class SessionCodeArgumentResolver implements HandlerMethodArgumentResolve
 		HttpServletRequest request = webRequest.getNativeRequest(HttpServletRequest.class);
 
 		assert request != null;
-		return request.getAttribute(AppConstants.SESSION_CODE);
+		return request.getRemoteAddr();
 	}
 
 }
