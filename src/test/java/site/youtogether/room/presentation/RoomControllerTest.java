@@ -30,8 +30,8 @@ class RoomControllerTest extends RestDocsSupport {
 		// given
 		// Setting up request data for creating a room
 		RoomSettings roomSettings = RoomSettings.builder()
-			.title("재밌는 쇼츠 같이 보기")
 			.capacity(10)
+			.title("재밌는 쇼츠 같이 보기")
 			.password(null)
 			.build();
 
@@ -63,8 +63,8 @@ class RoomControllerTest extends RestDocsSupport {
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
 				requestFields(
-					fieldWithPath("title").type(JsonFieldType.STRING).description("제목"),
 					fieldWithPath("capacity").type(JsonFieldType.NUMBER).description("정원"),
+					fieldWithPath("title").type(JsonFieldType.STRING).description("제목"),
 					fieldWithPath("password").type(JsonFieldType.STRING).description("비밀번호").optional()
 				),
 				responseFields(
@@ -83,8 +83,8 @@ class RoomControllerTest extends RestDocsSupport {
 		// given
 		// Setting up request data for creating a room
 		RoomSettings roomSettings = RoomSettings.builder()
-			.title(" ")
 			.capacity(11)
+			.title(" ")
 			.password("a1b2")
 			.build();
 
@@ -103,8 +103,8 @@ class RoomControllerTest extends RestDocsSupport {
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
 				requestFields(
-					fieldWithPath("title").type(JsonFieldType.STRING).description("제목"),
 					fieldWithPath("capacity").type(JsonFieldType.NUMBER).description("정원"),
+					fieldWithPath("title").type(JsonFieldType.STRING).description("제목"),
 					fieldWithPath("password").type(JsonFieldType.STRING).description("비밀번호").optional()
 				),
 				responseFields(
@@ -126,8 +126,8 @@ class RoomControllerTest extends RestDocsSupport {
 		// This indicates that a session cookie is already present, implying participation in a room
 		Cookie sessionCookie = new Cookie(cookieProperties.getName(), "a85192c998454a1ea055");
 		RoomSettings roomSettings = RoomSettings.builder()
-			.title("재밌는 쇼츠 같이 보기")
 			.capacity(10)
+			.title("재밌는 쇼츠 같이 보기")
 			.password(null)
 			.build();
 
@@ -149,8 +149,8 @@ class RoomControllerTest extends RestDocsSupport {
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
 				requestFields(
-					fieldWithPath("title").type(JsonFieldType.STRING).description("제목"),
 					fieldWithPath("capacity").type(JsonFieldType.NUMBER).description("정원"),
+					fieldWithPath("title").type(JsonFieldType.STRING).description("제목"),
 					fieldWithPath("password").type(JsonFieldType.STRING).description("비밀번호").optional()
 				),
 				responseFields(
