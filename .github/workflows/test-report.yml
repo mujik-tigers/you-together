@@ -32,6 +32,16 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Copy application.yml
+        run: |
+          mkdir ./src/main/resources
+          touch ./src/main/resources/application.yml
+          echo "${{ secrets.APPLICATION }}" > ./src/main/resources/application.yml
+          touch ./src/main/resources/application-test.yml
+          echo "${{ secrets.APPLICATION_TEST }}" > ./src/main/resources/application-test.yml
+          touch ./src/main/resources/application-release.yml
+          echo "${{ secrets.APPLICATION_RELEASE }}" > ./src/main/resources/application-release.yml
+
       - name: Cache Gradle packages
         uses: actions/cache@v3
         with:
