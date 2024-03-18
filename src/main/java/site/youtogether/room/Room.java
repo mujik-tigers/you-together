@@ -8,23 +8,26 @@ import java.util.Map;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
 
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import site.youtogether.user.User;
 import site.youtogether.util.RandomUtil;
 
 @RedisHash(value = "room")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 public class Room {
 
 	@Id
-	private final String code;
+	private String code;
 
-	private final int capacity;
-	private final String title;
-	private final String password;
-	private final String host;
-	private final Map<String, User> participants = new HashMap<>(10);
+	private int capacity;
+	private String title;
+	private String password;
+	private User host;
+	private Map<String, User> participants = new HashMap<>(10);
 
 	@Builder
 	public Room(String title, int capacity, String password, User host) {
@@ -32,7 +35,7 @@ public class Room {
 		this.capacity = capacity;
 		this.title = title;
 		this.password = password;
-		this.host = host.getSessionCode();
+		this.host = host;
 
 		participants.put(host.getSessionCode(), host);
 	}
