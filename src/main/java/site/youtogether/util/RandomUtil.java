@@ -11,25 +11,13 @@ import lombok.NoArgsConstructor;
 public final class RandomUtil {
 
 	/**
-	 * generate random room code
-	 * length is 10
+	 * generate random code
 	 * using a-z A-Z 0-9
 	 */
-	public static String generateRoomCode() {
+	public static String generateRandomCode(int length) {
 		String randomString = UUID.randomUUID().toString().replaceAll("-", "");
 
-		return randomString.substring(0, 10);
-	}
-
-	/**
-	 * generate random session code
-	 * length is 20
-	 * using a-z A-Z 0-9
-	 */
-	public static String generateSessionCode() {
-		String randomString = UUID.randomUUID().toString().replaceAll("-", "");
-
-		return randomString.substring(0, 20);
+		return randomString.substring(0, length);
 	}
 
 	/**

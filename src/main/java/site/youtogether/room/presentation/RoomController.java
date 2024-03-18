@@ -41,7 +41,7 @@ public class RoomController {
 		}
 
 		// Generate a new session code and set it as a cookie.
-		ResponseCookie cookie = ResponseCookie.from(cookieProperties.getName(), RandomUtil.generateSessionCode())
+		ResponseCookie cookie = ResponseCookie.from(cookieProperties.getName(), RandomUtil.generateRandomCode(SESSION_CODE_LENGTH))
 			.domain(cookieProperties.getDomain())
 			.path(cookieProperties.getPath())
 			.sameSite(cookieProperties.getSameSite())

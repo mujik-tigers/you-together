@@ -1,5 +1,7 @@
 package site.youtogether.room;
 
+import static site.youtogether.util.AppConstants.*;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,7 +28,7 @@ public class Room {
 
 	@Builder
 	public Room(String title, int capacity, String password, User host) {
-		this.code = RandomUtil.generateRoomCode();
+		this.code = RandomUtil.generateRandomCode(ROOM_CODE_LENGTH);
 		this.capacity = capacity;
 		this.title = title;
 		this.password = password;
