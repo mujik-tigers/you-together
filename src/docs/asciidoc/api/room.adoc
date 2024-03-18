@@ -14,6 +14,8 @@ include::{snippets}/create-room-success/request-fields.adoc[]
 include::{snippets}/create-room-success/http-response.adoc[]
 include::{snippets}/create-room-success/response-fields.adoc[]
 
+{nbsp}
+
 [[create-room-fail-room-setting-error]]
 === 방 생성 실패: 요청 데이터 오류가 발생했습니다
 
@@ -26,6 +28,8 @@ include::{snippets}/create-room-fail-room-setting-error/request-fields.adoc[]
 
 include::{snippets}/create-room-fail-room-setting-error/http-response.adoc[]
 include::{snippets}/create-room-fail-room-setting-error/response-fields.adoc[]
+
+{nbsp}
 
 [[create-room-fail-single-room-participant-violation]]
 === 방 생성 실패: 다수의 방에 참가할 수 없습니다

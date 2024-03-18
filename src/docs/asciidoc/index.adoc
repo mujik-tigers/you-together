@@ -9,5 +9,6 @@ endif::[]
 :toc: left
 :toclevels: 2
 :sectlinks:
+:docinfo: shared
 
 include::api/room.adoc[]
