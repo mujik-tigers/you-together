@@ -3,11 +3,9 @@ package site.youtogether.room.application;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
-import site.youtogether.exception.room.SingleRoomParticipationViolationException;
 import site.youtogether.room.Room;
 import site.youtogether.room.dto.RoomCode;
 import site.youtogether.room.dto.RoomSettings;
-import site.youtogether.room.infrastructure.RedisStorage;
 import site.youtogether.room.infrastructure.RoomStorage;
 import site.youtogether.user.Role;
 import site.youtogether.user.User;
@@ -18,19 +16,13 @@ import site.youtogether.util.RandomUtil;
 @RequiredArgsConstructor
 public class RoomService {
 
-	private final RedisStorage redisStorage;
 	private final RoomStorage roomStorage;
 	private final UserStorage userStorage;
 
-	public RoomCode create(String sessionCode, RoomSettings roomSettings) {
-		if (redisStorage.isParticipant(sessionCode)) {
-			throw new SingleRoomParticipationViolationException();
-		}
-
-		User user = userStorage.findById(sessionCode).orElseThrow();
+	public RoomCode create(String sessionCode, String address, RoomSettings roomSettings) {
 		User host = User.builder()
-			.sessionCode(user.getSessionCode())
-			.address(user.getAddress())
+			.sessionCode(sessionCode)
+			.address(address)
 			.nickname(RandomUtil.generateUserNickname())
 			.role(Role.HOST)
 			.build();
@@ -44,7 +36,6 @@ public class RoomService {
 
 		userStorage.save(host);
 		roomStorage.save(room);
-		redisStorage.addParticipant(sessionCode);
 
 		return new RoomCode(room);
 	}
