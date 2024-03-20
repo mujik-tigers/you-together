@@ -50,8 +50,8 @@ class RoomServiceTest extends IntegrationTestSupport {
 		RoomCode roomCode = roomService.create(sessionCode, address, roomSettings);
 
 		// then
-		Room room = roomStorage.findById(roomCode.getRoomCode()).orElseThrow();
-		User user = userStorage.findById(sessionCode).orElseThrow();
+		Room room = roomStorage.findById(roomCode.getRoomCode()).get();
+		User user = userStorage.findById(sessionCode).get();
 
 		assertThat(roomCode.getRoomCode()).hasSize(ROOM_CODE_LENGTH);
 		assertThat(roomCode.getRoomCode()).isEqualTo(room.getCode());
