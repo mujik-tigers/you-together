@@ -20,6 +20,12 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
 
+    services:
+      redis:
+        image: redis:latest
+        ports:
+          - 6380:6379
+          
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -29,6 +35,16 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+
+      - name: Copy application.yml
+        run: |
+          mkdir ./src/main/resources
+          touch ./src/main/resources/application.yml
+          echo "${{ secrets.APPLICATION }}" > ./src/main/resources/application.yml
+          touch ./src/main/resources/application-test.yml
+          echo "${{ secrets.APPLICATION_TEST }}" > ./src/main/resources/application-test.yml
+          touch ./src/main/resources/application-release.yml
+          echo "${{ secrets.APPLICATION_RELEASE }}" > ./src/main/resources/application-release.yml
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
