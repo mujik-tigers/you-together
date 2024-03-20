@@ -1,0 +1,14 @@
+ifndef::snippets[]
+:snippets: ../../build/generated-snippets
+endif::[]
+
+= YouTogether API Document
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:toclevels: 2
+:sectlinks:
+:docinfo: shared
+
+include::api/room.adoc[]
