@@ -1,32 +1,47 @@
 package site.youtogether.room;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import static site.youtogether.util.AppConstants.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import org.springframework.data.annotation.Id;
+import org.springframework.data.redis.core.RedisHash;
+
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import site.youtogether.user.User;
+import site.youtogether.util.RandomUtil;
 
+@RedisHash(value = "room")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 public class Room {
 
-	private static final int ROOM_ID_LENGTH = 8;
+	@Id
+	private String code;
 
-	private final String roomId;
-	private final String name;
-	private final int totalCapacity;
-	private final List<User> users = new ArrayList<>();
+	private int capacity;
+	private String title;
+	private String password;
+	private User host;
+	private Map<String, User> participants = new HashMap<>(10);
 
 	@Builder
-	private Room(String name, int totalCapacity) {
-		this.roomId = UUID.randomUUID().toString().substring(0, ROOM_ID_LENGTH);
-		this.name = name;
-		this.totalCapacity = totalCapacity;
+	public Room(String title, int capacity, String password, User host) {
+		this.code = RandomUtil.generateRandomCode(ROOM_CODE_LENGTH);
+		this.capacity = capacity;
+		this.title = title;
+		this.password = password;
+		this.host = host;
+
+		participants.put(host.getSessionCode(), host);
 	}
 
 	public void enter(User user) {
-		users.add(user);
+		participants.put(user.getSessionCode(), user);
 	}
 
 }

@@ -1,16 +1,28 @@
 package site.youtogether.user;
 
+import org.springframework.data.annotation.Id;
+import org.springframework.data.redis.core.RedisHash;
+
+import lombok.Builder;
 import lombok.Getter;
 
+@RedisHash(value = "user")
 @Getter
 public class User {
 
-	private final String ip;
-	private String name;
+	@Id
+	private final String sessionCode;
 
-	public User(String ip) {
-		this.ip = ip;
-		this.name = "황똥땡" + (int)(Math.random() * 1000);
+	private final String address;
+	private final String nickname;
+	private final Role role;
+
+	@Builder
+	public User(String sessionCode, String address, String nickname, Role role) {
+		this.sessionCode = sessionCode;
+		this.address = address;
+		this.nickname = nickname;
+		this.role = role;
 	}
 
 }
