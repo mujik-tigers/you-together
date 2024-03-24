@@ -27,7 +27,7 @@ public class Room {
 	private String title;
 	private String password;
 	private User host;
-	private Map<String, User> participants = new HashMap<>(10);
+	private Map<String, User> participants = new HashMap<>(MAXIMUM_ROOM_CAPACITY);
 
 	@Builder
 	public Room(String title, int capacity, String password, User host) {
@@ -38,6 +38,10 @@ public class Room {
 		this.host = host;
 
 		participants.put(host.getSessionCode(), host);
+	}
+
+	public User leave(String sessionCode) {
+		return participants.remove(sessionCode);
 	}
 
 }
