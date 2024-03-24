@@ -7,6 +7,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -59,6 +61,29 @@ public class RoomController {
 		// Return a response indicating successful room creation.
 		return ResponseEntity.status(HttpStatus.CREATED)
 			.body(ApiResponse.created(ResponseResult.ROOM_CREATION_SUCCESS, roomCode));
+	}
+
+	@DeleteMapping("/rooms/{roomCode}/users")
+	public ResponseEntity<ApiResponse<Void>> leaveRoom(@CookieValue(value = SESSION_COOKIE_NAME) Cookie sessionCookie,
+		@PathVariable String roomCode, HttpServletResponse response) {
+		// Leave the room and delete the session.
+		roomService.leave(roomCode, sessionCookie.getValue());
+
+		// Expire the cookie.
+		ResponseCookie cookie = ResponseCookie.from(cookieProperties.getName(), sessionCookie.getValue())
+			.domain(cookieProperties.getDomain())
+			.path(cookieProperties.getPath())
+			.sameSite(cookieProperties.getSameSite())
+			.maxAge(0)
+			.httpOnly(true)
+			.secure(true)
+			.build();
+
+		// Add the cookie to the response header.
+		response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
+		return ResponseEntity.ok()
+			.body(ApiResponse.ok(ResponseResult.ROOM_LEAVE_SUCCESS, null));
 	}
 
 }
