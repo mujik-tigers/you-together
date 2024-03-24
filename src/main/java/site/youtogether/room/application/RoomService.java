@@ -3,6 +3,8 @@ package site.youtogether.room.application;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
+import site.youtogether.exception.room.RoomNotFoundException;
+import site.youtogether.exception.room.UserNotInRoomException;
 import site.youtogether.room.Room;
 import site.youtogether.room.dto.RoomCode;
 import site.youtogether.room.dto.RoomSettings;
@@ -38,6 +40,18 @@ public class RoomService {
 		roomStorage.save(room);
 
 		return new RoomCode(room);
+	}
+
+	public void leave(String roomCode, String sessionCode) {
+		Room room = roomStorage.findById(roomCode).orElseThrow(RoomNotFoundException::new);
+		User leftUser = room.leave(sessionCode);
+
+		if (leftUser == null) {
+			throw new UserNotInRoomException();
+		}
+
+		roomStorage.save(room);
+		userStorage.deleteById(sessionCode);
 	}
 
 }
