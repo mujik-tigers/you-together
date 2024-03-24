@@ -41,6 +41,7 @@ public class Room {
 	}
 
 	public User leave(String sessionCode) {
+		// TODO: 1. 나가고자 하는 사용자가 HOST인 경우 / 2. 나가면 참가자가 0명이 되는 경우
 		return participants.remove(sessionCode);
 	}
 
