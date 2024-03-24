@@ -1,25 +1,20 @@
 package site.youtogether.room.presentation;
 
-<<<<<<< HEAD
-import java.util.List;
-
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-=======
 import static site.youtogether.util.AppConstants.*;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
->>>>>>> dev
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +23,7 @@ import site.youtogether.exception.room.SingleRoomParticipationViolationException
 import site.youtogether.resolver.Address;
 import site.youtogether.room.application.RoomService;
 import site.youtogether.room.dto.RoomCode;
+import site.youtogether.room.dto.RoomList;
 import site.youtogether.room.dto.RoomSettings;
 import site.youtogether.util.RandomUtil;
 import site.youtogether.util.api.ApiResponse;
@@ -69,14 +65,19 @@ public class RoomController {
 			.body(ApiResponse.created(ResponseResult.ROOM_CREATION_SUCCESS, roomCode));
 	}
 
-	@GetMapping("/rooms/{roomId}")
-	public String enterRoom(@PathVariable String roomId, HttpServletRequest request) {
-		roomService.enter(roomId, request.getRemoteAddr());
+	// @GetMapping("/rooms/{roomId}")
+	// public String enterRoom(@PathVariable String roomId, HttpServletRequest request) {
+	// 	roomService.enter(roomId, request.getRemoteAddr());
+	//
+	// 	return "ok";
+	// }
 
-		return "ok";
+	@GetMapping("/rooms")
+	public ResponseEntity<ApiResponse<RoomList>> fetchAllRooms(@PageableDefault Pageable pageable) {
+		RoomList roomList = roomService.fetchAll(pageable);
+
+		return ResponseEntity.status(HttpStatus.OK)
+			.body(ApiResponse.ok(ResponseResult.ROOM_LIST_FETCH_SUCCESS, roomList));
 	}
-
-	// TODO: 방 목록 반환
-
 
 }

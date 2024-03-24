@@ -28,12 +28,21 @@ repositories {
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    // redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+    // stomp
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
+    // lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
+
+    // restDocs
     asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor'
     testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
+
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 

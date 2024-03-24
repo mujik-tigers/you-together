@@ -43,3 +43,17 @@ include::{snippets}/create-room-fail-single-room-participant-violation/request-f
 
 include::{snippets}/create-room-fail-single-room-participant-violation/http-response.adoc[]
 include::{snippets}/create-room-fail-single-room-participant-violation/response-fields.adoc[]
+
+{nbsp}
+
+[[fetch-room-success]]
+=== 방 목록 조회 성공: 페이징
+
+==== HTTP Request
+
+include::{snippets}/fetch-room-success/http-request.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/fetch-room-success/http-response.adoc[]
+include::{snippets}/fetch-room-success/response-fields.adoc[]

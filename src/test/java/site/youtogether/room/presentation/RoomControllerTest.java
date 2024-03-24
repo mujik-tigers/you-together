@@ -9,8 +9,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static site.youtogether.exception.ErrorType.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
@@ -19,6 +25,8 @@ import jakarta.servlet.http.Cookie;
 import site.youtogether.RestDocsSupport;
 import site.youtogether.exception.room.SingleRoomParticipationViolationException;
 import site.youtogether.room.dto.RoomCode;
+import site.youtogether.room.dto.RoomInfo;
+import site.youtogether.room.dto.RoomList;
 import site.youtogether.room.dto.RoomSettings;
 import site.youtogether.util.api.ResponseResult;
 
@@ -162,6 +170,54 @@ class RoomControllerTest extends RestDocsSupport {
 					fieldWithPath("data[].message").type(JsonFieldType.STRING).description("오류 메시지")
 				)
 			));
+	}
+
+	@Test
+	@DisplayName("방 목록 조회 성공: 페이징")
+	void fetchRoomList() throws Exception {
+		// given
+		RoomList roomList = generateRoomList(0);
+		given(roomService.fetchAll(any(Pageable.class)))
+			.willReturn(roomList);
+
+		// when // then
+		mockMvc.perform(get("/rooms")
+				.queryParam("page", "0"))
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
+			.andExpect(jsonPath("$.status").value(HttpStatus.OK.getReasonPhrase()))
+			.andExpect(jsonPath("$.result").value(ResponseResult.ROOM_LIST_FETCH_SUCCESS.getDescription()))
+			.andExpect(jsonPath("$.data.last").value(roomList.isLast()))
+			.andExpect(jsonPath("$.data.pageNumber").value(roomList.getPageNumber()))
+			.andExpect(jsonPath("$.data.rooms.length()").value(roomList.getRooms().size()))
+			.andDo(document("fetch-room-success",
+				preprocessRequest(prettyPrint()),
+				preprocessResponse(prettyPrint()),
+				responseFields(
+					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
+					fieldWithPath("status").type(JsonFieldType.STRING).description("상태"),
+					fieldWithPath("result").type(JsonFieldType.STRING).description("결과"),
+					fieldWithPath("data").type(JsonFieldType.OBJECT).description("응답 데이터"),
+					fieldWithPath("data.last").type(JsonFieldType.BOOLEAN).description("마지막 페이지 여부"),
+					fieldWithPath("data.pageNumber").type(JsonFieldType.NUMBER).description("현재 페이지 번호"),
+					fieldWithPath("data.rooms").type(JsonFieldType.ARRAY).description("방 목록"),
+					fieldWithPath("data.rooms[].code").type(JsonFieldType.STRING).description("방 코드"),
+					fieldWithPath("data.rooms[].capacity").type(JsonFieldType.NUMBER).description("방 수용가능 인원"),
+					fieldWithPath("data.rooms[].title").type(JsonFieldType.STRING).description("방 이름"),
+					fieldWithPath("data.rooms[].currentParticipantsCount").type(JsonFieldType.NUMBER).description("방 현재 참가 인원"),
+					fieldWithPath("data.rooms[].passwordExist").type(JsonFieldType.BOOLEAN).description("패스워드 존재 여부")
+				)
+			));
+	}
+
+	private RoomList generateRoomList(int pageNumber) {
+		List<RoomInfo> rooms = new ArrayList<>();
+		for (int i = 0; i < 10; i++) {
+			rooms.add(new RoomInfo("ghadslkhglka" + i, 5, "황똥땡의 방" + i, 1, false));
+		}
+		SliceImpl<RoomInfo> roomSlice = new SliceImpl<>(rooms, PageRequest.of(pageNumber, 10), true);
+		return new RoomList(roomSlice);
 	}
 
 }

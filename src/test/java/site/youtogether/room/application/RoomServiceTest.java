@@ -3,14 +3,19 @@ package site.youtogether.room.application;
 import static org.assertj.core.api.Assertions.*;
 import static site.youtogether.util.AppConstants.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 
 import site.youtogether.IntegrationTestSupport;
 import site.youtogether.room.Room;
 import site.youtogether.room.dto.RoomCode;
+import site.youtogether.room.dto.RoomList;
 import site.youtogether.room.dto.RoomSettings;
 import site.youtogether.room.infrastructure.RoomStorage;
 import site.youtogether.user.Role;
@@ -64,6 +69,48 @@ class RoomServiceTest extends IntegrationTestSupport {
 		assertThat(user.getAddress()).isEqualTo(address);
 		assertThat(user.getNickname()).isNotBlank();
 		assertThat(user.getRole()).isEqualTo(Role.HOST);
+	}
+
+	@Test
+	@DisplayName("방 목록을 슬라이스로 가져온다")
+	void fetchAllRooms() throws Exception {
+		// given
+		List<Room> rooms = generateRooms(25);
+		roomStorage.saveAll(rooms);
+
+		PageRequest pageRequest = PageRequest.of(0, 10);
+
+		// when
+		RoomList roomList = roomService.fetchAll(pageRequest);
+
+		// then
+		assertThat(roomList.getPageNumber()).isEqualTo(0);
+		assertThat(roomList.isLast()).isFalse();
+		assertThat(roomList.getRooms())
+			.extracting("code")
+			.containsExactly(
+				rooms.get(0).getCode(), rooms.get(1).getCode(), rooms.get(2).getCode(), rooms.get(3).getCode(), rooms.get(4).getCode(),
+				rooms.get(5).getCode(), rooms.get(6).getCode(), rooms.get(7).getCode(), rooms.get(8).getCode(), rooms.get(9).getCode()
+			);
+	}
+	
+	private List<Room> generateRooms(int count) {
+		List<Room> rooms = new ArrayList<>();
+		for (int i = 0; i < count; i++) {
+			User user = User.builder()
+				.sessionCode("adskljf" + i)
+				.build();
+
+			Room room = Room.builder()
+				.host(user)
+				.title(i + "번 방")
+				.capacity(10)
+				.build();
+
+			rooms.add(room);
+		}
+
+		return rooms;
 	}
 
 }
