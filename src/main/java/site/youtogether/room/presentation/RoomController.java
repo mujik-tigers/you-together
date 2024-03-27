@@ -40,7 +40,7 @@ public class RoomController {
 	public ResponseEntity<ApiResponse<RoomCode>> createRoom(@CookieValue(value = SESSION_COOKIE_NAME, required = false) Cookie sessionCookie,
 		@Address String address, @Valid @RequestBody RoomSettings roomSettings, HttpServletResponse response) {
 		// Check if a session cookie already exists.
-		if (sessionCookie != null && userService.exists(sessionCookie.getValue())) {
+		if (sessionCookie != null && userService.isSessionValid(sessionCookie.getValue())) {
 			throw new SingleRoomParticipationViolationException();
 		}
 
