@@ -13,9 +13,12 @@ import site.youtogether.config.PropertiesConfig;
 import site.youtogether.config.property.CookieProperties;
 import site.youtogether.room.application.RoomService;
 import site.youtogether.room.presentation.RoomController;
+import site.youtogether.user.infrastructure.UserStorage;
+import site.youtogether.user.presentation.UserController;
 
 @WebMvcTest(controllers = {
-	RoomController.class
+	RoomController.class,
+	UserController.class
 })
 @AutoConfigureRestDocs
 @Import(PropertiesConfig.class)
@@ -32,5 +35,8 @@ public abstract class RestDocsSupport {
 
 	@MockBean
 	protected RoomService roomService;
+
+	@MockBean
+	protected UserStorage userStorage;
 
 }

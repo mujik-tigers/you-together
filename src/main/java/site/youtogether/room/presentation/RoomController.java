@@ -10,6 +10,7 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,6 +26,7 @@ import site.youtogether.room.application.RoomService;
 import site.youtogether.room.dto.RoomCode;
 import site.youtogether.room.dto.RoomList;
 import site.youtogether.room.dto.RoomSettings;
+import site.youtogether.user.infrastructure.UserStorage;
 import site.youtogether.util.RandomUtil;
 import site.youtogether.util.api.ApiResponse;
 import site.youtogether.util.api.ResponseResult;
@@ -35,6 +37,7 @@ public class RoomController {
 
 	private final CookieProperties cookieProperties;
 	private final RoomService roomService;
+	private final UserStorage userStorage;
 
 	@PostMapping("/rooms")
 	public ResponseEntity<ApiResponse<RoomCode>> createRoom(@CookieValue(value = SESSION_COOKIE_NAME, required = false) Cookie sessionCookie,
@@ -45,14 +48,7 @@ public class RoomController {
 		}
 
 		// Generate a new session code and set it as a cookie.
-		ResponseCookie cookie = ResponseCookie.from(cookieProperties.getName(), RandomUtil.generateRandomCode(SESSION_CODE_LENGTH))
-			.domain(cookieProperties.getDomain())
-			.path(cookieProperties.getPath())
-			.sameSite(cookieProperties.getSameSite())
-			.maxAge(cookieProperties.getExpiry())
-			.httpOnly(true)
-			.secure(true)
-			.build();
+		ResponseCookie cookie = generateCookie();
 
 		// Create a new room with the generated session code.
 		RoomCode roomCode = roomService.create(cookie.getValue(), address, roomSettings);
@@ -65,12 +61,23 @@ public class RoomController {
 			.body(ApiResponse.created(ResponseResult.ROOM_CREATION_SUCCESS, roomCode));
 	}
 
-	// @GetMapping("/rooms/{roomId}")
-	// public String enterRoom(@PathVariable String roomId, HttpServletRequest request) {
-	// 	roomService.enter(roomId, request.getRemoteAddr());
-	//
-	// 	return "ok";
-	// }
+	@GetMapping("/rooms/{roomCode}")
+	public ResponseEntity<ApiResponse<RoomCode>> enterRoom(@CookieValue(value = SESSION_COOKIE_NAME, required = false) String sessionCode,
+		@PathVariable String roomCode, @Address String address, HttpServletResponse response) {
+
+		if (sessionCode == null) {
+			ResponseCookie cookie = generateCookie();
+			response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+			sessionCode = cookie.getValue();
+		}
+
+		if (userStorage.existsById(sessionCode)) {
+			throw new SingleRoomParticipationViolationException();
+		}
+
+		RoomCode enterRoomCode = roomService.enter(roomCode, sessionCode, address);
+		return ResponseEntity.ok(ApiResponse.ok(ResponseResult.ROOM_ENTER_SUCCESS, enterRoomCode));
+	}
 
 	@GetMapping("/rooms")
 	public ResponseEntity<ApiResponse<RoomList>> fetchAllRooms(@PageableDefault Pageable pageable) {
@@ -78,6 +85,17 @@ public class RoomController {
 
 		return ResponseEntity.status(HttpStatus.OK)
 			.body(ApiResponse.ok(ResponseResult.ROOM_LIST_FETCH_SUCCESS, roomList));
+	}
+
+	private ResponseCookie generateCookie() {
+		return ResponseCookie.from(cookieProperties.getName(), RandomUtil.generateRandomCode(SESSION_CODE_LENGTH))
+			.domain(cookieProperties.getDomain())
+			.path(cookieProperties.getPath())
+			.sameSite(cookieProperties.getSameSite())
+			.maxAge(cookieProperties.getExpiry())
+			.httpOnly(true)
+			.secure(true)
+			.build();
 	}
 
 }

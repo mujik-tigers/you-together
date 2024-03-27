@@ -5,6 +5,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
+import site.youtogether.exception.room.RoomNoExistenceException;
 import site.youtogether.room.Room;
 import site.youtogether.room.dto.RoomCode;
 import site.youtogether.room.dto.RoomInfo;
@@ -44,10 +45,23 @@ public class RoomService {
 		return new RoomCode(room);
 	}
 
-	// public void enter(String roomId, String ip) {
-	// 	User user = new User(ip);
-	// 	roomRepository.enter(roomId, user);
-	// }
+	public RoomCode enter(String roomCode, String sessionCode, String address) {    // TODO: 이 부분 하나의 트랜잭션 처리 해줘야 할듯, ex) lock
+		Room room = roomStorage.findById(roomCode)
+			.orElseThrow(RoomNoExistenceException::new);
+
+		User user = User.builder()
+			.sessionCode(sessionCode)
+			.address(address)
+			.nickname(RandomUtil.generateUserNickname())
+			.role(Role.GUEST)
+			.build();
+		userStorage.save(user);
+
+		room.enter(user);
+		roomStorage.save(room);
+
+		return new RoomCode(room);
+	}
 
 	public RoomList fetchAll(Pageable pageable) {
 		Slice<RoomInfo> roomInfoSlice = roomStorage.findAll(pageable)

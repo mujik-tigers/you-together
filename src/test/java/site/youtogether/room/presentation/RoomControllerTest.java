@@ -211,6 +211,69 @@ class RoomControllerTest extends RestDocsSupport {
 			));
 	}
 
+	@Test
+	@DisplayName("방 입장 성공")
+	void enterRoom() throws Exception {
+		// given
+		String roomCode = "asdfkllk";
+		given(roomService.enter(anyString(), anyString(), anyString()))
+			.willReturn(new RoomCode(roomCode));
+
+		// when // then
+		mockMvc.perform(get("/rooms/{roomCode}", roomCode))
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
+			.andExpect(jsonPath("$.status").value(HttpStatus.OK.getReasonPhrase()))
+			.andExpect(jsonPath("$.result").value(ResponseResult.ROOM_ENTER_SUCCESS.getDescription()))
+			.andExpect(jsonPath("$.data.roomCode").value(roomCode))
+			.andDo(document("/enter-room-success",
+				preprocessRequest(prettyPrint()),
+				preprocessResponse(prettyPrint()),
+				responseFields(
+					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
+					fieldWithPath("status").type(JsonFieldType.STRING).description("상태"),
+					fieldWithPath("result").type(JsonFieldType.STRING).description("결과"),
+					fieldWithPath("data").type(JsonFieldType.OBJECT).description("응답 데이터"),
+					fieldWithPath("data.roomCode").type(JsonFieldType.STRING).description("입장한 방 코드")
+				)
+			));
+	}
+
+	@Test
+	@DisplayName("방 입장 실패: 다수의 방에 참가할 수 없습니다")
+	void enterRoomFail() throws Exception {
+		// given
+		String roomCode = "asdfkllk";
+		given(userStorage.existsById(anyString()))
+			.willThrow(new SingleRoomParticipationViolationException());
+		Cookie sessionCookie = new Cookie(cookieProperties.getName(), "a85192c998454a1ea055");
+
+		// when // then
+		mockMvc.perform(get("/rooms/{roomCode}", roomCode)
+				.cookie(sessionCookie))
+			.andDo(print())
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
+			.andExpect(jsonPath("$.status").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
+			.andExpect(jsonPath("$.result").value(ResponseResult.EXCEPTION_OCCURRED.getDescription()))
+			.andExpect(jsonPath("$.data").isArray())
+			.andExpect(jsonPath("$.data[0].type").value(SingleRoomParticipationViolationException.class.getSimpleName()))
+			.andExpect(jsonPath("$.data[0].message").value(SINGLE_ROOM_PARTICIPATION_VIOLATION.getMessage()))
+			.andDo(document("/enter-room-fail",
+				preprocessRequest(prettyPrint()),
+				preprocessResponse(prettyPrint()),
+				responseFields(
+					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
+					fieldWithPath("status").type(JsonFieldType.STRING).description("상태"),
+					fieldWithPath("result").type(JsonFieldType.STRING).description("결과"),
+					fieldWithPath("data").type(JsonFieldType.ARRAY).description("응답 데이터"),
+					fieldWithPath("data[].type").type(JsonFieldType.STRING).description("오류 타입"),
+					fieldWithPath("data[].message").type(JsonFieldType.STRING).description("오류 메시지")
+				)
+			));
+	}
+
 	private RoomList generateRoomList(int pageNumber) {
 		List<RoomInfo> rooms = new ArrayList<>();
 		for (int i = 0; i < 10; i++) {

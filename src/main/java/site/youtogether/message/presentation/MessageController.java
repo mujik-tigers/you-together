@@ -1,25 +1,25 @@
 package site.youtogether.message.presentation;
 
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
-import site.youtogether.message.Message;
+import site.youtogether.message.ChatMessage;
 import site.youtogether.message.MessageType;
+import site.youtogether.message.application.RedisPublisher;
 
 @RestController
 @RequiredArgsConstructor
 public class MessageController {
 
-	private final SimpMessageSendingOperations messagingTemplate;
+	private final RedisPublisher redisPublisher;
 
 	@MessageMapping("/chat/message")
-	public void handle(Message message) {
-		if (message.getMessageType().equals(MessageType.ENTER)) {
-			message = new Message(message.getRoomId(), "[알림] ", message.getUsername() + "님이 입장하셨습니다.", MessageType.ENTER);
+	public void handle(ChatMessage chatMessage) {
+		if (chatMessage.getMessageType().equals(MessageType.ENTER)) {
+			chatMessage = new ChatMessage(chatMessage.getRoomId(), "[알림] ", chatMessage.getUsername() + "님이 입장하셨습니다.", MessageType.ENTER);
 		}
-		messagingTemplate.convertAndSend("/sub/chat/room/" + message.getRoomId(), message);
+		redisPublisher.publishMessage(chatMessage);
 	}
 
 }

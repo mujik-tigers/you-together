@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 
 import site.youtogether.IntegrationTestSupport;
+import site.youtogether.exception.room.RoomNoExistenceException;
 import site.youtogether.room.Room;
 import site.youtogether.room.dto.RoomCode;
 import site.youtogether.room.dto.RoomList;
@@ -93,7 +94,37 @@ class RoomServiceTest extends IntegrationTestSupport {
 				rooms.get(5).getCode(), rooms.get(6).getCode(), rooms.get(7).getCode(), rooms.get(8).getCode(), rooms.get(9).getCode()
 			);
 	}
-	
+
+	@Test
+	@DisplayName("방에 입장하여, 방 정보를 가져온다")
+	void enterRoom() throws Exception {
+		// given
+		Room room = generateRooms(1).get(0);
+		roomStorage.save(room);
+		String userSessionCode = "dasflk";
+		String userIp = "127.0.0.1";
+
+		// when
+		RoomCode enterRoomCode = roomService.enter(room.getCode(), userSessionCode, userIp);
+
+		// then
+		assertThat(enterRoomCode.getRoomCode()).isEqualTo(room.getCode());
+
+		Room savedRoom = roomStorage.findById(enterRoomCode.getRoomCode()).get();
+		User enterUser = savedRoom.getParticipants().get(userSessionCode);
+		assertThat(enterUser.getAddress()).isEqualTo(userIp);
+		assertThat(enterUser.getRole()).isEqualTo(Role.GUEST);
+		assertThat(savedRoom.getParticipants().size()).isEqualTo(2);
+	}
+
+	@Test
+	@DisplayName("입장하려는 방이 존재하지 않으면 예외가 발생한다")
+	void enterRoomFail() throws Exception {
+		// when // then
+		assertThatThrownBy(() -> roomService.enter("asdflkj", "adsjlk", "127.0.0.1"))
+			.isInstanceOf(RoomNoExistenceException.class);
+	}
+
 	private List<Room> generateRooms(int count) {
 		List<Room> rooms = new ArrayList<>();
 		for (int i = 0; i < count; i++) {

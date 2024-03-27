@@ -1,0 +1,29 @@
+[[User-API]]
+== User API
+
+[[fetch-user-nickname-success]]
+=== 유저 닉네임 가져오기 성공
+
+==== HTTP Request
+
+include::{snippets}/fetch-user-nickname-success/http-request.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/fetch-user-nickname-success/http-response.adoc[]
+include::{snippets}/fetch-user-nickname-success/response-fields.adoc[]
+
+{nbsp}
+
+[[fetch-user-nickname-fail]]
+=== 유저 닉네임 가져오기 실패
+
+==== HTTP Request
+
+include::{snippets}/fetch-user-nickname-fail/http-request.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/fetch-user-nickname-fail/http-response.adoc[]
+include::{snippets}/fetch-user-nickname-fail/response-fields.adoc[]
+

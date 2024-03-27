@@ -1,0 +1,34 @@
+package site.youtogether.user.presentation;
+
+import static site.youtogether.util.AppConstants.*;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import jakarta.servlet.http.Cookie;
+import lombok.RequiredArgsConstructor;
+import site.youtogether.exception.user.UserNoExistenceException;
+import site.youtogether.user.dto.UserNickname;
+import site.youtogether.user.infrastructure.UserStorage;
+import site.youtogether.util.api.ApiResponse;
+import site.youtogether.util.api.ResponseResult;
+
+@RestController
+@RequiredArgsConstructor
+public class UserController {
+
+	private final UserStorage userStorage;
+
+	@GetMapping("/user/nickname")
+	public ResponseEntity<ApiResponse<UserNickname>> fetchUsername(@CookieValue(value = SESSION_COOKIE_NAME) Cookie sessionCookie) {
+		String sessionCode = sessionCookie.getValue();
+		UserNickname userNickname = userStorage.findById(sessionCode)
+			.map(UserNickname::new)
+			.orElseThrow(UserNoExistenceException::new);
+
+		return ResponseEntity.ok(ApiResponse.ok(ResponseResult.USER_NICKNAME_FETCH_SUCCESS, userNickname));
+	}
+
+}
