@@ -23,6 +23,7 @@ import site.youtogether.resolver.Address;
 import site.youtogether.room.application.RoomService;
 import site.youtogether.room.dto.RoomCode;
 import site.youtogether.room.dto.RoomSettings;
+import site.youtogether.user.application.UserService;
 import site.youtogether.util.RandomUtil;
 import site.youtogether.util.api.ApiResponse;
 import site.youtogether.util.api.ResponseResult;
@@ -33,12 +34,13 @@ public class RoomController {
 
 	private final CookieProperties cookieProperties;
 	private final RoomService roomService;
+	private final UserService userService;
 
 	@PostMapping("/rooms")
 	public ResponseEntity<ApiResponse<RoomCode>> createRoom(@CookieValue(value = SESSION_COOKIE_NAME, required = false) Cookie sessionCookie,
 		@Address String address, @Valid @RequestBody RoomSettings roomSettings, HttpServletResponse response) {
 		// Check if a session cookie already exists.
-		if (sessionCookie != null) {
+		if (sessionCookie != null && userService.exists(sessionCookie.getValue())) {
 			throw new SingleRoomParticipationViolationException();
 		}
 
