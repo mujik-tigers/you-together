@@ -131,6 +131,10 @@ class RoomControllerTest extends RestDocsSupport {
 			.password(null)
 			.build();
 
+		// Setting the session as already existing
+		given(userService.isSessionValid(anyString()))
+			.willReturn(true);
+
 		// when / then
 		mockMvc.perform(post("/rooms")
 				.content(objectMapper.writeValueAsString(roomSettings))
