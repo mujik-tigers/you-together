@@ -12,7 +12,10 @@ public enum ErrorType {
 	ROOM_NO_EXISTENCE(HttpStatus.NOT_FOUND, "방이 존재하지 않습니다"),
 
 	// User
-	USER_NO_EXISTENCE(HttpStatus.NOT_FOUND, "유저가 존재하지 않습니다");
+	USER_NO_EXISTENCE(HttpStatus.NOT_FOUND, "유저가 존재하지 않습니다"),
+
+	// Cookie
+	SESSION_COOKIE_NO_EXISTENCE(HttpStatus.NOT_FOUND, "세션 쿠키가 존재하지 않습니다");
 
 	private final HttpStatus status;
 	private final String message;
