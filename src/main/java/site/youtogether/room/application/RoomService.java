@@ -1,10 +1,13 @@
 package site.youtogether.room.application;
 
+import java.util.Objects;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
+import site.youtogether.exception.ErrorType;
 import site.youtogether.exception.room.RoomNoExistenceException;
 import site.youtogether.room.Room;
 import site.youtogether.room.dto.RoomCode;
@@ -68,6 +71,15 @@ public class RoomService {
 			.map(RoomInfo::new);
 
 		return new RoomList(roomInfoSlice);
+	}
+
+	public void leave(String roomCode, String sessionCode) {        // TODO: 마찬가지로 트랜잭션 필요
+		Room room = roomStorage.findById(roomCode)
+			.orElseThrow(RoomNoExistenceException::new);
+
+		Objects.requireNonNull(room.getParticipants().remove(sessionCode), ErrorType.USER_NO_EXISTENCE.getMessage());
+
+		roomStorage.save(room);
 	}
 
 }

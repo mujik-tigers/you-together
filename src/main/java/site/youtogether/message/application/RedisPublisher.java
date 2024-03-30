@@ -14,16 +14,21 @@ import site.youtogether.message.ChatMessage;
 @RequiredArgsConstructor
 public class RedisPublisher {
 
-	private final ChannelTopic channelTopic;
+	private final ChannelTopic chatChannelTopic;
+	private final ChannelTopic participantChannelTopic;
 	private final RedisTemplate<String, String> redisTemplate;
 	private final ObjectMapper objectMapper;
 
 	public void publishMessage(ChatMessage chatMessage) {
 		try {
-			redisTemplate.convertAndSend(channelTopic.getTopic(), objectMapper.writeValueAsString(chatMessage));
+			redisTemplate.convertAndSend(chatChannelTopic.getTopic(), objectMapper.writeValueAsString(chatMessage));
 		} catch (JsonProcessingException e) {
 			throw new RuntimeException(e);
 		}
 	}
-	
+
+	public void publishRoomMemberInfo(String roomId) {
+		redisTemplate.convertAndSend(participantChannelTopic.getTopic(), roomId);
+	}
+
 }

@@ -36,12 +36,13 @@ public class StompHandshakeInterceptor implements HandshakeInterceptor {
 			.map(cookie -> cookie.substring(cookie.indexOf("=") + 1))
 			.findAny()
 			.orElseThrow(SessionCookieNoExistenceException::new);
+		attributes.put(SESSION_CODE, sessionCode);
 
 		String userNickname = userStorage.findById(sessionCode)
 			.map(User::getNickname)
 			.orElseThrow(UserNoExistenceException::new);
-
 		attributes.put(STOMP_SESSION_NICKNAME, userNickname);
+
 		return true;
 	}
 

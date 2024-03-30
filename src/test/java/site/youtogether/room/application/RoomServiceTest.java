@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 
 import site.youtogether.IntegrationTestSupport;
+import site.youtogether.exception.ErrorType;
 import site.youtogether.exception.room.RoomNoExistenceException;
 import site.youtogether.room.Room;
 import site.youtogether.room.dto.RoomCode;
@@ -123,6 +124,49 @@ class RoomServiceTest extends IntegrationTestSupport {
 		// when // then
 		assertThatThrownBy(() -> roomService.enter("asdflkj", "adsjlk", "127.0.0.1"))
 			.isInstanceOf(RoomNoExistenceException.class);
+	}
+
+	@Test
+	@DisplayName("방 안에 있는 유저는 방을 떠날 수 있다")
+	void leaveRoom() throws Exception {
+		// given
+		Room room = generateRooms(1).get(0);
+		User guest = User.builder()
+			.sessionCode("dafjlkasdlkfj")
+			.nickname("방 참가자")
+			.address("127.0.0.1")
+			.role(Role.GUEST)
+			.build();
+		room.getParticipants().put(guest.getSessionCode(), guest);
+		roomStorage.save(room);
+
+		// when
+		roomService.leave(room.getCode(), guest.getSessionCode());
+
+		// then
+		Room savedRoom = roomStorage.findById(room.getCode()).get();
+		assertThat(savedRoom.getParticipants().size()).isEqualTo(1);
+		assertThat(savedRoom.getParticipants()).doesNotContainKey(guest.getSessionCode());
+	}
+
+	@Test
+	@DisplayName("방 안에 있지 않은 유저를 방 안에서 제거할 수 없다")
+	void leaveRoomFail() throws Exception {
+		// given
+		Room room = generateRooms(1).get(0);
+		roomStorage.save(room);
+
+		User user = User.builder()
+			.sessionCode("dafjlkasdlkfj")
+			.nickname("방 참가자")
+			.address("127.0.0.1")
+			.role(Role.GUEST)
+			.build();
+
+		// when // then
+		assertThatThrownBy(() -> roomService.leave(room.getCode(), user.getSessionCode()))
+			.isInstanceOf(NullPointerException.class)
+			.hasMessage(ErrorType.USER_NO_EXISTENCE.getMessage());
 	}
 
 	private List<Room> generateRooms(int count) {

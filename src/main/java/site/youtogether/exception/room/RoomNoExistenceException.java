@@ -6,7 +6,7 @@ import site.youtogether.exception.ErrorType;
 public class RoomNoExistenceException extends CustomException {
 
 	public RoomNoExistenceException() {
-		super(ErrorType.USER_NO_EXISTENCE);
+		super(ErrorType.ROOM_NO_EXISTENCE);
 	}
 
 }
