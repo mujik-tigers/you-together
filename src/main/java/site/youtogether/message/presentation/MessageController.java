@@ -5,8 +5,11 @@ import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
+import site.youtogether.exception.user.UserNoExistenceException;
 import site.youtogether.message.ChatMessage;
 import site.youtogether.message.application.RedisPublisher;
+import site.youtogether.user.User;
+import site.youtogether.user.infrastructure.UserStorage;
 import site.youtogether.util.AppConstants;
 
 @RestController
@@ -14,12 +17,21 @@ import site.youtogether.util.AppConstants;
 public class MessageController {
 
 	private final RedisPublisher redisPublisher;
+	private final UserStorage userStorage;
 
 	@MessageMapping("/chat/message")
 	public void handle(ChatMessage chatMessage, SimpMessageHeaderAccessor headerAccessor) {
-		String nickname = (String)headerAccessor.getSessionAttributes().get(AppConstants.STOMP_SESSION_NICKNAME);
-		chatMessage.setUsername(nickname);
+		String sessionCode = (String)headerAccessor.getSessionAttributes().get(AppConstants.SESSION_CODE);
+		String username = getUserNickname(sessionCode);
+		chatMessage.setUsername(username);
+
 		redisPublisher.publishMessage(chatMessage);
+	}
+
+	private String getUserNickname(String sessionCode) {
+		return userStorage.findById(sessionCode)
+			.map(User::getNickname)
+			.orElseThrow(UserNoExistenceException::new);
 	}
 
 }

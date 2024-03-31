@@ -78,6 +78,7 @@ public class RoomService {
 			.orElseThrow(RoomNoExistenceException::new);
 
 		Objects.requireNonNull(room.getParticipants().remove(sessionCode), ErrorType.USER_NO_EXISTENCE.getMessage());
+		userStorage.deleteById(sessionCode);
 
 		roomStorage.save(room);
 	}

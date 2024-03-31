@@ -65,15 +65,13 @@ public class RoomController {
 	public ResponseEntity<ApiResponse<RoomCode>> enterRoom(@CookieValue(value = SESSION_COOKIE_NAME, required = false) String sessionCode,
 		@PathVariable String roomCode, @Address String address, HttpServletResponse response) {
 
-		if (sessionCode == null) {
-			ResponseCookie cookie = generateCookie();
-			response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-			sessionCode = cookie.getValue();
-		}
-
-		if (userStorage.existsById(sessionCode)) {
+		if (sessionCode != null && userStorage.existsById(sessionCode)) {
 			throw new SingleRoomParticipationViolationException();
 		}
+
+		ResponseCookie cookie = generateCookie();
+		response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+		sessionCode = cookie.getValue();
 
 		RoomCode enterRoomCode = roomService.enter(roomCode, sessionCode, address);
 		return ResponseEntity.ok(ApiResponse.ok(ResponseResult.ROOM_ENTER_SUCCESS, enterRoomCode));
