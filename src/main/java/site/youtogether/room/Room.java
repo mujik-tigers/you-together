@@ -27,7 +27,7 @@ public class Room {
 	private String title;
 	private String password;
 	private User host;
-	private Map<String, User> participants = new HashMap<>(10);
+	private Map<String, User> participants = new HashMap<>(MAXIMUM_ROOM_CAPACITY);
 
 	@Builder
 	public Room(String title, int capacity, String password, User host) {
@@ -41,7 +41,13 @@ public class Room {
 	}
 
 	public void enter(User user) {
+		// TODO: 정원을 초과하여 입장할 수 없다
 		participants.put(user.getSessionCode(), user);
+	}
+
+	public User leave(String sessionCode) {
+		// TODO: 1. 나가고자 하는 사용자가 HOST인 경우 / 2. 나가면 참여자가 0명이 되는 경우
+		return participants.remove(sessionCode);
 	}
 
 }

@@ -277,6 +277,43 @@ class RoomControllerTest extends RestDocsSupport {
 			));
 	}
 
+	@Test
+	@DisplayName("방 나가기 성공")
+	void leaveRoomSuccess() throws Exception {
+		// given
+		// Preparing session cookie and room code for leaving a room
+		Cookie sessionCookie = new Cookie(cookieProperties.getName(), "a85192c998454a1ea055");
+		String roomCode = "1e7050f7d7";
+
+		// when / then
+		String cookieName = cookieProperties.getName();
+
+		mockMvc.perform(delete("/rooms/" + roomCode + "/users")
+				.cookie(sessionCookie))
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(cookie().exists(cookieName))
+			.andExpect(cookie().domain(cookieName, cookieProperties.getDomain()))
+			.andExpect(cookie().path(cookieName, cookieProperties.getPath()))
+			.andExpect(cookie().sameSite(cookieName, cookieProperties.getSameSite()))
+			.andExpect(cookie().maxAge(cookieName, 0))
+			.andExpect(cookie().httpOnly(cookieName, true))
+			.andExpect(cookie().secure(cookieName, true))
+			.andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
+			.andExpect(jsonPath("$.status").value(HttpStatus.OK.getReasonPhrase()))
+			.andExpect(jsonPath("$.result").value(ResponseResult.ROOM_LEAVE_SUCCESS.getDescription()))
+			.andDo(document("leave-room-success",
+				preprocessRequest(prettyPrint()),
+				preprocessResponse(prettyPrint()),
+				responseFields(
+					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
+					fieldWithPath("status").type(JsonFieldType.STRING).description("상태"),
+					fieldWithPath("result").type(JsonFieldType.STRING).description("결과"),
+					fieldWithPath("data").type(JsonFieldType.NULL).description("응답 데이터")
+				)
+			));
+	}
+
 	private RoomList generateRoomList(int pageNumber) {
 		List<RoomInfo> rooms = new ArrayList<>();
 		for (int i = 0; i < 10; i++) {

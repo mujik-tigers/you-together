@@ -73,14 +73,16 @@ public class RoomService {
 		return new RoomList(roomInfoSlice);
 	}
 
-	public void leave(String roomCode, String sessionCode) {        // TODO: 마찬가지로 트랜잭션 필요
-		Room room = roomStorage.findById(roomCode)
-			.orElseThrow(RoomNoExistenceException::new);
+	public void leave(String roomCode, String sessionCode) {
+		Room room = roomStorage.findById(roomCode).orElseThrow(RoomNotFoundException::new);
+		User leftUser = room.leave(sessionCode);
 
-		Objects.requireNonNull(room.getParticipants().remove(sessionCode), ErrorType.USER_NO_EXISTENCE.getMessage());
-		userStorage.deleteById(sessionCode);
+		if (leftUser == null) {
+			throw new UserNotInRoomException();
+		}
 
 		roomStorage.save(room);
+		userStorage.deleteById(sessionCode);
 	}
 
 }

@@ -12,6 +12,7 @@ public enum ResponseResult {
 	ROOM_CREATION_SUCCESS("방 생성에 성공했습니다"),
 	ROOM_LIST_FETCH_SUCCESS("방 목록 조회에 성공했습니다"),
 	ROOM_ENTER_SUCCESS("방 입장에 성공했습니다"),
+	ROOM_LEAVE_SUCCESS("방 퇴장에 성공했습니다"),
 
 	// User
 	USER_NICKNAME_FETCH_SUCCESS("유저 닉네임 조회에 성공했습니다");
