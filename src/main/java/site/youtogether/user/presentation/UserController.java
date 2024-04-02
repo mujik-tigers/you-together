@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import jakarta.servlet.http.Cookie;
 import lombok.RequiredArgsConstructor;
 import site.youtogether.exception.user.UserNoExistenceException;
 import site.youtogether.user.dto.UserNickname;
@@ -22,8 +21,7 @@ public class UserController {
 	private final UserStorage userStorage;
 
 	@GetMapping("/users/nickname")
-	public ResponseEntity<ApiResponse<UserNickname>> fetchUserNickname(@CookieValue(value = SESSION_COOKIE_NAME) Cookie sessionCookie) {
-		String sessionCode = sessionCookie.getValue();
+	public ResponseEntity<ApiResponse<UserNickname>> fetchUserNickname(@CookieValue(value = SESSION_COOKIE_NAME) String sessionCode) {
 		UserNickname userNickname = userStorage.findById(sessionCode)
 			.map(UserNickname::new)
 			.orElseThrow(UserNoExistenceException::new);

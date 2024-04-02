@@ -131,13 +131,15 @@ class RoomControllerTest extends RestDocsSupport {
 	void createRoomFail_SingleRoomParticipantViolation() throws Exception {
 		// given
 		// Setting up session cookie and request data for creating a room
-		// This indicates that a session cookie is already present, implying participation in a room
 		Cookie sessionCookie = new Cookie(cookieProperties.getName(), "a85192c998454a1ea055");
 		RoomSettings roomSettings = RoomSettings.builder()
 			.capacity(10)
 			.title("재밌는 쇼츠 같이 보기")
 			.password(null)
 			.build();
+
+		given(userStorage.existsById(anyString()))
+			.willReturn(true);
 
 		// when / then
 		mockMvc.perform(post("/rooms")
@@ -227,7 +229,7 @@ class RoomControllerTest extends RestDocsSupport {
 			.andExpect(jsonPath("$.status").value(HttpStatus.OK.getReasonPhrase()))
 			.andExpect(jsonPath("$.result").value(ResponseResult.ROOM_ENTER_SUCCESS.getDescription()))
 			.andExpect(jsonPath("$.data.roomCode").value(roomCode))
-			.andDo(document("/enter-room-success",
+			.andDo(document("enter-room-success",
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
 				responseFields(
@@ -245,9 +247,10 @@ class RoomControllerTest extends RestDocsSupport {
 	void enterRoomFail() throws Exception {
 		// given
 		String roomCode = "asdfkllk";
-		given(userStorage.existsById(anyString()))
-			.willThrow(new SingleRoomParticipationViolationException());
 		Cookie sessionCookie = new Cookie(cookieProperties.getName(), "a85192c998454a1ea055");
+
+		given(userStorage.existsById(anyString()))
+			.willReturn(true);
 
 		// when // then
 		mockMvc.perform(get("/rooms/{roomCode}", roomCode)
@@ -260,7 +263,7 @@ class RoomControllerTest extends RestDocsSupport {
 			.andExpect(jsonPath("$.data").isArray())
 			.andExpect(jsonPath("$.data[0].type").value(SingleRoomParticipationViolationException.class.getSimpleName()))
 			.andExpect(jsonPath("$.data[0].message").value(SINGLE_ROOM_PARTICIPATION_VIOLATION.getMessage()))
-			.andDo(document("/enter-room-fail",
+			.andDo(document("enter-room-fail",
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
 				responseFields(
@@ -277,7 +280,7 @@ class RoomControllerTest extends RestDocsSupport {
 	private RoomList generateRoomList(int pageNumber) {
 		List<RoomInfo> rooms = new ArrayList<>();
 		for (int i = 0; i < 10; i++) {
-			rooms.add(new RoomInfo("ghadslkhglka" + i, 5, "황똥땡의 방" + i, 1, false));
+			rooms.add(new RoomInfo("ghadslkhglka" + i, "황똥땡의 방" + i, 5, 1, false));
 		}
 		SliceImpl<RoomInfo> roomSlice = new SliceImpl<>(rooms, PageRequest.of(pageNumber, 10), true);
 		return new RoomList(roomSlice);

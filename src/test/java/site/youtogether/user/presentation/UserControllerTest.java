@@ -37,7 +37,7 @@ class UserControllerTest extends RestDocsSupport {
 			.willReturn(Optional.ofNullable(user));
 
 		// when // then
-		mockMvc.perform(get("/user/nickname")
+		mockMvc.perform(get("/users/nickname")
 				.cookie(sessionCookie))
 			.andDo(print())
 			.andExpect(status().isOk())
@@ -67,7 +67,7 @@ class UserControllerTest extends RestDocsSupport {
 			.willReturn(Optional.empty());
 
 		// when // then
-		mockMvc.perform(get("/user/nickname")
+		mockMvc.perform(get("/users/nickname")
 				.cookie(sessionCookie))
 			.andDo(print())
 			.andExpect(status().isNotFound())
