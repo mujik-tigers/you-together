@@ -75,6 +75,16 @@ public class RoomService {
 
 	public void leave(String roomCode, String sessionCode) {
 		Room room = roomStorage.findById(roomCode).orElseThrow(RoomNotFoundException::new);
+
+		if (room.getHost().getSessionCode().equals(sessionCode)) {    // Check if the user leaving the room is the host.
+			for (String userSession : room.getParticipants().keySet()) {    // Expiring the sessions of all participants.
+				userStorage.deleteById(userSession);
+			}
+
+			roomStorage.deleteById(roomCode);    // Close the room.
+			return;
+		}
+
 		User leftUser = room.leave(sessionCode);
 
 		if (leftUser == null) {

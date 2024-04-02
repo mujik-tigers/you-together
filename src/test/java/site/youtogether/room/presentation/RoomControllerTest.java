@@ -9,14 +9,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static site.youtogether.exception.ErrorType.*;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.SliceImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
@@ -25,8 +19,6 @@ import jakarta.servlet.http.Cookie;
 import site.youtogether.RestDocsSupport;
 import site.youtogether.exception.room.SingleRoomParticipationViolationException;
 import site.youtogether.room.dto.RoomCode;
-import site.youtogether.room.dto.RoomInfo;
-import site.youtogether.room.dto.RoomList;
 import site.youtogether.room.dto.RoomSettings;
 import site.youtogether.util.api.ResponseResult;
 
@@ -127,7 +119,7 @@ class RoomControllerTest extends RestDocsSupport {
 	}
 
 	@Test
-	@DisplayName("방 생성 실패: 다수의 방에 참가할 수 없습니다")
+	@DisplayName("방 생성 실패: 다수의 방에 참여할 수 없습니다")
 	void createRoomFail_SingleRoomParticipantViolation() throws Exception {
 		// given
 		// Setting up session cookie and request data for creating a room
@@ -138,7 +130,8 @@ class RoomControllerTest extends RestDocsSupport {
 			.password(null)
 			.build();
 
-		given(userStorage.existsById(anyString()))
+		// Setting the session as already existing
+		given(userService.isSessionValid(anyString()))
 			.willReturn(true);
 
 		// when / then
