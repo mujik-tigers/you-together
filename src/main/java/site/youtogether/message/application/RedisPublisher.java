@@ -19,7 +19,7 @@ public class RedisPublisher {
 	private final RedisTemplate<String, String> redisTemplate;
 	private final ObjectMapper objectMapper;
 
-	public void publishMessage(ChatMessage chatMessage) {
+	public void publishChatMessage(ChatMessage chatMessage) {
 		try {
 			redisTemplate.convertAndSend(chatChannelTopic.getTopic(), objectMapper.writeValueAsString(chatMessage));
 		} catch (JsonProcessingException e) {
@@ -27,8 +27,8 @@ public class RedisPublisher {
 		}
 	}
 
-	public void publishRoomMemberInfo(String roomId) {
-		redisTemplate.convertAndSend(participantChannelTopic.getTopic(), roomId);
+	public void publishParticipantsInfo(String roomCode) {
+		redisTemplate.convertAndSend(participantChannelTopic.getTopic(), roomCode);
 	}
 
 }

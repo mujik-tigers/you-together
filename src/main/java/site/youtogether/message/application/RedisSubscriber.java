@@ -9,7 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import site.youtogether.exception.room.RoomNoExistenceException;
 import site.youtogether.message.ChatMessage;
-import site.youtogether.message.ParticipantInfo;
+import site.youtogether.message.ParticipantsInfo;
 import site.youtogether.room.Room;
 import site.youtogether.room.infrastructure.RoomStorage;
 
@@ -18,26 +18,26 @@ import site.youtogether.room.infrastructure.RoomStorage;
 public class RedisSubscriber {
 
 	private final RoomStorage roomStorage;
-	private final ObjectMapper objectMapper;
 	private final SimpMessageSendingOperations messagingTemplate;
+	private final ObjectMapper objectMapper;
 
 	// when redis message publish, onMessage of the subscriber receive and process the message
-	public void sendMessage(String publishMessage) {
+	public void sendChatMessage(String publishMessage) {
 		try {
 			ChatMessage chatMessage = objectMapper.readValue(publishMessage, ChatMessage.class);
-			messagingTemplate.convertAndSend("/sub/chat/room/" + chatMessage.getRoomId(), chatMessage);
+			messagingTemplate.convertAndSend("/sub/chat/room/" + chatMessage.getRoomCode(), chatMessage);
 		} catch (JsonProcessingException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	public void sendParticipantsInfo(String roomId) {
-		ParticipantInfo participantInfo = roomStorage.findById(roomId)
+	public void sendParticipantsInfo(String roomCode) {
+		ParticipantsInfo participantsInfo = roomStorage.findById(roomCode)
 			.map(Room::getParticipants)
-			.map(ParticipantInfo::new)
+			.map(ParticipantsInfo::new)
 			.orElseThrow(RoomNoExistenceException::new);
 
-		messagingTemplate.convertAndSend("/sub/chat/room/" + roomId, participantInfo);
+		messagingTemplate.convertAndSend("/sub/chat/room/" + roomCode, participantsInfo);
 	}
 
 }

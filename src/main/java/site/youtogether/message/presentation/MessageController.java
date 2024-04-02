@@ -22,10 +22,10 @@ public class MessageController {
 	@MessageMapping("/chat/message")
 	public void handle(ChatMessage chatMessage, SimpMessageHeaderAccessor headerAccessor) {
 		String sessionCode = (String)headerAccessor.getSessionAttributes().get(AppConstants.SESSION_CODE);
-		String username = getUserNickname(sessionCode);
-		chatMessage.setUsername(username);
+		String nickname = getUserNickname(sessionCode);
+		chatMessage.setNickname(nickname);
 
-		redisPublisher.publishMessage(chatMessage);
+		redisPublisher.publishChatMessage(chatMessage);
 	}
 
 	private String getUserNickname(String sessionCode) {

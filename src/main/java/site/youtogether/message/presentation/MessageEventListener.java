@@ -30,28 +30,28 @@ public class MessageEventListener {
 	public void handleWebSocketSubscribeListener(SessionSubscribeEvent event) {
 		SimpMessageHeaderAccessor headerAccessor = SimpMessageHeaderAccessor.wrap(event.getMessage());
 
-		String simpDestination = event.getMessage().getHeaders().get("simpDestination").toString();
-		String roomId = simpDestination.substring(simpDestination.lastIndexOf("/") + 1);
-		headerAccessor.getSessionAttributes().put(STOMP_SESSION_ROOM_CODE, roomId);
+		String destination = headerAccessor.getDestination();
+		String roomCode = destination.substring(destination.lastIndexOf("/") + 1);
+		headerAccessor.getSessionAttributes().put(ROOM_CODE, roomCode);
 
 		String sessionCode = (String)headerAccessor.getSessionAttributes().get(SESSION_CODE);
-		String username = getUserNickname(sessionCode);
+		String nickname = getUserNickname(sessionCode);
 
-		redisPublisher.publishRoomMemberInfo(roomId);
-		redisPublisher.publishMessage(new ChatMessage(roomId, "[알림]", username + "님이 입장하셨습니다."));
+		redisPublisher.publishParticipantsInfo(roomCode);
+		redisPublisher.publishChatMessage(new ChatMessage(roomCode, "[알림]", nickname + "님이 입장하셨습니다."));
 	}
 
 	@EventListener
 	public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
 		SimpMessageHeaderAccessor headerAccessor = SimpMessageHeaderAccessor.wrap(event.getMessage());
 
-		String roomId = (String)headerAccessor.getSessionAttributes().get(STOMP_SESSION_ROOM_CODE);
+		String roomCode = (String)headerAccessor.getSessionAttributes().get(ROOM_CODE);
 		String sessionCode = (String)headerAccessor.getSessionAttributes().get(SESSION_CODE);
-		String username = getUserNickname(sessionCode);
+		String nickname = getUserNickname(sessionCode);
 
-		roomService.leave(roomId, sessionCode);
-		redisPublisher.publishRoomMemberInfo(roomId);
-		redisPublisher.publishMessage(new ChatMessage(roomId, "[알림]", username + "님이 퇴장하셨습니다."));
+		roomService.leave(roomCode, sessionCode);
+		redisPublisher.publishParticipantsInfo(roomCode);
+		redisPublisher.publishChatMessage(new ChatMessage(roomCode, "[알림]", nickname + "님이 퇴장하셨습니다."));
 	}
 
 	private String getUserNickname(String sessionCode) {

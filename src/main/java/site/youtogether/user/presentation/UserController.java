@@ -21,8 +21,8 @@ public class UserController {
 
 	private final UserStorage userStorage;
 
-	@GetMapping("/user/nickname")
-	public ResponseEntity<ApiResponse<UserNickname>> fetchUsername(@CookieValue(value = SESSION_COOKIE_NAME) Cookie sessionCookie) {
+	@GetMapping("/users/nickname")
+	public ResponseEntity<ApiResponse<UserNickname>> fetchUserNickname(@CookieValue(value = SESSION_COOKIE_NAME) Cookie sessionCookie) {
 		String sessionCode = sessionCookie.getValue();
 		UserNickname userNickname = userStorage.findById(sessionCode)
 			.map(UserNickname::new)

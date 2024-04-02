@@ -8,14 +8,14 @@ import lombok.Getter;
 import site.youtogether.user.User;
 
 @Getter
-public class ParticipantInfo {
+public class ParticipantsInfo {
 
-	private final MessageType messageType = MessageType.PARTICIPANT_INFO;
+	private final MessageType messageType = MessageType.PARTICIPANTS_INFO;
 
-	private List<String> participantNames;
+	private List<String> nicknames;
 
-	public ParticipantInfo(Map<String, User> participants) {
-		this.participantNames = participants.values()
+	public ParticipantsInfo(Map<String, User> participants) {
+		this.nicknames = participants.values()
 			.stream()
 			.map(User::getNickname)
 			.collect(Collectors.toList());

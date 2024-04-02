@@ -3,6 +3,7 @@ package site.youtogether.interceptor;
 import static site.youtogether.util.AppConstants.*;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import org.springframework.http.HttpHeaders;
@@ -21,15 +22,20 @@ import site.youtogether.exception.cookie.SessionCookieNoExistenceException;
 @Slf4j
 public class StompHandshakeInterceptor implements HandshakeInterceptor {
 
+	/**
+	 * @param attributes the attributes from the HTTP handshake to associate with the WebSocket
+	 * client sends the received cookies along to attempt a handshake, extracting the session code from the cookies.
+	 */
 	@Override
 	public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler,
 		Map<String, Object> attributes) throws Exception {
-		String[] cookies = request.getHeaders().get(HttpHeaders.COOKIE).get(0).split("; ");
+		String[] cookies = Objects.requireNonNull(request.getHeaders().get(HttpHeaders.COOKIE)).get(0).split("; ");
 		String sessionCode = Stream.of(cookies)
 			.filter(cookie -> cookie.startsWith(SESSION_COOKIE_NAME))
 			.map(cookie -> cookie.substring(cookie.indexOf("=") + 1))
 			.findAny()
 			.orElseThrow(SessionCookieNoExistenceException::new);
+
 		attributes.put(SESSION_CODE, sessionCode);
 
 		return true;

@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -40,10 +39,10 @@ public class RoomController {
 	private final UserStorage userStorage;
 
 	@PostMapping("/rooms")
-	public ResponseEntity<ApiResponse<RoomCode>> createRoom(@CookieValue(value = SESSION_COOKIE_NAME, required = false) Cookie sessionCookie,
+	public ResponseEntity<ApiResponse<RoomCode>> createRoom(@CookieValue(value = SESSION_COOKIE_NAME, required = false) String sessionCode,
 		@Address String address, @Valid @RequestBody RoomSettings roomSettings, HttpServletResponse response) {
 		// Check if a session cookie already exists.
-		if (sessionCookie != null) {
+		if (sessionCode != null && userStorage.existsById(sessionCode)) {
 			throw new SingleRoomParticipationViolationException();
 		}
 
@@ -70,10 +69,9 @@ public class RoomController {
 		}
 
 		ResponseCookie cookie = generateCookie();
+		RoomCode enterRoomCode = roomService.enter(roomCode, cookie.getValue(), address);
 		response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-		sessionCode = cookie.getValue();
 
-		RoomCode enterRoomCode = roomService.enter(roomCode, sessionCode, address);
 		return ResponseEntity.ok(ApiResponse.ok(ResponseResult.ROOM_ENTER_SUCCESS, enterRoomCode));
 	}
 

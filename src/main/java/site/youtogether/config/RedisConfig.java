@@ -19,47 +19,41 @@ public class RedisConfig {
 
 	private final RedisProperties redisProperties;
 
-	// 채팅 메시지를 관리하는 채널
 	@Bean
 	public ChannelTopic chatChannelTopic() {
 		return new ChannelTopic("chat");
 	}
 
-	// 방에 참가한 인원 정보를 관리하는 채널
 	@Bean
 	public ChannelTopic participantChannelTopic() {
 		return new ChannelTopic("participant");
 	}
 
-	// 채팅 메시지를 처리하는 subscriber 메서드 설정
 	@Bean
-	public MessageListenerAdapter chatListenerAdapter(RedisSubscriber subscriber) {
-		return new MessageListenerAdapter(subscriber, "sendMessage");
+	public MessageListenerAdapter chatMessageListenerAdapter(RedisSubscriber subscriber) {
+		return new MessageListenerAdapter(subscriber, "sendChatMessage");
 	}
 
-	// 참가 인원 정보를 처리하는 subscriber 메서드 설정
 	@Bean
-	public MessageListenerAdapter participantInfoListenerAdapter(RedisSubscriber subscriber) {
+	public MessageListenerAdapter participantsInfoListenerAdapter(RedisSubscriber subscriber) {
 		return new MessageListenerAdapter(subscriber, "sendParticipantsInfo");
 	}
 
-	// 토픽에 발행된 메시지 처리를 위한 subscriber 메서드를 등록
 	@Bean
 	public RedisMessageListenerContainer redisMessageListenerContainer(RedisConnectionFactory redisConnectionFactory,
-		MessageListenerAdapter chatListenerAdapter, MessageListenerAdapter participantInfoListenerAdapter,
+		MessageListenerAdapter chatMessageListenerAdapter, MessageListenerAdapter participantsInfoListenerAdapter,
 		ChannelTopic chatChannelTopic, ChannelTopic participantChannelTopic) {
-
 		RedisMessageListenerContainer container = new RedisMessageListenerContainer();
 		container.setConnectionFactory(redisConnectionFactory);
-		container.addMessageListener(chatListenerAdapter, chatChannelTopic);
-		container.addMessageListener(participantInfoListenerAdapter, participantChannelTopic);
+		container.addMessageListener(chatMessageListenerAdapter, chatChannelTopic);
+		container.addMessageListener(participantsInfoListenerAdapter, participantChannelTopic);
+
 		return container;
 	}
 
 	@Bean
 	public RedisConnectionFactory redisConnectionFactory() {
-		RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration(redisProperties.getHost(),
-			redisProperties.getPort());
+		RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration(redisProperties.getHost(), redisProperties.getPort());
 		redisStandaloneConfiguration.setPassword(redisProperties.getPassword());
 
 		return new LettuceConnectionFactory(redisStandaloneConfiguration);
