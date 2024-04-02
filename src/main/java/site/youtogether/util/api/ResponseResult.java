@@ -14,7 +14,8 @@ public enum ResponseResult {
 	ROOM_ENTER_SUCCESS("방 입장에 성공했습니다"),
 
 	// User
-	USER_NICKNAME_FETCH_SUCCESS("유저 닉네임 조회에 성공했습니다");
+	USER_NICKNAME_FETCH_SUCCESS("유저 닉네임 조회에 성공했습니다"),
+	USER_NICKNAME_UPDATE_SUCCESS("유저 닉네임 변경에 성공했습니다");
 
 	private final String description;
 

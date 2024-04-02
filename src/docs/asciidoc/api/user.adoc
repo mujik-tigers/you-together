@@ -27,3 +27,17 @@ include::{snippets}/fetch-user-nickname-fail/http-request.adoc[]
 include::{snippets}/fetch-user-nickname-fail/http-response.adoc[]
 include::{snippets}/fetch-user-nickname-fail/response-fields.adoc[]
 
+{nbsp}
+
+[[update-user-nickname-success]]
+=== 유저 닉네임 변경하기 성공
+
+==== HTTP Request
+
+include::{snippets}/update-user-nickname-success/http-request.adoc[]
+include::{snippets}/update-user-nickname-success/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/update-user-nickname-success/http-response.adoc[]
+include::{snippets}/update-user-nickname-success/response-fields.adoc[]

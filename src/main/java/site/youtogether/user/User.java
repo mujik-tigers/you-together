@@ -14,7 +14,7 @@ public class User {
 	private final String sessionCode;
 
 	private final String address;
-	private final String nickname;
+	private String nickname;
 	private final Role role;
 
 	@Builder
@@ -23,6 +23,10 @@ public class User {
 		this.address = address;
 		this.nickname = nickname;
 		this.role = role;
+	}
+
+	public void changeNickname(String changeName) {
+		this.nickname = changeName;
 	}
 
 }

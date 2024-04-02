@@ -9,17 +9,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static site.youtogether.exception.ErrorType.*;
 
-import java.util.Optional;
-
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
 
 import jakarta.servlet.http.Cookie;
 import site.youtogether.RestDocsSupport;
 import site.youtogether.exception.user.UserNoExistenceException;
-import site.youtogether.user.User;
+import site.youtogether.user.dto.UpdateNicknameForm;
+import site.youtogether.user.dto.UserNickname;
 import site.youtogether.util.api.ResponseResult;
 
 class UserControllerTest extends RestDocsSupport {
@@ -29,12 +29,9 @@ class UserControllerTest extends RestDocsSupport {
 	void fetchUserNickname() throws Exception {
 		// given
 		Cookie sessionCookie = new Cookie(cookieProperties.getName(), "a85192c998454a1ea055");
-		User user = User.builder()
-			.sessionCode(sessionCookie.getValue())
-			.nickname("개구장이")
-			.build();
-		given(userStorage.findById(sessionCookie.getValue()))
-			.willReturn(Optional.ofNullable(user));
+		UserNickname userNickname = new UserNickname("개구장이");
+		given(userService.fetchUserNickname(sessionCookie.getValue()))
+			.willReturn(userNickname);
 
 		// when // then
 		mockMvc.perform(get("/user/nickname")
@@ -44,7 +41,7 @@ class UserControllerTest extends RestDocsSupport {
 			.andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
 			.andExpect(jsonPath("$.status").value(HttpStatus.OK.getReasonPhrase()))
 			.andExpect(jsonPath("$.result").value(ResponseResult.USER_NICKNAME_FETCH_SUCCESS.getDescription()))
-			.andExpect(jsonPath("$.data.nickname").value(user.getNickname()))
+			.andExpect(jsonPath("$.data.nickname").value(userNickname.getNickname()))
 			.andDo(document("fetch-user-nickname-success",
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
@@ -63,8 +60,8 @@ class UserControllerTest extends RestDocsSupport {
 	void fetchUserNicknameFail() throws Exception {
 		// given
 		Cookie sessionCookie = new Cookie(cookieProperties.getName(), "a85192c998454a1ea055");
-		given(userStorage.findById(sessionCookie.getValue()))
-			.willReturn(Optional.empty());
+		given(userService.fetchUserNickname(sessionCookie.getValue()))
+			.willThrow(new UserNoExistenceException());
 
 		// when // then
 		mockMvc.perform(get("/user/nickname")
@@ -89,6 +86,45 @@ class UserControllerTest extends RestDocsSupport {
 					fieldWithPath("data[].message").type(JsonFieldType.STRING).description("오류 메시지")
 				)
 			));
+	}
+
+	@Test
+	@DisplayName("유저 닉네임 변경하기 성공")
+	void updateUserNickname() throws Exception {
+		// given
+		Cookie sessionCookie = new Cookie(cookieProperties.getName(), "a85192c998454a1ea055");
+
+		UpdateNicknameForm form = new UpdateNicknameForm("안개구장이");
+		UserNickname userNickname = new UserNickname(form.getUpdateName());
+		given(userService.updateUserNickname(sessionCookie.getValue(), form.getUpdateName()))
+			.willReturn(userNickname);
+
+		// when // then
+		mockMvc.perform(patch("/user/nickname")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(form))
+				.cookie(sessionCookie))
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
+			.andExpect(jsonPath("$.status").value(HttpStatus.OK.getReasonPhrase()))
+			.andExpect(jsonPath("$.result").value(ResponseResult.USER_NICKNAME_UPDATE_SUCCESS.getDescription()))
+			.andExpect(jsonPath("$.data.nickname").value(form.getUpdateName()))
+			.andDo(document("update-user-nickname-success",
+				preprocessRequest(prettyPrint()),
+				preprocessResponse(prettyPrint()),
+				requestFields(
+					fieldWithPath("updateName").type(JsonFieldType.STRING).description("변경할 닉네임")
+				),
+				responseFields(
+					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
+					fieldWithPath("status").type(JsonFieldType.STRING).description("상태"),
+					fieldWithPath("result").type(JsonFieldType.STRING).description("결과"),
+					fieldWithPath("data").type(JsonFieldType.OBJECT).description("응답 데이터"),
+					fieldWithPath("data.nickname").type(JsonFieldType.STRING).description("유저 닉네임")
+				)
+			));
+		
 	}
 
 }
