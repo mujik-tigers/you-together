@@ -9,8 +9,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static site.youtogether.exception.ErrorType.*;
 
+import java.util.List;
+import java.util.stream.IntStream;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
@@ -19,6 +25,8 @@ import jakarta.servlet.http.Cookie;
 import site.youtogether.RestDocsSupport;
 import site.youtogether.exception.room.SingleRoomParticipationViolationException;
 import site.youtogether.room.dto.RoomCode;
+import site.youtogether.room.dto.RoomInfo;
+import site.youtogether.room.dto.RoomList;
 import site.youtogether.room.dto.RoomSettings;
 import site.youtogether.util.api.ResponseResult;
 
@@ -171,7 +179,7 @@ class RoomControllerTest extends RestDocsSupport {
 	@DisplayName("방 목록 조회 성공: 페이징")
 	void fetchRoomList() throws Exception {
 		// given
-		RoomList roomList = generateRoomList(0);
+		RoomList roomList = generateRoomList();
 		given(roomService.fetchAll(any(Pageable.class)))
 			.willReturn(roomList);
 
@@ -242,7 +250,7 @@ class RoomControllerTest extends RestDocsSupport {
 		String roomCode = "asdfkllk";
 		Cookie sessionCookie = new Cookie(cookieProperties.getName(), "a85192c998454a1ea055");
 
-		given(userStorage.existsById(anyString()))
+		given(userService.isSessionValid(anyString()))
 			.willReturn(true);
 
 		// when // then
@@ -281,7 +289,7 @@ class RoomControllerTest extends RestDocsSupport {
 		// when / then
 		String cookieName = cookieProperties.getName();
 
-		mockMvc.perform(delete("/rooms/" + roomCode + "/users")
+		mockMvc.perform(delete("/rooms/{roomCode}/users", roomCode)
 				.cookie(sessionCookie))
 			.andDo(print())
 			.andExpect(status().isOk())
@@ -307,12 +315,12 @@ class RoomControllerTest extends RestDocsSupport {
 			));
 	}
 
-	private RoomList generateRoomList(int pageNumber) {
-		List<RoomInfo> rooms = new ArrayList<>();
-		for (int i = 0; i < 10; i++) {
-			rooms.add(new RoomInfo("ghadslkhglka" + i, "황똥땡의 방" + i, 5, 1, false));
-		}
-		SliceImpl<RoomInfo> roomSlice = new SliceImpl<>(rooms, PageRequest.of(pageNumber, 10), true);
+	private RoomList generateRoomList() {
+		List<RoomInfo> rooms = IntStream.rangeClosed(1, 10)
+			.mapToObj(i -> new RoomInfo("ghadslkhglka" + i, "황똥땡의 방" + i, 5, 1, false))
+			.toList();
+		SliceImpl<RoomInfo> roomSlice = new SliceImpl<>(rooms, PageRequest.of(0, 10), true);
+
 		return new RoomList(roomSlice);
 	}
 

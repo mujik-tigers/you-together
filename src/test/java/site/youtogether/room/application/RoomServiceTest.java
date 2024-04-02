@@ -3,8 +3,8 @@ package site.youtogether.room.application;
 import static org.assertj.core.api.Assertions.*;
 import static site.youtogether.util.AppConstants.*;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -15,6 +15,7 @@ import org.springframework.data.domain.PageRequest;
 import site.youtogether.IntegrationTestSupport;
 import site.youtogether.exception.ErrorType;
 import site.youtogether.exception.room.RoomNoExistenceException;
+import site.youtogether.exception.room.UserNotInRoomException;
 import site.youtogether.room.Room;
 import site.youtogether.room.dto.RoomCode;
 import site.youtogether.room.dto.RoomList;
@@ -127,72 +128,10 @@ class RoomServiceTest extends IntegrationTestSupport {
 	}
 
 	@Test
-	@DisplayName("방 안에 있는 유저는 방을 떠날 수 있다")
-	void leaveRoom() throws Exception {
-		// given
-		Room room = generateRooms(1).get(0);
-		User guest = User.builder()
-			.sessionCode("dafjlkasdlkfj")
-			.nickname("방 참가자")
-			.address("127.0.0.1")
-			.role(Role.GUEST)
-			.build();
-		room.getParticipants().put(guest.getSessionCode(), guest);
-		roomStorage.save(room);
-
-		// when
-		roomService.leave(room.getCode(), guest.getSessionCode());
-
-		// then
-		Room savedRoom = roomStorage.findById(room.getCode()).get();
-		assertThat(savedRoom.getParticipants().size()).isEqualTo(1);
-		assertThat(savedRoom.getParticipants()).doesNotContainKey(guest.getSessionCode());
-	}
-
-	@Test
-	@DisplayName("방 안에 있지 않은 유저를 방 안에서 제거할 수 없다")
-	void leaveRoomFail() throws Exception {
-		// given
-		Room room = generateRooms(1).get(0);
-		roomStorage.save(room);
-
-		User user = User.builder()
-			.sessionCode("dafjlkasdlkfj")
-			.nickname("방 참가자")
-			.address("127.0.0.1")
-			.role(Role.GUEST)
-			.build();
-
-		// when // then
-		assertThatThrownBy(() -> roomService.leave(room.getCode(), user.getSessionCode()))
-			.isInstanceOf(NullPointerException.class)
-			.hasMessage(ErrorType.USER_NO_EXISTENCE.getMessage());
-	}
-
-	private List<Room> generateRooms(int count) {
-		List<Room> rooms = new ArrayList<>();
-		for (int i = 0; i < count; i++) {
-			User user = User.builder()
-				.sessionCode("adskljf" + i)
-				.build();
-
-			Room room = Room.builder()
-				.host(user)
-				.title(i + "번 방")
-				.capacity(10)
-				.build();
-
-			rooms.add(room);
-		}
-
-		return rooms;
-	}
-
-	@Test
 	@DisplayName("방에서 나가면 세션이 종료된다")
 	void leaveSuccess() {
 		// given
-		Room room = createRoom();    // Creating a room with a host
+		Room room = generateRooms(1).get(0);    // Creating a room with a host
 		User guest = User.builder()    // Creating a guest and entering the room
 			.sessionCode("1644a835e52e45dfa381")
 			.role(Role.GUEST)
@@ -217,7 +156,7 @@ class RoomServiceTest extends IntegrationTestSupport {
 	@DisplayName("방 참여자가 아닌 사용자가 나가려고 할 때 예외가 발생한다")
 	void leaveFail_UserNotInRoom() {
 		// given
-		Room room = createRoom();
+		Room room = generateRooms(1).get(0);
 		roomStorage.save(room);
 
 		// when / then
@@ -226,22 +165,22 @@ class RoomServiceTest extends IntegrationTestSupport {
 			.hasMessage(ErrorType.USER_NOT_IN_ROOM.getMessage());
 	}
 
-	private Room createRoom() {
-		User host = User.builder()
-			.sessionCode("7644a835e52e45dfa385")
-			.role(Role.HOST)
-			.build();
+	private List<Room> generateRooms(int count) {
+		return IntStream.rangeClosed(1, count)
+			.mapToObj(number -> {
+				User host = User.builder()
+					.role(Role.HOST)
+					.sessionCode("host" + number)
+					.build();
 
-		Room room = Room.builder()
-			.capacity(10)
-			.title("재밌는 쇼츠 같이 보기")
-			.password(null)
-			.host(host)
-			.build();
-
-		room.enter(host);
-
-		return room;
+				return Room.builder()
+					.host(host)
+					.title("room" + number)
+					.capacity(10)
+					.password(null)
+					.build();
+			})
+			.toList();
 	}
 
 }

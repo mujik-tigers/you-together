@@ -9,8 +9,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static site.youtogether.exception.ErrorType.*;
 
-import java.util.Optional;
-
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -20,32 +18,34 @@ import jakarta.servlet.http.Cookie;
 import site.youtogether.RestDocsSupport;
 import site.youtogether.exception.user.UserNoExistenceException;
 import site.youtogether.user.User;
+import site.youtogether.user.dto.UserInfo;
 import site.youtogether.util.api.ResponseResult;
 
 class UserControllerTest extends RestDocsSupport {
 
 	@Test
-	@DisplayName("유저 닉네임 가져오기 성공")
-	void fetchUserNickname() throws Exception {
+	@DisplayName("사용자 정보 가져오기 성공")
+	void fetchUserInfo() throws Exception {
 		// given
 		Cookie sessionCookie = new Cookie(cookieProperties.getName(), "a85192c998454a1ea055");
 		User user = User.builder()
 			.sessionCode(sessionCookie.getValue())
 			.nickname("개구장이")
 			.build();
-		given(userStorage.findById(sessionCookie.getValue()))
-			.willReturn(Optional.ofNullable(user));
+
+		given(userService.fetchUserInfo(sessionCookie.getValue()))
+			.willReturn(new UserInfo(user));
 
 		// when // then
-		mockMvc.perform(get("/users/nickname")
+		mockMvc.perform(get("/users")
 				.cookie(sessionCookie))
 			.andDo(print())
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
 			.andExpect(jsonPath("$.status").value(HttpStatus.OK.getReasonPhrase()))
-			.andExpect(jsonPath("$.result").value(ResponseResult.USER_NICKNAME_FETCH_SUCCESS.getDescription()))
+			.andExpect(jsonPath("$.result").value(ResponseResult.USER_INFO_FETCH_SUCCESS.getDescription()))
 			.andExpect(jsonPath("$.data.nickname").value(user.getNickname()))
-			.andDo(document("fetch-user-nickname-success",
+			.andDo(document("fetch-user-info-success",
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
 				responseFields(
@@ -59,15 +59,16 @@ class UserControllerTest extends RestDocsSupport {
 	}
 
 	@Test
-	@DisplayName("유저 닉네임 가져오기 실패: 존재하지 않는 유저입니다")
-	void fetchUserNicknameFail() throws Exception {
+	@DisplayName("사용자 정보 가져오기 실패: 존재하지 않는 유저입니다")
+	void fetchUserInfoFail() throws Exception {
 		// given
 		Cookie sessionCookie = new Cookie(cookieProperties.getName(), "a85192c998454a1ea055");
-		given(userStorage.findById(sessionCookie.getValue()))
-			.willReturn(Optional.empty());
+
+		given(userService.fetchUserInfo(anyString()))
+			.willThrow(new UserNoExistenceException());
 
 		// when // then
-		mockMvc.perform(get("/users/nickname")
+		mockMvc.perform(get("/users")
 				.cookie(sessionCookie))
 			.andDo(print())
 			.andExpect(status().isNotFound())
@@ -77,7 +78,7 @@ class UserControllerTest extends RestDocsSupport {
 			.andExpect(jsonPath("$.data").isArray())
 			.andExpect(jsonPath("$.data[0].type").value(UserNoExistenceException.class.getSimpleName()))
 			.andExpect(jsonPath("$.data[0].message").value(USER_NO_EXISTENCE.getMessage()))
-			.andDo(document("fetch-user-nickname-fail",
+			.andDo(document("fetch-user-info-fail",
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
 				responseFields(

@@ -15,8 +15,8 @@ public enum ResponseResult {
 	ROOM_LEAVE_SUCCESS("방 퇴장에 성공했습니다"),
 
 	// User
-	USER_NICKNAME_FETCH_SUCCESS("유저 닉네임 조회에 성공했습니다");
-
+	USER_INFO_FETCH_SUCCESS("사용자 정보 조회에 성공했습니다");
+	
 	private final String description;
 
 	ResponseResult(String description) {

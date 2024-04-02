@@ -1,14 +1,12 @@
 package site.youtogether.room.application;
 
-import java.util.Objects;
-
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
-import site.youtogether.exception.ErrorType;
 import site.youtogether.exception.room.RoomNoExistenceException;
+import site.youtogether.exception.room.UserNotInRoomException;
 import site.youtogether.room.Room;
 import site.youtogether.room.dto.RoomCode;
 import site.youtogether.room.dto.RoomInfo;
@@ -74,7 +72,7 @@ public class RoomService {
 	}
 
 	public void leave(String roomCode, String sessionCode) {
-		Room room = roomStorage.findById(roomCode).orElseThrow(RoomNotFoundException::new);
+		Room room = roomStorage.findById(roomCode).orElseThrow(RoomNoExistenceException::new);
 
 		if (room.getHost().getSessionCode().equals(sessionCode)) {    // Check if the user leaving the room is the host.
 			for (String userSession : room.getParticipants().keySet()) {    // Expiring the sessions of all participants.

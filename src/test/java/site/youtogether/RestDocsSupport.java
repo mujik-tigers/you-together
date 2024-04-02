@@ -13,6 +13,7 @@ import site.youtogether.config.PropertiesConfig;
 import site.youtogether.config.property.CookieProperties;
 import site.youtogether.room.application.RoomService;
 import site.youtogether.room.presentation.RoomController;
+import site.youtogether.user.application.UserService;
 import site.youtogether.user.presentation.UserController;
 
 @WebMvcTest(controllers = {

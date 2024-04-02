@@ -8,9 +8,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
-import site.youtogether.exception.user.UserNoExistenceException;
-import site.youtogether.user.dto.UserNickname;
-import site.youtogether.user.infrastructure.UserStorage;
+import site.youtogether.user.application.UserService;
+import site.youtogether.user.dto.UserInfo;
 import site.youtogether.util.api.ApiResponse;
 import site.youtogether.util.api.ResponseResult;
 
@@ -18,15 +17,13 @@ import site.youtogether.util.api.ResponseResult;
 @RequiredArgsConstructor
 public class UserController {
 
-	private final UserStorage userStorage;
+	private final UserService userService;
 
-	@GetMapping("/users/nickname")
-	public ResponseEntity<ApiResponse<UserNickname>> fetchUserNickname(@CookieValue(value = SESSION_COOKIE_NAME) String sessionCode) {
-		UserNickname userNickname = userStorage.findById(sessionCode)
-			.map(UserNickname::new)
-			.orElseThrow(UserNoExistenceException::new);
+	@GetMapping("/users")
+	public ResponseEntity<ApiResponse<UserInfo>> fetchUserInfo(@CookieValue(value = SESSION_COOKIE_NAME) String sessionCode) {
+		UserInfo userInfo = userService.fetchUserInfo(sessionCode);
 
-		return ResponseEntity.ok(ApiResponse.ok(ResponseResult.USER_NICKNAME_FETCH_SUCCESS, userNickname));
+		return ResponseEntity.ok(ApiResponse.ok(ResponseResult.USER_INFO_FETCH_SUCCESS, userInfo));
 	}
 
 }

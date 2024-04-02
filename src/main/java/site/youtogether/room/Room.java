@@ -41,7 +41,6 @@ public class Room {
 	}
 
 	public void enter(User user) {
-		// TODO: 정원을 초과하여 입장할 수 없다
 		participants.put(user.getSessionCode(), user);
 	}
 
