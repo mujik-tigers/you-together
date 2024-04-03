@@ -1,10 +1,12 @@
 package site.youtogether.room.application;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
 import site.youtogether.room.Room;
 import site.youtogether.room.dto.RoomCode;
+import site.youtogether.room.dto.RoomList;
 import site.youtogether.room.dto.RoomSettings;
 import site.youtogether.room.infrastructure.RoomStorage;
 import site.youtogether.user.Role;
@@ -38,6 +40,10 @@ public class RoomService {
 		roomStorage.save(room);
 
 		return new RoomCode(room);
+	}
+
+	public RoomList fetchAll(Pageable pageable, String search) {
+		return null;
 	}
 
 }
