@@ -9,8 +9,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static site.youtogether.exception.ErrorType.*;
 
+import java.util.List;
+import java.util.stream.IntStream;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
@@ -19,6 +23,8 @@ import jakarta.servlet.http.Cookie;
 import site.youtogether.RestDocsSupport;
 import site.youtogether.exception.room.SingleRoomParticipationViolationException;
 import site.youtogether.room.dto.RoomCode;
+import site.youtogether.room.dto.RoomDetail;
+import site.youtogether.room.dto.RoomList;
 import site.youtogether.room.dto.RoomSettings;
 import site.youtogether.util.api.ResponseResult;
 
@@ -162,6 +168,85 @@ class RoomControllerTest extends RestDocsSupport {
 					fieldWithPath("data[].message").type(JsonFieldType.STRING).description("오류 메시지")
 				)
 			));
+	}
+
+	@Test
+	@DisplayName("방 목록 조회 성공")
+	void fetchRoomListSuccess() throws Exception {
+		// given
+		// Setting up response data for the fetched room list
+		RoomList roomList = RoomList.builder()
+			.pageNumber(0)
+			.pageSize(10)
+			.totalData(3)
+			.totalPage(1)
+			.hasPrevious(false)
+			.hasNext(false)
+			.rooms(generateRoomDetails(3))
+			.build();
+		given(roomService.fetchAll(any(Pageable.class), anyString()))
+			.willReturn(roomList);
+
+		// when / then
+		mockMvc.perform(get("/rooms")
+				.param("page", "0")
+				.param("size", "10")
+				.param("search", "침착"))
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
+			.andExpect(jsonPath("$.status").value(HttpStatus.OK.getReasonPhrase()))
+			.andExpect(jsonPath("$.result").value(ResponseResult.ROOM_LIST_FETCH_SUCCESS.getDescription()))
+			.andExpect(jsonPath("$.result").value(ResponseResult.ROOM_LIST_FETCH_SUCCESS.getDescription()))
+			.andExpect(jsonPath("$.data.pageNumber").value(roomList.getPageNumber()))
+			.andExpect(jsonPath("$.data.pageSize").value(roomList.getPageSize()))
+			.andExpect(jsonPath("$.data.totalData").value(roomList.getTotalData()))
+			.andExpect(jsonPath("$.data.totalPage").value(roomList.getTotalPage()))
+			.andExpect(jsonPath("$.data.hasPrevious").value(roomList.isHasPrevious()))
+			.andExpect(jsonPath("$.data.hasNext").value(roomList.isHasNext()))
+			.andExpect(jsonPath("$.data.rooms[0].roomCode").value(roomList.getRooms().get(0).getRoomCode()))
+			.andExpect(jsonPath("$.data.rooms[0].roomTitle").value(roomList.getRooms().get(0).getRoomTitle()))
+			.andExpect(jsonPath("$.data.rooms[0].videoTitle").value(roomList.getRooms().get(0).getVideoTitle()))
+			.andExpect(jsonPath("$.data.rooms[0].videoThumbnail").value(roomList.getRooms().get(0).getVideoThumbnail()))
+			.andExpect(jsonPath("$.data.rooms[0].capacity").value(roomList.getRooms().get(0).getCapacity()))
+			.andExpect(jsonPath("$.data.rooms[0].currentParticipant").value(roomList.getRooms().get(0).getCurrentParticipant()))
+			.andDo(document("fetch-room-list-success",
+				preprocessRequest(prettyPrint()),
+				preprocessResponse(prettyPrint()),
+				responseFields(
+					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
+					fieldWithPath("status").type(JsonFieldType.STRING).description("상태"),
+					fieldWithPath("result").type(JsonFieldType.STRING).description("결과"),
+					fieldWithPath("data").type(JsonFieldType.OBJECT).description("응답 데이터"),
+					fieldWithPath("data.pageNumber").type(JsonFieldType.NUMBER).description("현재 페이지"),
+					fieldWithPath("data.pageSize").type(JsonFieldType.NUMBER).description("페이지 크기"),
+					fieldWithPath("data.totalData").type(JsonFieldType.NUMBER).description("총 데이터 수"),
+					fieldWithPath("data.totalPage").type(JsonFieldType.NUMBER).description("총 페이지 수"),
+					fieldWithPath("data.hasPrevious").type(JsonFieldType.BOOLEAN).description("이전 페이지 존재 여부"),
+					fieldWithPath("data.hasNext").type(JsonFieldType.BOOLEAN).description("다음 페이지 존재 여부"),
+					fieldWithPath("data.rooms").type(JsonFieldType.ARRAY).description("방 목록 조회 결과"),
+					fieldWithPath("data.rooms[].roomCode").type(JsonFieldType.STRING).description("방 식별 코드"),
+					fieldWithPath("data.rooms[].roomTitle").type(JsonFieldType.STRING).description("방 제목"),
+					fieldWithPath("data.rooms[].videoTitle").type(JsonFieldType.STRING).description("영상 제목"),
+					fieldWithPath("data.rooms[].videoThumbnail").type(JsonFieldType.STRING).description("영상 썸네일 URL"),
+					fieldWithPath("data.rooms[].capacity").type(JsonFieldType.NUMBER).description("정원"),
+					fieldWithPath("data.rooms[].currentParticipant").type(JsonFieldType.NUMBER).description("현재 참여자 수")
+				)
+			));
+	}
+
+	private List<RoomDetail> generateRoomDetails(int count) {
+		return IntStream.rangeClosed(1, count)
+			.mapToObj(number -> RoomDetail.builder()
+				.roomCode("1e7050f7d" + number)
+				.roomTitle("2023년 침착맨 정주행 " + number)
+				.videoTitle("궤도 '연애의 과학' 특강 " + number)
+				.videoThumbnail(
+					"https://i.ytimg.com/vi/sl7ih5rLfYM/hq720.jpg?sqp=-oaymwEcCNAFEJQDSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLDbjCXvhBJSBKs9bX_XMy_EfUtvSw")
+				.capacity(10)
+				.currentParticipant(6)
+				.build())
+			.toList();
 	}
 
 }
