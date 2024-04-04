@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +25,7 @@ import site.youtogether.room.application.RoomService;
 import site.youtogether.room.dto.CreatedRoomInfo;
 import site.youtogether.room.dto.RoomList;
 import site.youtogether.room.dto.RoomSettings;
+import site.youtogether.user.application.UserService;
 import site.youtogether.util.RandomUtil;
 import site.youtogether.util.api.ApiResponse;
 import site.youtogether.util.api.ResponseResult;
@@ -36,12 +36,13 @@ public class RoomController {
 
 	private final CookieProperties cookieProperties;
 	private final RoomService roomService;
+	private final UserService userService;
 
 	@PostMapping("/rooms")
-	public ResponseEntity<ApiResponse<CreatedRoomInfo>> createRoom(@CookieValue(value = SESSION_COOKIE_NAME, required = false) Cookie sessionCookie,
+	public ResponseEntity<ApiResponse<CreatedRoomInfo>> createRoom(@CookieValue(value = SESSION_COOKIE_NAME, required = false) String sessionCode,
 		@Address String address, @Valid @RequestBody RoomSettings roomSettings, HttpServletResponse response) {
 		// Check if a session cookie already exists.
-		if (sessionCookie != null) {
+		if (sessionCode != null && userService.isValidSession(sessionCode)) {
 			throw new SingleRoomParticipationViolationException();
 		}
 

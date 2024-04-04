@@ -15,10 +15,10 @@ public class RoomList {
 	private boolean hasPrevious;
 	private boolean hasNext;
 
-	private List<RoomDetail> rooms;
+	private List<RoomListDetail> rooms;
 
 	@Builder
-	public RoomList(int pageNumber, int pageSize, int totalData, int totalPage, boolean hasPrevious, boolean hasNext, List<RoomDetail> rooms) {
+	public RoomList(int pageNumber, int pageSize, int totalData, int totalPage, boolean hasPrevious, boolean hasNext, List<RoomListDetail> rooms) {
 		this.pageNumber = pageNumber;
 		this.pageSize = pageSize;
 		this.totalData = totalData;
