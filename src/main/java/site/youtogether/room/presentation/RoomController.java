@@ -23,7 +23,7 @@ import site.youtogether.config.property.CookieProperties;
 import site.youtogether.exception.room.SingleRoomParticipationViolationException;
 import site.youtogether.resolver.Address;
 import site.youtogether.room.application.RoomService;
-import site.youtogether.room.dto.RoomCode;
+import site.youtogether.room.dto.CreatedRoomInfo;
 import site.youtogether.room.dto.RoomList;
 import site.youtogether.room.dto.RoomSettings;
 import site.youtogether.util.RandomUtil;
@@ -38,7 +38,7 @@ public class RoomController {
 	private final RoomService roomService;
 
 	@PostMapping("/rooms")
-	public ResponseEntity<ApiResponse<RoomCode>> createRoom(@CookieValue(value = SESSION_COOKIE_NAME, required = false) Cookie sessionCookie,
+	public ResponseEntity<ApiResponse<CreatedRoomInfo>> createRoom(@CookieValue(value = SESSION_COOKIE_NAME, required = false) Cookie sessionCookie,
 		@Address String address, @Valid @RequestBody RoomSettings roomSettings, HttpServletResponse response) {
 		// Check if a session cookie already exists.
 		if (sessionCookie != null) {
@@ -56,14 +56,14 @@ public class RoomController {
 			.build();
 
 		// Create a new room with the generated session code.
-		RoomCode roomCode = roomService.create(cookie.getValue(), address, roomSettings);
+		CreatedRoomInfo createdRoomInfo = roomService.create(cookie.getValue(), address, roomSettings);
 
 		// Add the cookie to the response header.
 		response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
 		// Return a response indicating successful room creation.
 		return ResponseEntity.status(HttpStatus.CREATED)
-			.body(ApiResponse.created(ResponseResult.ROOM_CREATION_SUCCESS, roomCode));
+			.body(ApiResponse.created(ResponseResult.ROOM_CREATION_SUCCESS, createdRoomInfo));
 	}
 
 	@GetMapping("/rooms")

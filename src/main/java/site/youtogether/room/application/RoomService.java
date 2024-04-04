@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
 import site.youtogether.room.Room;
-import site.youtogether.room.dto.RoomCode;
+import site.youtogether.room.dto.CreatedRoomInfo;
 import site.youtogether.room.dto.RoomList;
 import site.youtogether.room.dto.RoomSettings;
 import site.youtogether.room.infrastructure.RoomStorage;
@@ -21,7 +21,7 @@ public class RoomService {
 	private final RoomStorage roomStorage;
 	private final UserStorage userStorage;
 
-	public RoomCode create(String sessionCode, String address, RoomSettings roomSettings) {
+	public CreatedRoomInfo create(String sessionCode, String address, RoomSettings roomSettings) {
 		User host = User.builder()
 			.sessionCode(sessionCode)
 			.address(address)
@@ -39,7 +39,7 @@ public class RoomService {
 		userStorage.save(host);
 		roomStorage.save(room);
 
-		return new RoomCode(room);
+		return new CreatedRoomInfo(room, host);
 	}
 
 	public RoomList fetchAll(Pageable pageable, String search) {
