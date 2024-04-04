@@ -22,7 +22,7 @@ import org.springframework.restdocs.payload.JsonFieldType;
 import jakarta.servlet.http.Cookie;
 import site.youtogether.RestDocsSupport;
 import site.youtogether.exception.room.SingleRoomParticipationViolationException;
-import site.youtogether.room.dto.RoomCode;
+import site.youtogether.room.dto.CreatedRoomInfo;
 import site.youtogether.room.dto.RoomDetail;
 import site.youtogether.room.dto.RoomList;
 import site.youtogether.room.dto.RoomSettings;
@@ -35,16 +35,21 @@ class RoomControllerTest extends RestDocsSupport {
 	void createRoomSuccess() throws Exception {
 		// given
 		// Setting up request data for creating a room
+		String roomCode = "1e7050f7d7";
+		String roomTitle = "재밌는 쇼츠 같이 보기";
+		String hostNickname = "황똥땡";
+		int capacity = 10;
+
 		RoomSettings roomSettings = RoomSettings.builder()
-			.capacity(10)
-			.title("재밌는 쇼츠 같이 보기")
+			.capacity(capacity)
+			.title(roomTitle)
 			.password(null)
 			.build();
 
 		// Setting up response data for the created room
-		RoomCode roomCode = new RoomCode("1e7050f7d7");
+		CreatedRoomInfo createdRoomInfo = new CreatedRoomInfo(roomCode, roomTitle, hostNickname, capacity, 1, false);
 		given(roomService.create(anyString(), anyString(), any(RoomSettings.class)))
-			.willReturn(roomCode);
+			.willReturn(createdRoomInfo);
 
 		// when / then
 		String cookieName = cookieProperties.getName();
@@ -64,7 +69,12 @@ class RoomControllerTest extends RestDocsSupport {
 			.andExpect(jsonPath("$.code").value(HttpStatus.CREATED.value()))
 			.andExpect(jsonPath("$.status").value(HttpStatus.CREATED.getReasonPhrase()))
 			.andExpect(jsonPath("$.result").value(ResponseResult.ROOM_CREATION_SUCCESS.getDescription()))
-			.andExpect(jsonPath("$.data.roomCode").value(roomCode.getRoomCode()))
+			.andExpect(jsonPath("$.data.roomCode").value(roomCode))
+			.andExpect(jsonPath("$.data.roomTitle").value(roomTitle))
+			.andExpect(jsonPath("$.data.hostNickname").value(hostNickname))
+			.andExpect(jsonPath("$.data.capacity").value(capacity))
+			.andExpect(jsonPath("$.data.currentParticipant").value(1))
+			.andExpect(jsonPath("$.data.passwordExist").value(false))
 			.andDo(document("create-room-success",
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
@@ -78,7 +88,12 @@ class RoomControllerTest extends RestDocsSupport {
 					fieldWithPath("status").type(JsonFieldType.STRING).description("상태"),
 					fieldWithPath("result").type(JsonFieldType.STRING).description("결과"),
 					fieldWithPath("data").type(JsonFieldType.OBJECT).description("응답 데이터"),
-					fieldWithPath("data.roomCode").type(JsonFieldType.STRING).description("방 식별 코드")
+					fieldWithPath("data.roomCode").type(JsonFieldType.STRING).description("방 식별 코드"),
+					fieldWithPath("data.roomTitle").type(JsonFieldType.STRING).description("방 제목"),
+					fieldWithPath("data.hostNickname").type(JsonFieldType.STRING).description("호스트 닉네임"),
+					fieldWithPath("data.capacity").type(JsonFieldType.NUMBER).description("정원"),
+					fieldWithPath("data.currentParticipant").type(JsonFieldType.NUMBER).description("현재 참가자 수"),
+					fieldWithPath("data.passwordExist").type(JsonFieldType.BOOLEAN).description("현재 참가자 수")
 				)
 			));
 	}

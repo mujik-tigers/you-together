@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import site.youtogether.IntegrationTestSupport;
 import site.youtogether.room.Room;
-import site.youtogether.room.dto.RoomCode;
+import site.youtogether.room.dto.CreatedRoomInfo;
 import site.youtogether.room.dto.RoomSettings;
 import site.youtogether.room.infrastructure.RoomStorage;
 import site.youtogether.user.Role;
@@ -47,14 +47,14 @@ class RoomServiceTest extends IntegrationTestSupport {
 			.build();
 
 		// when
-		RoomCode roomCode = roomService.create(sessionCode, address, roomSettings);
+		CreatedRoomInfo createdRoomInfo = roomService.create(sessionCode, address, roomSettings);
 
 		// then
-		Room room = roomStorage.findById(roomCode.getRoomCode()).get();
+		Room room = roomStorage.findById(createdRoomInfo.getRoomCode()).get();
 		User user = userStorage.findById(sessionCode).get();
 
-		assertThat(roomCode.getRoomCode()).hasSize(ROOM_CODE_LENGTH);
-		assertThat(roomCode.getRoomCode()).isEqualTo(room.getCode());
+		assertThat(createdRoomInfo.getRoomCode()).hasSize(ROOM_CODE_LENGTH);
+		assertThat(createdRoomInfo.getRoomCode()).isEqualTo(room.getCode());
 		assertThat(room.getCapacity()).isEqualTo(10);
 		assertThat(room.getTitle()).isEqualTo("재밌는 쇼츠 같이 보기");
 		assertThat(room.getPassword()).isNull();
