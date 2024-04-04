@@ -13,6 +13,7 @@ import site.youtogether.config.PropertiesConfig;
 import site.youtogether.config.property.CookieProperties;
 import site.youtogether.room.application.RoomService;
 import site.youtogether.room.presentation.RoomController;
+import site.youtogether.user.application.UserService;
 
 @WebMvcTest(controllers = {
 	RoomController.class
@@ -32,5 +33,8 @@ public abstract class RestDocsSupport {
 
 	@MockBean
 	protected RoomService roomService;
+
+	@MockBean
+	protected UserService userService;
 
 }

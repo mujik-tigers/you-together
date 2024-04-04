@@ -23,8 +23,8 @@ import jakarta.servlet.http.Cookie;
 import site.youtogether.RestDocsSupport;
 import site.youtogether.exception.room.SingleRoomParticipationViolationException;
 import site.youtogether.room.dto.CreatedRoomInfo;
-import site.youtogether.room.dto.RoomDetail;
 import site.youtogether.room.dto.RoomList;
+import site.youtogether.room.dto.RoomListDetail;
 import site.youtogether.room.dto.RoomSettings;
 import site.youtogether.util.api.ResponseResult;
 
@@ -93,7 +93,7 @@ class RoomControllerTest extends RestDocsSupport {
 					fieldWithPath("data.hostNickname").type(JsonFieldType.STRING).description("호스트 닉네임"),
 					fieldWithPath("data.capacity").type(JsonFieldType.NUMBER).description("정원"),
 					fieldWithPath("data.currentParticipant").type(JsonFieldType.NUMBER).description("현재 참가자 수"),
-					fieldWithPath("data.passwordExist").type(JsonFieldType.BOOLEAN).description("현재 참가자 수")
+					fieldWithPath("data.passwordExist").type(JsonFieldType.BOOLEAN).description("비밀번호 존재 여부")
 				)
 			));
 	}
@@ -151,6 +151,8 @@ class RoomControllerTest extends RestDocsSupport {
 			.title("재밌는 쇼츠 같이 보기")
 			.password(null)
 			.build();
+		given(userService.isValidSession(anyString()))
+			.willReturn(true);
 
 		// when / then
 		mockMvc.perform(post("/rooms")
@@ -225,6 +227,7 @@ class RoomControllerTest extends RestDocsSupport {
 			.andExpect(jsonPath("$.data.rooms[0].videoThumbnail").value(roomList.getRooms().get(0).getVideoThumbnail()))
 			.andExpect(jsonPath("$.data.rooms[0].capacity").value(roomList.getRooms().get(0).getCapacity()))
 			.andExpect(jsonPath("$.data.rooms[0].currentParticipant").value(roomList.getRooms().get(0).getCurrentParticipant()))
+			.andExpect(jsonPath("$.data.rooms[0].passwordExist").value(roomList.getRooms().get(0).isPasswordExist()))
 			.andDo(document("fetch-room-list-success",
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
@@ -245,14 +248,15 @@ class RoomControllerTest extends RestDocsSupport {
 					fieldWithPath("data.rooms[].videoTitle").type(JsonFieldType.STRING).description("영상 제목"),
 					fieldWithPath("data.rooms[].videoThumbnail").type(JsonFieldType.STRING).description("영상 썸네일 URL"),
 					fieldWithPath("data.rooms[].capacity").type(JsonFieldType.NUMBER).description("정원"),
-					fieldWithPath("data.rooms[].currentParticipant").type(JsonFieldType.NUMBER).description("현재 참여자 수")
+					fieldWithPath("data.rooms[].currentParticipant").type(JsonFieldType.NUMBER).description("현재 참여자 수"),
+					fieldWithPath("data.rooms[].passwordExist").type(JsonFieldType.BOOLEAN).description("비밀번호 존재 여부")
 				)
 			));
 	}
 
-	private List<RoomDetail> generateRoomDetails(int count) {
+	private List<RoomListDetail> generateRoomDetails(int count) {
 		return IntStream.rangeClosed(1, count)
-			.mapToObj(number -> RoomDetail.builder()
+			.mapToObj(number -> RoomListDetail.builder()
 				.roomCode("1e7050f7d" + number)
 				.roomTitle("2023년 침착맨 정주행 " + number)
 				.videoTitle("궤도 '연애의 과학' 특강 " + number)
@@ -260,6 +264,7 @@ class RoomControllerTest extends RestDocsSupport {
 					"https://i.ytimg.com/vi/sl7ih5rLfYM/hq720.jpg?sqp=-oaymwEcCNAFEJQDSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLDbjCXvhBJSBKs9bX_XMy_EfUtvSw")
 				.capacity(10)
 				.currentParticipant(6)
+				.passwordExist(false)
 				.build())
 			.toList();
 	}
