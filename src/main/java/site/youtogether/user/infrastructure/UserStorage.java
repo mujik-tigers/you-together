@@ -1,11 +1,9 @@
 package site.youtogether.user.infrastructure;
 
-import org.springframework.data.repository.CrudRepository;
-import org.springframework.stereotype.Repository;
+import com.redis.om.spring.repository.RedisDocumentRepository;
 
 import site.youtogether.user.User;
 
-@Repository
-public interface UserStorage extends CrudRepository<User, String> {
-	
+public interface UserStorage extends RedisDocumentRepository<User, String> {
+
 }
