@@ -26,13 +26,26 @@ repositories {
 }
 
 dependencies {
+    // Web
     implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    // Validation
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    // Redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation "com.redis.om:redis-om-spring:0.8.9"
+    annotationProcessor "com.redis.om:redis-om-spring:0.8.9"
+
+    // Lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
+
+    // REST Docs
     asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor'
     testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
+
+    // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
