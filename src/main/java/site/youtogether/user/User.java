@@ -1,13 +1,14 @@
 package site.youtogether.user;
 
 import org.springframework.data.annotation.Id;
-import org.springframework.data.redis.core.RedisHash;
+
+import com.redis.om.spring.annotations.Document;
 
 import lombok.Builder;
 import lombok.Getter;
 
-@RedisHash(value = "user")
 @Getter
+@Document(value = "user")
 public class User {
 
 	@Id

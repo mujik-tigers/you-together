@@ -1,11 +1,9 @@
 package site.youtogether.room.infrastructure;
 
-import org.springframework.data.repository.CrudRepository;
-import org.springframework.stereotype.Repository;
+import com.redis.om.spring.repository.RedisDocumentRepository;
 
 import site.youtogether.room.Room;
 
-@Repository
-public interface RoomStorage extends CrudRepository<Room, String> {
+public interface RoomStorage extends RedisDocumentRepository<Room, String> {
 
 }

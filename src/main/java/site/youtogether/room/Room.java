@@ -6,7 +6,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.data.annotation.Id;
-import org.springframework.data.redis.core.RedisHash;
+
+import com.redis.om.spring.annotations.Document;
 
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -15,9 +16,9 @@ import lombok.NoArgsConstructor;
 import site.youtogether.user.User;
 import site.youtogether.util.RandomUtil;
 
-@RedisHash(value = "room")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
+@Document(value = "room")
 public class Room {
 
 	@Id
