@@ -25,7 +25,7 @@ public class RoomSearchStreamBuilder {
 
 	public RoomSearchStreamBuilder filterTitleContaining(String keyword) {
 		if (StringUtils.hasText(keyword)) {
-			roomSearchStream = roomSearchStream.filter(Room$.TITLE.containing(keyword));
+			roomSearchStream = roomSearchStream.filter(Room$.TITLE.containing(keyword.strip()));
 		}
 		return this;
 	}
