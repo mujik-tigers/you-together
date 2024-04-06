@@ -10,6 +10,7 @@ import org.springframework.data.annotation.Id;
 
 import com.redis.om.spring.annotations.Document;
 import com.redis.om.spring.annotations.Indexed;
+import com.redis.om.spring.annotations.Searchable;
 
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -26,12 +27,14 @@ public class Room {
 	@Id
 	private String code;
 
-	@Indexed
+	@Searchable
 	private String title;
+
+	@Indexed
+	private LocalDateTime createdAt;
 
 	private int capacity;
 	private String password;
-	private LocalDateTime createdAt;
 	private User host;
 	private Map<String, User> participants = new HashMap<>(10);
 
