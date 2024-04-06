@@ -50,4 +50,8 @@ public class Room {
 		participants.put(host.getSessionCode(), host);
 	}
 
+	public boolean hasPassword() {
+		return password != null;
+	}
+
 }

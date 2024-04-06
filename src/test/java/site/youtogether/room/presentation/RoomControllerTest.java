@@ -15,7 +15,9 @@ import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
@@ -23,10 +25,12 @@ import org.springframework.restdocs.payload.JsonFieldType;
 import jakarta.servlet.http.Cookie;
 import site.youtogether.RestDocsSupport;
 import site.youtogether.exception.room.SingleRoomParticipationViolationException;
+import site.youtogether.room.Room;
 import site.youtogether.room.dto.CreatedRoomInfo;
 import site.youtogether.room.dto.RoomList;
-import site.youtogether.room.dto.RoomListDetail;
 import site.youtogether.room.dto.RoomSettings;
+import site.youtogether.user.Role;
+import site.youtogether.user.User;
 import site.youtogether.util.api.ResponseResult;
 
 class RoomControllerTest extends RestDocsSupport {
@@ -193,12 +197,8 @@ class RoomControllerTest extends RestDocsSupport {
 	void fetchRoomListSuccess() throws Exception {
 		// given
 		// Setting up response data for the fetched room list
-		RoomList roomList = RoomList.builder()
-			.pageNumber(0)
-			.pageSize(10)
-			.hasNext(false)
-			.rooms(generateRoomDetails(3))
-			.build();
+		SliceImpl<Room> roomSlice = new SliceImpl<>(generateRooms(3), PageRequest.of(0, 10), false);
+		RoomList roomList = new RoomList(roomSlice);
 		given(roomService.fetchAll(any(Pageable.class), anyString()))
 			.willReturn(roomList);
 
@@ -206,7 +206,7 @@ class RoomControllerTest extends RestDocsSupport {
 		mockMvc.perform(get("/rooms")
 				.param("page", "0")
 				.param("size", "10")
-				.param("search", "침착"))
+				.param("keyword", "침착"))
 			.andDo(print())
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
@@ -246,17 +246,19 @@ class RoomControllerTest extends RestDocsSupport {
 			));
 	}
 
-	private List<RoomListDetail> generateRoomDetails(int count) {
+	private List<Room> generateRooms(int count) {
+		User host = User.builder()
+			.sessionCode("dafhlsd")
+			.role(Role.HOST)
+			.nickname("연츠비")
+			.build();
+
 		return IntStream.rangeClosed(1, count)
-			.mapToObj(number -> RoomListDetail.builder()
-				.roomCode("1e7050f7d" + number)
-				.roomTitle("2023년 침착맨 정주행 " + number)
-				.videoTitle("궤도 '연애의 과학' 특강 " + number)
-				.videoThumbnail(
-					"https://i.ytimg.com/vi/sl7ih5rLfYM/hq720.jpg?sqp=-oaymwEcCNAFEJQDSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLDbjCXvhBJSBKs9bX_XMy_EfUtvSw")
+			.mapToObj(number -> Room.builder()
+				.title("2023년 침착맨 정주행 " + number)
 				.capacity(10)
-				.currentParticipant(6)
-				.passwordExist(false)
+				.host(host)
+				.createdAt(LocalDateTime.of(2024, 4, 6, 19, 43, 0))
 				.build())
 			.toList();
 	}

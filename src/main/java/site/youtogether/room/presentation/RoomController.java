@@ -69,8 +69,8 @@ public class RoomController {
 	}
 
 	@GetMapping("/rooms")
-	public ResponseEntity<ApiResponse<RoomList>> fetchRoomList(@PageableDefault Pageable pageable, @RequestParam(required = false) String search) {
-		RoomList roomList = roomService.fetchAll(pageable, search);
+	public ResponseEntity<ApiResponse<RoomList>> fetchRoomList(@PageableDefault Pageable pageable, @RequestParam(required = false) String keyword) {
+		RoomList roomList = roomService.fetchAll(pageable, keyword);
 
 		return ResponseEntity.ok()
 			.body(ApiResponse.ok(ResponseResult.ROOM_LIST_FETCH_SUCCESS, roomList));

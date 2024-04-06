@@ -3,6 +3,7 @@ package site.youtogether.room.application;
 import java.time.LocalDateTime;
 
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -34,7 +35,7 @@ public class RoomService {
 			.capacity(roomSettings.getCapacity())
 			.title(roomSettings.getTitle())
 			.password(roomSettings.getPassword())
-			.createdAt(LocalDateTime.now())
+			.createdAt(now)
 			.host(host)
 			.build();
 
@@ -44,8 +45,9 @@ public class RoomService {
 		return new CreatedRoomInfo(room, host);
 	}
 
-	public RoomList fetchAll(Pageable pageable, String search) {
-		return null;
+	public RoomList fetchAll(Pageable pageable, String keyword) {
+		Slice<Room> roomSlice = roomStorage.findSliceBy(pageable, keyword);
+		return new RoomList(roomSlice);
 	}
 
 }

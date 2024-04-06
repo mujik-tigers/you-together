@@ -2,8 +2,10 @@ package site.youtogether.room.dto;
 
 import java.util.List;
 
-import lombok.Builder;
+import org.springframework.data.domain.Slice;
+
 import lombok.Getter;
+import site.youtogether.room.Room;
 
 @Getter
 public class RoomList {
@@ -14,12 +16,13 @@ public class RoomList {
 
 	private List<RoomListDetail> rooms;
 
-	@Builder
-	public RoomList(int pageNumber, int pageSize, boolean hasNext, List<RoomListDetail> rooms) {
-		this.pageNumber = pageNumber;
-		this.pageSize = pageSize;
-		this.hasNext = hasNext;
-		this.rooms = rooms;
+	public RoomList(Slice<Room> roomSlice) {
+		this.pageNumber = roomSlice.getPageable().getPageNumber();
+		this.pageSize = roomSlice.getPageable().getPageSize();
+		this.hasNext = roomSlice.hasNext();
+		this.rooms = roomSlice.getContent().stream()
+			.map(RoomListDetail::new)
+			.toList();
 	}
 
 }

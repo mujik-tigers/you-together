@@ -67,4 +67,20 @@ class RoomServiceTest extends IntegrationTestSupport {
 		assertThat(user.getRole()).isEqualTo(Role.HOST);
 	}
 
+	private Room createRoom(LocalDateTime createTime, String title) {
+		User user = User.builder()
+			.sessionCode("dakfhsldjk")
+			.build();
+
+		Room room = Room.builder()
+			.title(title)
+			.host(user)
+			.createdAt(createTime)
+			.build();
+
+		roomStorage.save(room);
+
+		return room;
+	}
+
 }
