@@ -2,6 +2,8 @@ package site.youtogether.room.presentation;
 
 import static site.youtogether.util.AppConstants.*;
 
+import java.time.LocalDateTime;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
@@ -20,7 +22,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import site.youtogether.config.property.CookieProperties;
 import site.youtogether.exception.room.SingleRoomParticipationViolationException;
-import site.youtogether.resolver.Address;
 import site.youtogether.room.application.RoomService;
 import site.youtogether.room.dto.CreatedRoomInfo;
 import site.youtogether.room.dto.RoomList;
@@ -40,7 +41,7 @@ public class RoomController {
 
 	@PostMapping("/rooms")
 	public ResponseEntity<ApiResponse<CreatedRoomInfo>> createRoom(@CookieValue(value = SESSION_COOKIE_NAME, required = false) String sessionCode,
-		@Address String address, @Valid @RequestBody RoomSettings roomSettings, HttpServletResponse response) {
+		@Valid @RequestBody RoomSettings roomSettings, HttpServletResponse response) {
 		// Check if a session cookie already exists.
 		if (sessionCode != null && userService.isValidSession(sessionCode)) {
 			throw new SingleRoomParticipationViolationException();
@@ -57,7 +58,7 @@ public class RoomController {
 			.build();
 
 		// Create a new room with the generated session code.
-		CreatedRoomInfo createdRoomInfo = roomService.create(cookie.getValue(), address, roomSettings);
+		CreatedRoomInfo createdRoomInfo = roomService.create(cookie.getValue(), roomSettings, LocalDateTime.now());
 
 		// Add the cookie to the response header.
 		response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
@@ -68,8 +69,8 @@ public class RoomController {
 	}
 
 	@GetMapping("/rooms")
-	public ResponseEntity<ApiResponse<RoomList>> fetchRoomList(@PageableDefault Pageable pageable, @RequestParam(required = false) String search) {
-		RoomList roomList = roomService.fetchAll(pageable, search);
+	public ResponseEntity<ApiResponse<RoomList>> fetchRoomList(@PageableDefault Pageable pageable, @RequestParam(required = false) String keyword) {
+		RoomList roomList = roomService.fetchAll(pageable, keyword);
 
 		return ResponseEntity.ok()
 			.body(ApiResponse.ok(ResponseResult.ROOM_LIST_FETCH_SUCCESS, roomList));

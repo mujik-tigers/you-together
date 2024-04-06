@@ -1,7 +1,7 @@
 package site.youtogether.room.dto;
 
-import lombok.Builder;
 import lombok.Getter;
+import site.youtogether.room.Room;
 
 @Getter
 public class RoomListDetail {
@@ -14,16 +14,14 @@ public class RoomListDetail {
 	private int currentParticipant;
 	private boolean passwordExist;
 
-	@Builder
-	public RoomListDetail(String roomCode, String roomTitle, String videoTitle, String videoThumbnail, int capacity, int currentParticipant,
-		boolean passwordExist) {
-		this.roomCode = roomCode;
-		this.roomTitle = roomTitle;
-		this.videoTitle = videoTitle;
-		this.videoThumbnail = videoThumbnail;
-		this.capacity = capacity;
-		this.currentParticipant = currentParticipant;
-		this.passwordExist = passwordExist;
+	public RoomListDetail(Room room) {    // TODO: videoTitle, videoThumbnail 은 추후 결정
+		this.roomCode = room.getCode();
+		this.roomTitle = room.getTitle();
+		this.capacity = room.getCapacity();
+		this.currentParticipant = room.getParticipants().size();
+		this.passwordExist = room.hasPassword();
+		this.videoThumbnail = "https://i.ytimg.com/vi/sl7ih5rLfYM/hq720.jpg?sqp=-oaymwEcCNAFEJQDSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLDbjCXvhBJSBKs9bX_XMy_EfUtvSw";
+		this.videoTitle = "궤도 '연애의 과학' 특강 1";
 	}
 
 }
