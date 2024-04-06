@@ -1,5 +1,7 @@
 package site.youtogether.room.application;
 
+import java.time.LocalDateTime;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -33,6 +35,7 @@ public class RoomService {
 			.capacity(roomSettings.getCapacity())
 			.title(roomSettings.getTitle())
 			.password(roomSettings.getPassword())
+			.createdAt(LocalDateTime.now())
 			.host(host)
 			.build();
 
