@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.*;
 
 import java.util.List;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,11 @@ public class SpringRedisOMTest extends IntegrationTestSupport {
 
 	@Autowired
 	private MockDataRepository mockDataRepository;
+
+	@AfterEach
+	void clear() {
+		mockDataRepository.deleteAll();
+	}
 
 	@Test
 	@DisplayName("간단한 CRUD")
@@ -31,5 +37,5 @@ public class SpringRedisOMTest extends IntegrationTestSupport {
 		List<MockData> empty = mockDataRepository.findAll();
 		assertThat(empty).isEmpty();
 	}
-	
+
 }
