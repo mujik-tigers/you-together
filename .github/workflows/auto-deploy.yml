@@ -22,10 +22,10 @@ jobs:
 
     services:
       redis:
-        image: redis:latest
+        image: redis/redis-stack-server:latest
         ports:
           - 6380:6379
-          
+
     steps:
       - name: Checkout
         uses: actions/checkout@v3

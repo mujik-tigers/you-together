@@ -1,6 +1,9 @@
 package site.youtogether.room.application;
 
+import java.time.LocalDateTime;
+
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -21,10 +24,9 @@ public class RoomService {
 	private final RoomStorage roomStorage;
 	private final UserStorage userStorage;
 
-	public CreatedRoomInfo create(String sessionCode, String address, RoomSettings roomSettings) {
+	public CreatedRoomInfo create(String sessionCode, RoomSettings roomSettings, LocalDateTime now) {
 		User host = User.builder()
 			.sessionCode(sessionCode)
-			.address(address)
 			.nickname(RandomUtil.generateUserNickname())
 			.role(Role.HOST)
 			.build();
@@ -33,6 +35,7 @@ public class RoomService {
 			.capacity(roomSettings.getCapacity())
 			.title(roomSettings.getTitle())
 			.password(roomSettings.getPassword())
+			.createdAt(now)
 			.host(host)
 			.build();
 
@@ -42,8 +45,9 @@ public class RoomService {
 		return new CreatedRoomInfo(room, host);
 	}
 
-	public RoomList fetchAll(Pageable pageable, String search) {
-		return null;
+	public RoomList fetchAll(Pageable pageable, String keyword) {
+		Slice<Room> roomSlice = roomStorage.findSliceBy(pageable, keyword);
+		return new RoomList(roomSlice);
 	}
 
 }
