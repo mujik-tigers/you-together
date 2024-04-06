@@ -23,10 +23,9 @@ public class RoomService {
 	private final RoomStorage roomStorage;
 	private final UserStorage userStorage;
 
-	public CreatedRoomInfo create(String sessionCode, String address, RoomSettings roomSettings) {
+	public CreatedRoomInfo create(String sessionCode, RoomSettings roomSettings, LocalDateTime now) {
 		User host = User.builder()
 			.sessionCode(sessionCode)
-			.address(address)
 			.nickname(RandomUtil.generateUserNickname())
 			.role(Role.HOST)
 			.build();

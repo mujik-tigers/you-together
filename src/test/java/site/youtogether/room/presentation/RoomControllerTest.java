@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static site.youtogether.exception.ErrorType.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -48,7 +49,7 @@ class RoomControllerTest extends RestDocsSupport {
 
 		// Setting up response data for the created room
 		CreatedRoomInfo createdRoomInfo = new CreatedRoomInfo(roomCode, roomTitle, hostNickname, capacity, 1, false);
-		given(roomService.create(anyString(), anyString(), any(RoomSettings.class)))
+		given(roomService.create(anyString(), any(RoomSettings.class), any(LocalDateTime.class)))
 			.willReturn(createdRoomInfo);
 
 		// when / then

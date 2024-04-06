@@ -3,6 +3,8 @@ package site.youtogether.room.application;
 import static org.assertj.core.api.Assertions.*;
 import static site.youtogether.util.AppConstants.*;
 
+import java.time.LocalDateTime;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -47,7 +49,7 @@ class RoomServiceTest extends IntegrationTestSupport {
 			.build();
 
 		// when
-		CreatedRoomInfo createdRoomInfo = roomService.create(sessionCode, address, roomSettings);
+		CreatedRoomInfo createdRoomInfo = roomService.create(sessionCode, roomSettings, LocalDateTime.now());
 
 		// then
 		Room room = roomStorage.findById(createdRoomInfo.getRoomCode()).get();
@@ -61,7 +63,6 @@ class RoomServiceTest extends IntegrationTestSupport {
 		assertThat(room.getHost().getSessionCode()).isEqualTo(sessionCode);
 		assertThat(room.getParticipants()).hasSize(1);
 		assertThat(user.getSessionCode()).isEqualTo(sessionCode);
-		assertThat(user.getAddress()).isEqualTo(address);
 		assertThat(user.getNickname()).isNotBlank();
 		assertThat(user.getRole()).isEqualTo(Role.HOST);
 	}
