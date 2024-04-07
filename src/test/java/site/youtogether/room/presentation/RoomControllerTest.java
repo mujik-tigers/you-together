@@ -56,6 +56,9 @@ class RoomControllerTest extends RestDocsSupport {
 		given(roomService.create(anyString(), any(RoomSettings.class), any(LocalDateTime.class)))
 			.willReturn(createdRoomInfo);
 
+		given(userTrackingStorage.save(anyString()))                // UserTrackingStorage 에 방을 생성한 유저가 저장된다.
+			.willReturn("asdlkfjasdl");
+
 		// when / then
 		String cookieName = cookieProperties.getName();
 
@@ -158,6 +161,9 @@ class RoomControllerTest extends RestDocsSupport {
 			.build();
 		given(userService.isValidSession(anyString()))
 			.willReturn(true);
+
+		given(userTrackingStorage.findByCookieValue(sessionCookie.getValue()))        // UserTrackingStorage 에 세션 쿠키값에 대응되는 유저가 있다고 가정
+			.willReturn("dfsflkl123");
 
 		// when / then
 		mockMvc.perform(post("/rooms")
