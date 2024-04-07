@@ -10,7 +10,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,12 +20,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import site.youtogether.config.property.CookieProperties;
-import site.youtogether.exception.room.SingleRoomParticipationViolationException;
 import site.youtogether.room.application.RoomService;
 import site.youtogether.room.dto.CreatedRoomInfo;
 import site.youtogether.room.dto.RoomList;
 import site.youtogether.room.dto.RoomSettings;
-import site.youtogether.user.application.UserService;
 import site.youtogether.util.RandomUtil;
 import site.youtogether.util.api.ApiResponse;
 import site.youtogether.util.api.ResponseResult;
@@ -37,18 +34,11 @@ public class RoomController {
 
 	private final CookieProperties cookieProperties;
 	private final RoomService roomService;
-	private final UserService userService;
 
 	@PostMapping("/rooms")
-	public ResponseEntity<ApiResponse<CreatedRoomInfo>> createRoom(@CookieValue(value = SESSION_COOKIE_NAME, required = false) String sessionCode,
-		@Valid @RequestBody RoomSettings roomSettings, HttpServletResponse response) {
-		// Check if a session cookie already exists.
-		if (sessionCode != null && userService.isValidSession(sessionCode)) {
-			throw new SingleRoomParticipationViolationException();
-		}
-
+	public ResponseEntity<ApiResponse<CreatedRoomInfo>> createRoom(@Valid @RequestBody RoomSettings roomSettings, HttpServletResponse response) {
 		// Generate a new session code and set it as a cookie.
-		ResponseCookie cookie = ResponseCookie.from(cookieProperties.getName(), RandomUtil.generateRandomCode(SESSION_CODE_LENGTH))
+		ResponseCookie cookie = ResponseCookie.from(cookieProperties.getName(), RandomUtil.generateRandomCode(COOKIE_VALUE_LENGTH))
 			.domain(cookieProperties.getDomain())
 			.path(cookieProperties.getPath())
 			.sameSite(cookieProperties.getSameSite())

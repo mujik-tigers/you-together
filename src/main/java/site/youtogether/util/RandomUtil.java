@@ -3,12 +3,19 @@ package site.youtogether.util;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicLong;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class RandomUtil {
+
+	private static final AtomicLong atomicLong = new AtomicLong();
+
+	public static Long generateSessionCode() {
+		return atomicLong.incrementAndGet();
+	}
 
 	/**
 	 * generate random code

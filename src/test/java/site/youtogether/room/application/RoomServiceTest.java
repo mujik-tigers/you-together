@@ -10,6 +10,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.redis.core.RedisTemplate;
 
 import site.youtogether.IntegrationTestSupport;
 import site.youtogether.room.Room;
@@ -20,6 +21,7 @@ import site.youtogether.room.infrastructure.RoomStorage;
 import site.youtogether.user.Role;
 import site.youtogether.user.User;
 import site.youtogether.user.infrastructure.UserStorage;
+import site.youtogether.user.infrastructure.UserTrackingStorage;
 
 class RoomServiceTest extends IntegrationTestSupport {
 
@@ -32,10 +34,17 @@ class RoomServiceTest extends IntegrationTestSupport {
 	@Autowired
 	private UserStorage userStorage;
 
+	@Autowired
+	private UserTrackingStorage userTrackingStorage;
+
+	@Autowired
+	private RedisTemplate<String, String> redisStringTemplate;
+
 	@BeforeEach
 	void clean() {
 		roomStorage.deleteAll();
 		userStorage.deleteAll();
+		redisStringTemplate.delete(SESSION_CODE_KEY_PREFIX + "*");
 	}
 
 	@Test
@@ -43,7 +52,6 @@ class RoomServiceTest extends IntegrationTestSupport {
 	void createSuccess() {
 		// given
 		String sessionCode = "7644a835e52e45dfa385";
-		String address = "127.0.0.1";
 		RoomSettings roomSettings = RoomSettings.builder()
 			.capacity(10)
 			.title("재밌는 쇼츠 같이 보기")
@@ -67,6 +75,7 @@ class RoomServiceTest extends IntegrationTestSupport {
 		assertThat(user.getSessionCode()).isEqualTo(sessionCode);
 		assertThat(user.getNickname()).isNotBlank();
 		assertThat(user.getRole()).isEqualTo(Role.HOST);
+		assertThat(userTrackingStorage.exists(sessionCode)).isTrue();
 	}
 
 	@Test
@@ -108,7 +117,7 @@ class RoomServiceTest extends IntegrationTestSupport {
 
 	private Room createRoom(LocalDateTime createTime, String title) {
 		User user = User.builder()
-			.sessionCode("dakfhsldjk")
+			.sessionCode("host session code")
 			.build();
 
 		Room room = Room.builder()

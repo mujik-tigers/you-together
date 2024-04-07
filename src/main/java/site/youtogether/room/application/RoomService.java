@@ -15,6 +15,7 @@ import site.youtogether.room.infrastructure.RoomStorage;
 import site.youtogether.user.Role;
 import site.youtogether.user.User;
 import site.youtogether.user.infrastructure.UserStorage;
+import site.youtogether.user.infrastructure.UserTrackingStorage;
 import site.youtogether.util.RandomUtil;
 
 @Service
@@ -23,6 +24,7 @@ public class RoomService {
 
 	private final RoomStorage roomStorage;
 	private final UserStorage userStorage;
+	private final UserTrackingStorage userTrackingStorage;
 
 	public CreatedRoomInfo create(String sessionCode, RoomSettings roomSettings, LocalDateTime now) {
 		User host = User.builder()
@@ -40,6 +42,7 @@ public class RoomService {
 			.build();
 
 		userStorage.save(host);
+		userTrackingStorage.save(sessionCode);
 		roomStorage.save(room);
 
 		return new CreatedRoomInfo(room, host);
