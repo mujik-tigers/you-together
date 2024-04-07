@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 
 import site.youtogether.IntegrationTestSupport;
+import site.youtogether.exception.cookie.CookieInvalidException;
 
 class UserTrackingStorageTest extends IntegrationTestSupport {
 
@@ -52,6 +53,17 @@ class UserTrackingStorageTest extends IntegrationTestSupport {
 
 		// then
 		assertThat(findUserId).isEqualTo(userId);
+	}
+
+	@Test
+	@DisplayName("클라이언트로부터 받은 쿠키 값과 대응되는 유저 아이디가 없는 경우 예외가 발생한다")
+	void findByCookieFail() throws Exception {
+		// given
+		String cookieValue = "asdklhlkasdghklashg";
+
+		// when // then
+		assertThatThrownBy(() -> userTrackingStorage.findByCookieValue(cookieValue))
+			.isInstanceOf(CookieInvalidException.class);
 	}
 
 }

@@ -6,6 +6,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
 import lombok.RequiredArgsConstructor;
+import site.youtogether.exception.cookie.CookieInvalidException;
 import site.youtogether.util.RandomUtil;
 
 @Repository
@@ -34,8 +35,14 @@ public class UserTrackingStorage {
 	 * @return userId
 	 */
 	public String findByCookieValue(String cookieValue) {
-		return redisTemplate.opsForValue()
+		String userId = redisTemplate.opsForValue()
 			.get(USER_TRACKING_KEY_PREFIX + cookieValue);
+
+		if (userId == null) {
+			throw new CookieInvalidException();
+		}
+
+		return userId;
 	}
 
 }
