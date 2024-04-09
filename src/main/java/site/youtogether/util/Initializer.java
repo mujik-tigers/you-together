@@ -30,14 +30,14 @@ public class Initializer implements ApplicationRunner {
 		roomStorage.deleteAll();
 		userStorage.deleteAll();
 
-		for (int i = 0; i < NO_PASSWORD_ROOM_COUNT; i++) {
+		for (long i = 0; i < NO_PASSWORD_ROOM_COUNT; i++) {
 			User host = User.builder()
-				.sessionCode("ghaslkdg" + i)
+				.userId(i)
 				.nickname("황똥땡" + i)
 				.role(Role.HOST)
 				.build();
 
-			LocalDateTime createTime = LocalDateTime.of(2024, 4, 6, 12, 0, i);
+			LocalDateTime createTime = LocalDateTime.of(2024, 4, 6, 12, 0, (int)i);
 			Room room = Room.builder()
 				.host(host)
 				.capacity(5)
@@ -47,14 +47,14 @@ public class Initializer implements ApplicationRunner {
 			roomStorage.save(room);
 		}
 
-		for (int i = 0; i < PASSWORD_ROOM_COUNT; i++) {
+		for (long i = 0; i < PASSWORD_ROOM_COUNT; i++) {
 			User host = User.builder()
-				.sessionCode("dasjfda" + i)
+				.userId(NO_PASSWORD_ROOM_COUNT + i)
 				.nickname("연똥땡" + i)
 				.role(Role.HOST)
 				.build();
 
-			LocalDateTime createTime = LocalDateTime.of(2024, 4, 6, 11, 0, i);
+			LocalDateTime createTime = LocalDateTime.of(2024, 4, 6, 11, 0, (int)i);
 			Room room = Room.builder()
 				.host(host)
 				.capacity(5)

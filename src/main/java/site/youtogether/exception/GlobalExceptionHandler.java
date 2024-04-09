@@ -44,7 +44,7 @@ public class GlobalExceptionHandler {
 		error.put("type", customException.getClass().getSimpleName());
 		error.put("message", customException.getMessage());
 
-		return ResponseEntity.badRequest()
+		return ResponseEntity.status(customException.getStatus())
 			.body(ApiResponse.of(customException.getStatus(), ResponseResult.EXCEPTION_OCCURRED, List.of(error)));
 	}
 
