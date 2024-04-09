@@ -4,8 +4,9 @@ import static org.assertj.core.api.Assertions.*;
 import static site.youtogether.util.AppConstants.*;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,20 +39,22 @@ class RoomServiceTest extends IntegrationTestSupport {
 	private UserTrackingStorage userTrackingStorage;
 
 	@Autowired
-	private RedisTemplate<String, String> redisStringTemplate;
+	private RedisTemplate<String, Long> redisTemplate;
 
-	@BeforeEach
+	@AfterEach
 	void clean() {
 		roomStorage.deleteAll();
 		userStorage.deleteAll();
-		redisStringTemplate.delete(SESSION_CODE_KEY_PREFIX + "*");
+
+		Set<String> keys = redisTemplate.keys(USER_TRACKING_KEY_PREFIX + "*");
+		redisTemplate.delete(keys);
 	}
 
 	@Test
 	@DisplayName("새로운 방과 해당 방의 HOST를 생성할 수 있다")
 	void createSuccess() {
 		// given
-		String sessionCode = "7644a835e52e45dfa385";
+		String cookieValue = "7644a835e52e45dfa385";
 		RoomSettings roomSettings = RoomSettings.builder()
 			.capacity(10)
 			.title("재밌는 쇼츠 같이 보기")
@@ -59,23 +62,24 @@ class RoomServiceTest extends IntegrationTestSupport {
 			.build();
 
 		// when
-		CreatedRoomInfo createdRoomInfo = roomService.create(sessionCode, roomSettings, LocalDateTime.now());
+		CreatedRoomInfo createdRoomInfo = roomService.create(cookieValue, roomSettings, LocalDateTime.now());
 
 		// then
 		Room room = roomStorage.findById(createdRoomInfo.getRoomCode()).get();
-		User user = userStorage.findById(sessionCode).get();
+		Long userId = userTrackingStorage.findByCookieValue(cookieValue).get();
+		User user = userStorage.findById(userId).get();
 
 		assertThat(createdRoomInfo.getRoomCode()).hasSize(ROOM_CODE_LENGTH);
 		assertThat(createdRoomInfo.getRoomCode()).isEqualTo(room.getCode());
 		assertThat(room.getCapacity()).isEqualTo(10);
 		assertThat(room.getTitle()).isEqualTo("재밌는 쇼츠 같이 보기");
 		assertThat(room.getPassword()).isNull();
-		assertThat(room.getHost().getSessionCode()).isEqualTo(sessionCode);
+		assertThat(room.getHost().getUserId()).isEqualTo(userId);
 		assertThat(room.getParticipants()).hasSize(1);
-		assertThat(user.getSessionCode()).isEqualTo(sessionCode);
+		assertThat(user.getUserId()).isEqualTo(userId);
 		assertThat(user.getNickname()).isNotBlank();
 		assertThat(user.getRole()).isEqualTo(Role.HOST);
-		assertThat(userTrackingStorage.exists(sessionCode)).isTrue();
+		assertThat(userTrackingStorage.exists(cookieValue)).isTrue();
 	}
 
 	@Test
@@ -117,7 +121,7 @@ class RoomServiceTest extends IntegrationTestSupport {
 
 	private Room createRoom(LocalDateTime createTime, String title) {
 		User user = User.builder()
-			.sessionCode("host session code")
+			.userId(1L)
 			.build();
 
 		Room room = Room.builder()

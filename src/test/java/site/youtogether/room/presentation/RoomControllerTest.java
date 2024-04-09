@@ -254,7 +254,7 @@ class RoomControllerTest extends RestDocsSupport {
 
 	private List<Room> generateRooms(int count) {
 		User host = User.builder()
-			.sessionCode("dafhlsd")
+			.userId(1L)
 			.role(Role.HOST)
 			.nickname("연츠비")
 			.build();

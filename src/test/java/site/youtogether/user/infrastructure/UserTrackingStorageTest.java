@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 
 import site.youtogether.IntegrationTestSupport;
-import site.youtogether.exception.cookie.CookieInvalidException;
 
 class UserTrackingStorageTest extends IntegrationTestSupport {
 
@@ -18,7 +17,7 @@ class UserTrackingStorageTest extends IntegrationTestSupport {
 	private UserTrackingStorage userTrackingStorage;
 
 	@Autowired
-	private RedisTemplate<String, String> redisTemplate;
+	private RedisTemplate<String, Long> redisTemplate;
 
 	@AfterEach
 	void clear() {
@@ -32,10 +31,10 @@ class UserTrackingStorageTest extends IntegrationTestSupport {
 		String cookieValue = "dlkafldjkfldlkfajlds";
 
 		// when
-		String userId = userTrackingStorage.save(cookieValue);
+		Long userId = userTrackingStorage.save(cookieValue);
 
 		// then
-		String saved = redisTemplate.opsForValue().get(USER_TRACKING_KEY_PREFIX + cookieValue);
+		Long saved = redisTemplate.opsForValue().get(USER_TRACKING_KEY_PREFIX + cookieValue);
 		assertThat(saved).isEqualTo(userId);
 	}
 
@@ -44,12 +43,12 @@ class UserTrackingStorageTest extends IntegrationTestSupport {
 	void findByCookieValue() throws Exception {
 		// given
 		String cookieValue = "asdklhlkasdghklashg";
-		String userId = "123001237012";
+		Long userId = 1L;
 		redisTemplate.opsForValue()
 			.set(USER_TRACKING_KEY_PREFIX + cookieValue, userId);
 
 		// when
-		String findUserId = userTrackingStorage.findByCookieValue(cookieValue);
+		Long findUserId = userTrackingStorage.findByCookieValue(cookieValue).get();
 
 		// then
 		assertThat(findUserId).isEqualTo(userId);
@@ -62,8 +61,7 @@ class UserTrackingStorageTest extends IntegrationTestSupport {
 		String cookieValue = "asdklhlkasdghklashg";
 
 		// when // then
-		assertThatThrownBy(() -> userTrackingStorage.findByCookieValue(cookieValue))
-			.isInstanceOf(CookieInvalidException.class);
+		assertThat(userTrackingStorage.findByCookieValue(cookieValue)).isEmpty();
 	}
 
 }

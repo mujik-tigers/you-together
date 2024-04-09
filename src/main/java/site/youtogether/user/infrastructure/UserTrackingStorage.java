@@ -2,27 +2,31 @@ package site.youtogether.user.infrastructure;
 
 import static site.youtogether.util.AppConstants.*;
 
+import java.util.Optional;
+
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
 import lombok.RequiredArgsConstructor;
-import site.youtogether.exception.cookie.CookieInvalidException;
 import site.youtogether.util.RandomUtil;
 
 @Repository
 @RequiredArgsConstructor
 public class UserTrackingStorage {
 
-	private final RedisTemplate<String, String> redisTemplate;
+	private final RedisTemplate<String, Long> redisTemplate;
 
-	public boolean exists(String sessionCode) {
-		String userCode = redisTemplate.opsForValue().get(USER_TRACKING_KEY_PREFIX + sessionCode);
+	public boolean exists(String cookieValue) {
+		Long userId = redisTemplate.opsForValue().get(USER_TRACKING_KEY_PREFIX + cookieValue);
 
-		return userCode != null;
+		return userId != null;
 	}
 
-	public void save(String sessionCode) {
-		redisTemplate.opsForValue().set(USER_TRACKING_KEY_PREFIX + sessionCode, RandomUtil.generateSessionCode().toString());
+	public Long save(String cookieValue) {
+		Long userId = RandomUtil.generateUserId();
+		redisTemplate.opsForValue().set(USER_TRACKING_KEY_PREFIX + cookieValue, userId);
+
+		return userId;
 	}
 
 	/**
@@ -31,15 +35,11 @@ public class UserTrackingStorage {
 	 * @param cookieValue 클라이언트로부터 받은 쿠키값
 	 * @return userId
 	 */
-	public String findByCookieValue(String cookieValue) {
-		String userId = redisTemplate.opsForValue()
+	public Optional<Long> findByCookieValue(String cookieValue) {
+		Long userId = redisTemplate.opsForValue()
 			.get(USER_TRACKING_KEY_PREFIX + cookieValue);
 
-		if (userId == null) {
-			throw new CookieInvalidException();
-		}
-
-		return userId;
+		return Optional.ofNullable(userId);
 	}
 
 }

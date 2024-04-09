@@ -13,7 +13,7 @@ public final class RandomUtil {
 
 	private static final AtomicLong atomicLong = new AtomicLong();
 
-	public static Long generateSessionCode() {
+	public static Long generateUserId() {
 		return atomicLong.incrementAndGet();
 	}
 

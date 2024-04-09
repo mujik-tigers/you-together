@@ -26,9 +26,11 @@ public class RoomService {
 	private final UserStorage userStorage;
 	private final UserTrackingStorage userTrackingStorage;
 
-	public CreatedRoomInfo create(String sessionCode, RoomSettings roomSettings, LocalDateTime now) {
+	public CreatedRoomInfo create(String cookieValue, RoomSettings roomSettings, LocalDateTime now) {
+		Long userId = userTrackingStorage.save(cookieValue);
+
 		User host = User.builder()
-			.sessionCode(sessionCode)
+			.userId(userId)
 			.nickname(RandomUtil.generateUserNickname())
 			.role(Role.HOST)
 			.build();
@@ -42,7 +44,6 @@ public class RoomService {
 			.build();
 
 		userStorage.save(host);
-		userTrackingStorage.save(sessionCode);
 		roomStorage.save(room);
 
 		return new CreatedRoomInfo(room, host);

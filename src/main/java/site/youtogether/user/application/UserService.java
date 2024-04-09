@@ -11,8 +11,4 @@ public class UserService {
 
 	private final UserStorage userStorage;
 
-	public boolean isValidSession(String sessionCode) {
-		return userStorage.existsById(sessionCode);
-	}
-
 }
