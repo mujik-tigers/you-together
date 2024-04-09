@@ -56,6 +56,10 @@ class RoomControllerTest extends RestDocsSupport {
 		given(roomService.create(anyString(), any(RoomSettings.class), any(LocalDateTime.class)))
 			.willReturn(createdRoomInfo);
 
+		// Setting up user tracking storage for interceptor
+		given(userTrackingStorage.exists(anyString()))
+			.willReturn(false);
+
 		// when / then
 		String cookieName = cookieProperties.getName();
 
@@ -156,7 +160,9 @@ class RoomControllerTest extends RestDocsSupport {
 			.title("재밌는 쇼츠 같이 보기")
 			.password(null)
 			.build();
-		given(userService.isValidSession(anyString()))
+
+		// Setting up user tracking storage for interceptor
+		given(userTrackingStorage.exists(anyString()))
 			.willReturn(true);
 
 		// when / then
@@ -248,7 +254,7 @@ class RoomControllerTest extends RestDocsSupport {
 
 	private List<Room> generateRooms(int count) {
 		User host = User.builder()
-			.sessionCode("dafhlsd")
+			.userId(1L)
 			.role(Role.HOST)
 			.nickname("연츠비")
 			.build();

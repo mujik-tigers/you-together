@@ -12,14 +12,14 @@ import lombok.Getter;
 public class User {
 
 	@Id
-	private final String sessionCode;
+	private final Long userId;
 
 	private final String nickname;
 	private final Role role;
 
 	@Builder
-	public User(String sessionCode, String nickname, Role role) {
-		this.sessionCode = sessionCode;
+	public User(Long userId, String nickname, Role role) {
+		this.userId = userId;
 		this.nickname = nickname;
 		this.role = role;
 	}

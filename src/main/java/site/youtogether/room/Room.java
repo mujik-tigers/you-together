@@ -36,7 +36,7 @@ public class Room {
 	private int capacity;
 	private String password;
 	private User host;
-	private Map<String, User> participants = new HashMap<>(10);
+	private Map<Long, User> participants = new HashMap<>(10);
 
 	@Builder
 	public Room(String title, int capacity, String password, LocalDateTime createdAt, User host) {
@@ -47,7 +47,7 @@ public class Room {
 		this.password = password;
 		this.host = host;
 
-		participants.put(host.getSessionCode(), host);
+		participants.put(host.getUserId(), host);
 	}
 
 	public boolean hasPassword() {
