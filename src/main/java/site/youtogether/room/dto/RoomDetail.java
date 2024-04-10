@@ -7,7 +7,7 @@ import site.youtogether.user.User;
 
 @AllArgsConstructor
 @Getter
-public class CreatedRoomInfo {
+public class RoomDetail {
 
 	private final String roomCode;
 	private final String roomTitle;
@@ -16,7 +16,7 @@ public class CreatedRoomInfo {
 	private final int currentParticipant;
 	private final boolean passwordExist;
 
-	public CreatedRoomInfo(Room room, User host) {
+	public RoomDetail(Room room, User host) {
 		this.roomCode = room.getCode();
 		this.roomTitle = room.getTitle();
 		this.hostNickname = host.getNickname();
