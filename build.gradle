@@ -37,6 +37,9 @@ dependencies {
     implementation "com.redis.om:redis-om-spring:0.8.9"
     annotationProcessor "com.redis.om:redis-om-spring:0.8.9"
 
+    // web-socket
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
     // Lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
