@@ -71,7 +71,7 @@ class RoomControllerTest extends RestDocsSupport {
 			.andExpect(jsonPath("$.result").value(ResponseResult.ROOM_CREATION_SUCCESS.getDescription()))
 			.andExpect(jsonPath("$.data.roomCode").value(roomCode))
 			.andExpect(jsonPath("$.data.roomTitle").value(roomTitle))
-			.andExpect(jsonPath("$.data.hostNickname").value(hostNickname))
+			.andExpect(jsonPath("$.data.nickname").value(hostNickname))
 			.andExpect(jsonPath("$.data.capacity").value(capacity))
 			.andExpect(jsonPath("$.data.currentParticipant").value(1))
 			.andExpect(jsonPath("$.data.passwordExist").value(false))
@@ -85,7 +85,7 @@ class RoomControllerTest extends RestDocsSupport {
 					fieldWithPath("data").type(JsonFieldType.OBJECT).description("응답 데이터"),
 					fieldWithPath("data.roomCode").type(JsonFieldType.STRING).description("방 식별 코드"),
 					fieldWithPath("data.roomTitle").type(JsonFieldType.STRING).description("방 제목"),
-					fieldWithPath("data.hostNickname").type(JsonFieldType.STRING).description("호스트 닉네임"),
+					fieldWithPath("data.nickname").type(JsonFieldType.STRING).description("내 닉네임"),
 					fieldWithPath("data.capacity").type(JsonFieldType.NUMBER).description("정원"),
 					fieldWithPath("data.currentParticipant").type(JsonFieldType.NUMBER).description("현재 참가자 수"),
 					fieldWithPath("data.passwordExist").type(JsonFieldType.BOOLEAN).description("비밀번호 존재 여부")
@@ -220,10 +220,10 @@ class RoomControllerTest extends RestDocsSupport {
 		// given
 		String roomCode = "1e7050f7d7";
 		String roomTitle = "재밌는 쇼츠 같이 보기";
-		String hostNickname = "황똥땡";
+		String nickname = "황똥땡";
 		int capacity = 10;
 
-		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, hostNickname, capacity, 2, false);
+		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, nickname, capacity, 2, false);
 		given(roomService.enter(anyString(), eq(roomCode)))
 			.willReturn(createdRoomDetail);
 
@@ -245,7 +245,7 @@ class RoomControllerTest extends RestDocsSupport {
 			.andExpect(jsonPath("$.result").value(ResponseResult.ROOM_ENTER_SUCCESS.getDescription()))
 			.andExpect(jsonPath("$.data.roomCode").value(roomCode))
 			.andExpect(jsonPath("$.data.roomTitle").value(roomTitle))
-			.andExpect(jsonPath("$.data.hostNickname").value(hostNickname))
+			.andExpect(jsonPath("$.data.nickname").value(nickname))
 			.andExpect(jsonPath("$.data.capacity").value(capacity))
 			.andExpect(jsonPath("$.data.currentParticipant").value(2))
 			.andExpect(jsonPath("$.data.passwordExist").value(false))
@@ -256,7 +256,7 @@ class RoomControllerTest extends RestDocsSupport {
 					fieldWithPath("data").type(JsonFieldType.OBJECT).description("응답 데이터"),
 					fieldWithPath("data.roomCode").type(JsonFieldType.STRING).description("방 식별 코드"),
 					fieldWithPath("data.roomTitle").type(JsonFieldType.STRING).description("방 제목"),
-					fieldWithPath("data.hostNickname").type(JsonFieldType.STRING).description("호스트 닉네임"),
+					fieldWithPath("data.nickname").type(JsonFieldType.STRING).description("내 닉네임"),
 					fieldWithPath("data.capacity").type(JsonFieldType.NUMBER).description("정원"),
 					fieldWithPath("data.currentParticipant").type(JsonFieldType.NUMBER).description("현재 참가자 수"),
 					fieldWithPath("data.passwordExist").type(JsonFieldType.BOOLEAN).description("비밀번호 존재 여부")

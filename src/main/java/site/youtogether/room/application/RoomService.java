@@ -72,7 +72,7 @@ public class RoomService {
 		userStorage.save(user);
 		roomStorage.save(room);
 
-		return new RoomDetail(room, room.getHost());
+		return new RoomDetail(room, user);
 	}
 
 }

@@ -1,10 +1,14 @@
 package site.youtogether.util;
 
+import static site.youtogether.util.AppConstants.*;
+
 import java.time.LocalDateTime;
+import java.util.Set;
 
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Profile;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
@@ -24,11 +28,14 @@ public class Initializer implements ApplicationRunner {
 
 	private final RoomStorage roomStorage;
 	private final UserStorage userStorage;
+	private final RedisTemplate<String, String> redisTemplate;
 
 	@Override
 	public void run(ApplicationArguments args) throws Exception {
 		roomStorage.deleteAll();
 		userStorage.deleteAll();
+		Set<String> keys = redisTemplate.keys(USER_TRACKING_KEY_PREFIX + "*");
+		redisTemplate.delete(keys);
 
 		for (long i = 0; i < NO_PASSWORD_ROOM_COUNT; i++) {
 			User host = User.builder()
