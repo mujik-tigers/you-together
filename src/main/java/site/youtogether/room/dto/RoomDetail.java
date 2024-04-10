@@ -11,15 +11,15 @@ public class RoomDetail {
 
 	private final String roomCode;
 	private final String roomTitle;
-	private final String hostNickname;
+	private final String nickname;
 	private final int capacity;
 	private final int currentParticipant;
 	private final boolean passwordExist;
 
-	public RoomDetail(Room room, User host) {
+	public RoomDetail(Room room, User user) {
 		this.roomCode = room.getCode();
 		this.roomTitle = room.getTitle();
-		this.hostNickname = host.getNickname();
+		this.nickname = user.getNickname();
 		this.capacity = room.getCapacity();
 		this.currentParticipant = 1;
 		this.passwordExist = room.getPassword() != null;
