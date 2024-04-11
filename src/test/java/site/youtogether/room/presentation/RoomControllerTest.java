@@ -75,11 +75,15 @@ class RoomControllerTest extends RestDocsSupport {
 			.andExpect(jsonPath("$.data.capacity").value(capacity))
 			.andExpect(jsonPath("$.data.currentParticipant").value(1))
 			.andExpect(jsonPath("$.data.passwordExist").value(false))
-			.andDo(document("create-room-success", preprocessRequest(prettyPrint()), preprocessResponse(prettyPrint()),
-				requestFields(fieldWithPath("capacity").type(JsonFieldType.NUMBER).description("정원"),
+			.andDo(document("create-room-success",
+				preprocessRequest(prettyPrint()),
+				preprocessResponse(prettyPrint()),
+				requestFields(
+					fieldWithPath("capacity").type(JsonFieldType.NUMBER).description("정원"),
 					fieldWithPath("title").type(JsonFieldType.STRING).description("제목"),
 					fieldWithPath("password").type(JsonFieldType.STRING).description("비밀번호").optional()),
-				responseFields(fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
+				responseFields(
+					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
 					fieldWithPath("status").type(JsonFieldType.STRING).description("상태"),
 					fieldWithPath("result").type(JsonFieldType.STRING).description("결과"),
 					fieldWithPath("data").type(JsonFieldType.OBJECT).description("응답 데이터"),
@@ -111,11 +115,15 @@ class RoomControllerTest extends RestDocsSupport {
 			.andExpect(jsonPath("$.status").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
 			.andExpect(jsonPath("$.result").value(ResponseResult.EXCEPTION_OCCURRED.getDescription()))
 			.andExpect(jsonPath("$.data").isArray())
-			.andDo(document("create-room-fail-room-setting-error", preprocessRequest(prettyPrint()), preprocessResponse(prettyPrint()),
-				requestFields(fieldWithPath("capacity").type(JsonFieldType.NUMBER).description("정원"),
+			.andDo(document("create-room-fail-room-setting-error",
+				preprocessRequest(prettyPrint()),
+				preprocessResponse(prettyPrint()),
+				requestFields(
+					fieldWithPath("capacity").type(JsonFieldType.NUMBER).description("정원"),
 					fieldWithPath("title").type(JsonFieldType.STRING).description("제목"),
 					fieldWithPath("password").type(JsonFieldType.STRING).description("비밀번호").optional()),
-				responseFields(fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
+				responseFields(
+					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
 					fieldWithPath("status").type(JsonFieldType.STRING).description("상태"),
 					fieldWithPath("result").type(JsonFieldType.STRING).description("결과"),
 					fieldWithPath("data").type(JsonFieldType.ARRAY).description("응답 데이터"),
@@ -150,11 +158,15 @@ class RoomControllerTest extends RestDocsSupport {
 			.andExpect(jsonPath("$.data").isArray())
 			.andExpect(jsonPath("$.data[0].type").value(SingleRoomParticipationViolationException.class.getSimpleName()))
 			.andExpect(jsonPath("$.data[0].message").value(SINGLE_ROOM_PARTICIPATION_VIOLATION.getMessage()))
-			.andDo(document("create-room-fail-single-room-participant-violation", preprocessRequest(prettyPrint()), preprocessResponse(prettyPrint()),
-				requestFields(fieldWithPath("capacity").type(JsonFieldType.NUMBER).description("정원"),
+			.andDo(document("create-room-fail-single-room-participant-violation",
+				preprocessRequest(prettyPrint()),
+				preprocessResponse(prettyPrint()),
+				requestFields(
+					fieldWithPath("capacity").type(JsonFieldType.NUMBER).description("정원"),
 					fieldWithPath("title").type(JsonFieldType.STRING).description("제목"),
 					fieldWithPath("password").type(JsonFieldType.STRING).description("비밀번호").optional()),
-				responseFields(fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
+				responseFields(
+					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
 					fieldWithPath("status").type(JsonFieldType.STRING).description("상태"),
 					fieldWithPath("result").type(JsonFieldType.STRING).description("결과"),
 					fieldWithPath("data").type(JsonFieldType.ARRAY).description("응답 데이터"),
@@ -194,8 +206,11 @@ class RoomControllerTest extends RestDocsSupport {
 			.andExpect(jsonPath("$.data.rooms[0].capacity").value(roomList.getRooms().get(0).getCapacity()))
 			.andExpect(jsonPath("$.data.rooms[0].currentParticipant").value(roomList.getRooms().get(0).getCurrentParticipant()))
 			.andExpect(jsonPath("$.data.rooms[0].passwordExist").value(roomList.getRooms().get(0).isPasswordExist()))
-			.andDo(document("fetch-room-list-success", preprocessRequest(prettyPrint()), preprocessResponse(prettyPrint()),
-				responseFields(fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
+			.andDo(document("fetch-room-list-success",
+				preprocessRequest(prettyPrint()),
+				preprocessResponse(prettyPrint()),
+				responseFields(
+					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
 					fieldWithPath("status").type(JsonFieldType.STRING).description("상태"),
 					fieldWithPath("result").type(JsonFieldType.STRING).description("결과"),
 					fieldWithPath("data").type(JsonFieldType.OBJECT).description("응답 데이터"),
@@ -249,8 +264,11 @@ class RoomControllerTest extends RestDocsSupport {
 			.andExpect(jsonPath("$.data.capacity").value(capacity))
 			.andExpect(jsonPath("$.data.currentParticipant").value(2))
 			.andExpect(jsonPath("$.data.passwordExist").value(false))
-			.andDo(document("enter-room-success", preprocessRequest(prettyPrint()), preprocessResponse(prettyPrint()),
-				responseFields(fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
+			.andDo(document("enter-room-success",
+				preprocessRequest(prettyPrint()),
+				preprocessResponse(prettyPrint()),
+				responseFields(
+					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
 					fieldWithPath("status").type(JsonFieldType.STRING).description("상태"),
 					fieldWithPath("result").type(JsonFieldType.STRING).description("결과"),
 					fieldWithPath("data").type(JsonFieldType.OBJECT).description("응답 데이터"),
@@ -284,8 +302,11 @@ class RoomControllerTest extends RestDocsSupport {
 			.andExpect(jsonPath("$.data").isArray())
 			.andExpect(jsonPath("$.data[0].type").value(SingleRoomParticipationViolationException.class.getSimpleName()))
 			.andExpect(jsonPath("$.data[0].message").value(SINGLE_ROOM_PARTICIPATION_VIOLATION.getMessage()))
-			.andDo(document("enter-room-fail-single-room-participant-violation", preprocessRequest(prettyPrint()), preprocessResponse(prettyPrint()),
-				responseFields(fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
+			.andDo(document("enter-room-fail-single-room-participant-violation",
+				preprocessRequest(prettyPrint()),
+				preprocessResponse(prettyPrint()),
+				responseFields(
+					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
 					fieldWithPath("status").type(JsonFieldType.STRING).description("상태"),
 					fieldWithPath("result").type(JsonFieldType.STRING).description("결과"),
 					fieldWithPath("data").type(JsonFieldType.ARRAY).description("응답 데이터"),

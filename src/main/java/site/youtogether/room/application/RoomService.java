@@ -67,12 +67,23 @@ public class RoomService {
 		Room room = roomStorage.findById(roomCode)
 			.orElseThrow(RoomNoExistenceException::new);
 
-		room.getParticipants().put(user.getUserId(), user);
+		room.enterParticipant(user);
 
 		userStorage.save(user);
 		roomStorage.save(room);
 
 		return new RoomDetail(room, user);
+	}
+
+	public void leave(String roomCode, Long userId) {
+		Room room = roomStorage.findById(roomCode)
+			.orElseThrow(RoomNoExistenceException::new);
+
+		room.leaveParticipant(userId);
+		userStorage.deleteById(userId);
+		userTrackingStorage.delete(userId);
+
+		roomStorage.save(room);
 	}
 
 }

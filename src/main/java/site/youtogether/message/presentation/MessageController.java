@@ -29,7 +29,7 @@ public class MessageController {
 		chatMessage.setUserId(user.getUserId());
 		chatMessage.setNickname(user.getNickname());
 
-		redisPublisher.publishMessage(chatMessage);
+		redisPublisher.publishChat(chatMessage);
 	}
 
 }

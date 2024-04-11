@@ -3,7 +3,6 @@ package site.youtogether.util;
 import static site.youtogether.util.AppConstants.*;
 
 import java.time.LocalDateTime;
-import java.util.Set;
 
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -34,8 +33,8 @@ public class Initializer implements ApplicationRunner {
 	public void run(ApplicationArguments args) throws Exception {
 		roomStorage.deleteAll();
 		userStorage.deleteAll();
-		Set<String> keys = redisTemplate.keys(USER_TRACKING_KEY_PREFIX + "*");
-		redisTemplate.delete(keys);
+		redisTemplate.delete(redisTemplate.keys(USER_TRACKING_KEY_PREFIX + "*"));
+		redisTemplate.delete(redisTemplate.keys(USER_ID_KEY_PREFIX + "*"));
 
 		for (long i = 0; i < NO_PASSWORD_ROOM_COUNT; i++) {
 			User host = User.builder()
