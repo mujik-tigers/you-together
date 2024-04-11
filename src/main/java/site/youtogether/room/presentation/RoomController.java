@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -21,7 +22,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import site.youtogether.config.property.CookieProperties;
 import site.youtogether.room.application.RoomService;
-import site.youtogether.room.dto.CreatedRoomInfo;
+import site.youtogether.room.dto.RoomDetail;
 import site.youtogether.room.dto.RoomList;
 import site.youtogether.room.dto.RoomSettings;
 import site.youtogether.util.RandomUtil;
@@ -36,19 +37,19 @@ public class RoomController {
 	private final RoomService roomService;
 
 	@PostMapping("/rooms")
-	public ResponseEntity<ApiResponse<CreatedRoomInfo>> createRoom(@Valid @RequestBody RoomSettings roomSettings, HttpServletResponse response) {
+	public ResponseEntity<ApiResponse<RoomDetail>> createRoom(@Valid @RequestBody RoomSettings roomSettings, HttpServletResponse response) {
 		// Generate a new session code and set it as a cookie.
 		ResponseCookie cookie = generateSessionCookie();
 
 		// Create a new room with the generated session code.
-		CreatedRoomInfo createdRoomInfo = roomService.create(cookie.getValue(), roomSettings, LocalDateTime.now());
+		RoomDetail roomDetail = roomService.create(cookie.getValue(), roomSettings, LocalDateTime.now());
 
 		// Add the cookie to the response header.
 		response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
 		// Return a response indicating successful room creation.
 		return ResponseEntity.status(HttpStatus.CREATED)
-			.body(ApiResponse.created(ResponseResult.ROOM_CREATION_SUCCESS, createdRoomInfo));
+			.body(ApiResponse.created(ResponseResult.ROOM_CREATION_SUCCESS, roomDetail));
 	}
 
 	@GetMapping("/rooms")
@@ -57,6 +58,18 @@ public class RoomController {
 
 		return ResponseEntity.ok()
 			.body(ApiResponse.ok(ResponseResult.ROOM_LIST_FETCH_SUCCESS, roomList));
+	}
+
+	@PostMapping("/rooms/{roomCode}")
+	public ResponseEntity<ApiResponse<RoomDetail>> enterRoom(@PathVariable String roomCode, HttpServletResponse response) {
+		ResponseCookie cookie = generateSessionCookie();
+
+		RoomDetail roomDetail = roomService.enter(cookie.getValue(), roomCode);
+
+		response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
+		return ResponseEntity.ok(
+			ApiResponse.ok(ResponseResult.ROOM_ENTER_SUCCESS, roomDetail));
 	}
 
 	private ResponseCookie generateSessionCookie() {

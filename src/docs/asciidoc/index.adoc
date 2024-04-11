@@ -12,3 +12,4 @@ endif::[]
 :docinfo: shared
 
 include::api/room.adoc[]
+include::api/user.adoc[]

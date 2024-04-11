@@ -57,3 +57,31 @@ include::{snippets}/fetch-room-list-success/http-request.adoc[]
 
 include::{snippets}/fetch-room-list-success/http-response.adoc[]
 include::{snippets}/fetch-room-list-success/response-fields.adoc[]
+
+{nbsp}
+
+[[enter-room-success]]
+=== 방 입장 성공
+
+==== HTTP Request
+
+include::{snippets}/enter-room-success/http-request.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/enter-room-success/http-response.adoc[]
+include::{snippets}/enter-room-success/response-fields.adoc[]
+
+{nbsp}
+
+[[enter-room-fail-single-room-participant-violation]]
+=== 방 입장 실패: 다수의 방에 참가할 수 없습니다
+
+==== HTTP Request
+
+include::{snippets}/enter-room-fail-single-room-participant-violation/http-request.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/enter-room-fail-single-room-participant-violation/http-response.adoc[]
+include::{snippets}/enter-room-fail-single-room-participant-violation/response-fields.adoc[]

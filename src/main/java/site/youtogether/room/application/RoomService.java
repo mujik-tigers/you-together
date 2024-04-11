@@ -7,8 +7,9 @@ import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
+import site.youtogether.exception.room.RoomNoExistenceException;
 import site.youtogether.room.Room;
-import site.youtogether.room.dto.CreatedRoomInfo;
+import site.youtogether.room.dto.RoomDetail;
 import site.youtogether.room.dto.RoomList;
 import site.youtogether.room.dto.RoomSettings;
 import site.youtogether.room.infrastructure.RoomStorage;
@@ -26,7 +27,7 @@ public class RoomService {
 	private final UserStorage userStorage;
 	private final UserTrackingStorage userTrackingStorage;
 
-	public CreatedRoomInfo create(String cookieValue, RoomSettings roomSettings, LocalDateTime now) {
+	public RoomDetail create(String cookieValue, RoomSettings roomSettings, LocalDateTime now) {
 		Long userId = userTrackingStorage.save(cookieValue);
 
 		User host = User.builder()
@@ -46,12 +47,43 @@ public class RoomService {
 		userStorage.save(host);
 		roomStorage.save(room);
 
-		return new CreatedRoomInfo(room, host);
+		return new RoomDetail(room, host);
 	}
 
 	public RoomList fetchAll(Pageable pageable, String keyword) {
 		Slice<Room> roomSlice = roomStorage.findSliceBy(pageable, keyword);
 		return new RoomList(roomSlice);
+	}
+
+	public RoomDetail enter(String cookieValue, String roomCode) {
+		Long userId = userTrackingStorage.save(cookieValue);
+
+		User user = User.builder()
+			.userId(userId)
+			.nickname(RandomUtil.generateUserNickname())
+			.role(Role.GUEST)
+			.build();
+
+		Room room = roomStorage.findById(roomCode)
+			.orElseThrow(RoomNoExistenceException::new);
+
+		room.enterParticipant(user);
+
+		userStorage.save(user);
+		roomStorage.save(room);
+
+		return new RoomDetail(room, user);
+	}
+
+	public void leave(String roomCode, Long userId) {
+		Room room = roomStorage.findById(roomCode)
+			.orElseThrow(RoomNoExistenceException::new);
+
+		room.leaveParticipant(userId);
+		userStorage.deleteById(userId);
+		userTrackingStorage.delete(userId);
+
+		roomStorage.save(room);
 	}
 
 }

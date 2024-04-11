@@ -1,0 +1,32 @@
+[[User-API]]
+== User API
+
+[[update-nickname-success]]
+=== 닉네임 변경 성공
+
+==== HTTP Request
+
+include::{snippets}/update-nickname-success/http-request.adoc[]
+include::{snippets}/update-nickname-success/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/update-nickname-success/http-response.adoc[]
+include::{snippets}/update-nickname-success/response-fields.adoc[]
+
+{nbsp}
+
+[[update-nickname-fail]]
+=== 닉네임 변경 실패: 요청 데이터 오류가 발생했습니다
+
+==== HTTP Request
+
+include::{snippets}/update-nickname-fail/http-request.adoc[]
+include::{snippets}/update-nickname-fail/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/update-nickname-fail/http-response.adoc[]
+include::{snippets}/update-nickname-fail/response-fields.adoc[]
+
+{nbsp}

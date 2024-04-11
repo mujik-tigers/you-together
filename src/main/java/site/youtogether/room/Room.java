@@ -54,4 +54,21 @@ public class Room {
 		return password != null;
 	}
 
+	public void enterParticipant(User user) {
+		participants.put(user.getUserId(), user);
+	}
+
+	public void leaveParticipant(Long userId) {
+		participants.remove(userId);
+	}
+
+	public void changeParticipantName(Long userId, String updateNickname) {
+		User user = participants.get(userId);
+		user.changeNickname(updateNickname);
+
+		if (userId.equals(host.getUserId())) {
+			host = user;
+		}
+	}
+
 }

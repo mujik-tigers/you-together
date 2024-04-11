@@ -15,6 +15,7 @@ import site.youtogether.util.RandomUtil;
 public class UserTrackingStorage {
 
 	private final RedisTemplate<String, Long> redisTemplate;
+	private final RedisTemplate<String, String> stringRedisTemplate;
 
 	public boolean exists(String cookieValue) {
 		Long userId = redisTemplate.opsForValue().get(USER_TRACKING_KEY_PREFIX + cookieValue);
@@ -25,21 +26,22 @@ public class UserTrackingStorage {
 	public Long save(String cookieValue) {
 		Long userId = RandomUtil.generateUserId();
 		redisTemplate.opsForValue().set(USER_TRACKING_KEY_PREFIX + cookieValue, userId);
+		stringRedisTemplate.opsForValue().set(USER_ID_KEY_PREFIX + userId, cookieValue);
 
 		return userId;
 	}
 
-	/**
-	 * 클라이언트로부터 받은 쿠키값을 바탕으로 대응되는 유저 아이디를 찾는다.
-	 *
-	 * @param cookieValue 클라이언트로부터 받은 쿠키값
-	 * @return userId
-	 */
 	public Optional<Long> findByCookieValue(String cookieValue) {
-		Long userId = redisTemplate.opsForValue()
-			.get(USER_TRACKING_KEY_PREFIX + cookieValue);
+		Long userId = redisTemplate.opsForValue().get(USER_TRACKING_KEY_PREFIX + cookieValue);
 
 		return Optional.ofNullable(userId);
+	}
+
+	public void delete(Long userId) {
+		String cookieValue = stringRedisTemplate.opsForValue().get(USER_ID_KEY_PREFIX + userId);
+
+		redisTemplate.delete(USER_TRACKING_KEY_PREFIX + cookieValue);
+		redisTemplate.delete(USER_ID_KEY_PREFIX + userId);
 	}
 
 }
