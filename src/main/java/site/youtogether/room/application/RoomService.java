@@ -75,4 +75,15 @@ public class RoomService {
 		return new RoomDetail(room, user);
 	}
 
+	public void leave(String roomCode, Long userId) {
+		Room room = roomStorage.findById(roomCode)
+			.orElseThrow(RoomNoExistenceException::new);
+
+		room.getParticipants().remove(userId);
+		userStorage.deleteById(userId);
+		userTrackingStorage.delete(userId);
+
+		roomStorage.save(room);
+	}
+
 }

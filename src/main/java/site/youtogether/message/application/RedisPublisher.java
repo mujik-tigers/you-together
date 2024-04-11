@@ -15,15 +15,20 @@ import site.youtogether.message.ChatMessage;
 public class RedisPublisher {
 
 	private final ChannelTopic chatChannelTopic;
+	private final ChannelTopic participantChannelTopic;
 	private final RedisTemplate<String, String> redisTemplate;
 	private final ObjectMapper objectMapper;
 
-	public void publishMessage(ChatMessage chatMessage) {
+	public void publishChat(ChatMessage chatMessage) {
 		try {
 			redisTemplate.convertAndSend(chatChannelTopic.getTopic(), objectMapper.writeValueAsString(chatMessage));
 		} catch (JsonProcessingException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	public void publishParticipantsInfo(String roomCode) {
+		redisTemplate.convertAndSend(participantChannelTopic.getTopic(), roomCode);
 	}
 
 }

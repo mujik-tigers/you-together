@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.*;
 import static site.youtogether.util.AppConstants.*;
 
 import java.time.LocalDateTime;
-import java.util.Set;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -46,8 +45,8 @@ class RoomServiceTest extends IntegrationTestSupport {
 		roomStorage.deleteAll();
 		userStorage.deleteAll();
 
-		Set<String> keys = redisTemplate.keys(USER_TRACKING_KEY_PREFIX + "*");
-		redisTemplate.delete(keys);
+		redisTemplate.delete(redisTemplate.keys(USER_TRACKING_KEY_PREFIX + "*"));
+		redisTemplate.delete(redisTemplate.keys(USER_ID_KEY_PREFIX + "*"));
 	}
 
 	@Test
@@ -136,6 +135,28 @@ class RoomServiceTest extends IntegrationTestSupport {
 
 		assertThat(savedRoom.getParticipants()).containsKey(userId);
 		assertThat(savedRoom.getParticipants().get(userId)).usingRecursiveComparison().isEqualTo(enterUser);
+	}
+
+	@Test
+	@DisplayName("방을 떠난다")
+	void leaveRoom() throws Exception {
+		// given
+		Room room = createRoom(LocalDateTime.of(2024, 4, 10, 11, 37, 0), "연똥땡의 방");
+		User user = User.builder()
+			.userId(2L)
+			.nickname("황똥땡")
+			.role(Role.GUEST)
+			.build();
+		room.getParticipants().put(user.getUserId(), user);
+		roomStorage.save(room);
+
+		// when
+		roomService.leave(room.getCode(), user.getUserId());
+
+		// then
+		Room savedRoom = roomStorage.findById(room.getCode()).get();
+		assertThat(savedRoom.getParticipants()).doesNotContainKey(user.getUserId());
+		assertThat(userStorage.findById(user.getUserId())).isEmpty();
 	}
 
 	private Room createRoom(LocalDateTime createTime, String title) {
