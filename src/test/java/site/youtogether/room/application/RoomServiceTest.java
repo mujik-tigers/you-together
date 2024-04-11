@@ -147,7 +147,7 @@ class RoomServiceTest extends IntegrationTestSupport {
 			.nickname("황똥땡")
 			.role(Role.GUEST)
 			.build();
-		room.getParticipants().put(user.getUserId(), user);
+		room.enterParticipant(user);
 		roomStorage.save(room);
 
 		// when

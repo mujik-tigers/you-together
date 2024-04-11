@@ -15,9 +15,11 @@ import site.youtogether.room.application.RoomService;
 import site.youtogether.room.presentation.RoomController;
 import site.youtogether.user.application.UserService;
 import site.youtogether.user.infrastructure.UserTrackingStorage;
+import site.youtogether.user.presentation.UserController;
 
 @WebMvcTest(controllers = {
-	RoomController.class
+	RoomController.class,
+	UserController.class
 })
 @AutoConfigureRestDocs
 @Import(PropertiesConfig.class)

@@ -67,7 +67,7 @@ public class RoomService {
 		Room room = roomStorage.findById(roomCode)
 			.orElseThrow(RoomNoExistenceException::new);
 
-		room.getParticipants().put(user.getUserId(), user);
+		room.enterParticipant(user);
 
 		userStorage.save(user);
 		roomStorage.save(room);
@@ -79,7 +79,7 @@ public class RoomService {
 		Room room = roomStorage.findById(roomCode)
 			.orElseThrow(RoomNoExistenceException::new);
 
-		room.getParticipants().remove(userId);
+		room.leaveParticipant(userId);
 		userStorage.deleteById(userId);
 		userTrackingStorage.delete(userId);
 
