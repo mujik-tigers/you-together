@@ -40,9 +40,10 @@ public class RoomController {
 
 	@PostMapping("/rooms")
 	public ResponseEntity<ApiResponse<RoomDetail>> createRoom(@Valid @RequestBody RoomSettings roomSettings) {
-		ResponseCookie cookie = generateSessionCookie();
-		RoomDetail roomDetail = roomService.create(cookie.getValue(), roomSettings, LocalDateTime.now());
+		ResponseCookie sessionCookie = generateSessionCookie();
+		RoomDetail roomDetail = roomService.create(sessionCookie.getValue(), roomSettings, LocalDateTime.now());
 
+		response.setHeader(HttpHeaders.SET_COOKIE, sessionCookie.toString());
 		return ResponseEntity.status(HttpStatus.CREATED)
 			.body(ApiResponse.created(ResponseResult.ROOM_CREATION_SUCCESS, roomDetail));
 	}
@@ -59,17 +60,17 @@ public class RoomController {
 	public ResponseEntity<ApiResponse<RoomDetail>> enterRoom(@PathVariable String roomCode,
 		@Valid @RequestBody(required = false) PasswordInput form) {
 
-		ResponseCookie cookie = generateSessionCookie();
-
+		ResponseCookie sessionCookie = generateSessionCookie();
 		String passwordInput = form == null ? null : form.getPasswordInput();
-		RoomDetail roomDetail = roomService.enter(cookie.getValue(), roomCode, passwordInput);
+		RoomDetail roomDetail = roomService.enter(sessionCookie.getValue(), roomCode, passwordInput);
 
+		response.setHeader(HttpHeaders.SET_COOKIE, sessionCookie.toString());
 		return ResponseEntity.ok(
 			ApiResponse.ok(ResponseResult.ROOM_ENTER_SUCCESS, roomDetail));
 	}
 
 	private ResponseCookie generateSessionCookie() {
-		ResponseCookie sessionCookie = ResponseCookie.from(cookieProperties.getName(), RandomUtil.generateRandomCode(COOKIE_VALUE_LENGTH))
+		return ResponseCookie.from(cookieProperties.getName(), RandomUtil.generateRandomCode(COOKIE_VALUE_LENGTH))
 			.domain(cookieProperties.getDomain())
 			.path(cookieProperties.getPath())
 			.sameSite(cookieProperties.getSameSite())
@@ -77,9 +78,6 @@ public class RoomController {
 			.httpOnly(true)
 			.secure(true)
 			.build();
-
-		response.setHeader(HttpHeaders.SET_COOKIE, sessionCookie.toString());
-		return sessionCookie;
 	}
 
 }
