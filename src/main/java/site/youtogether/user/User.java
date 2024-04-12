@@ -15,7 +15,7 @@ public class User {
 	private Role role;
 
 	@Builder
-	public User(Long userId, String nickname, Role role) {
+	private User(Long userId, String nickname, Role role) {
 		this.userId = userId;
 		this.nickname = nickname;
 		this.role = role;

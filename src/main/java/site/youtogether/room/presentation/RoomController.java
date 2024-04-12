@@ -22,6 +22,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import site.youtogether.config.property.CookieProperties;
 import site.youtogether.room.application.RoomService;
+import site.youtogether.room.dto.PasswordInput;
 import site.youtogether.room.dto.RoomDetail;
 import site.youtogether.room.dto.RoomList;
 import site.youtogether.room.dto.RoomSettings;
@@ -55,9 +56,13 @@ public class RoomController {
 	}
 
 	@PostMapping("/rooms/{roomCode}")
-	public ResponseEntity<ApiResponse<RoomDetail>> enterRoom(@PathVariable String roomCode) {
+	public ResponseEntity<ApiResponse<RoomDetail>> enterRoom(@PathVariable String roomCode,
+		@Valid @RequestBody(required = false) PasswordInput form) {
+
 		ResponseCookie cookie = generateSessionCookie();
-		RoomDetail roomDetail = roomService.enter(cookie.getValue(), roomCode);
+
+		String passwordInput = form == null ? null : form.getPasswordInput();
+		RoomDetail roomDetail = roomService.enter(cookie.getValue(), roomCode, passwordInput);
 
 		return ResponseEntity.ok(
 			ApiResponse.ok(ResponseResult.ROOM_ENTER_SUCCESS, roomDetail));

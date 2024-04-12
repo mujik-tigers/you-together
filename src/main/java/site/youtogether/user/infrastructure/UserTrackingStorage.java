@@ -25,8 +25,8 @@ public class UserTrackingStorage {
 
 	public Long save(String cookieValue) {
 		Long userId = RandomUtil.generateUserId();
-		redisTemplate.opsForValue().set(USER_TRACKING_KEY_PREFIX + cookieValue, userId);
-		stringRedisTemplate.opsForValue().set(USER_ID_KEY_PREFIX + userId, cookieValue);
+		redisTemplate.opsForValue().set(USER_TRACKING_KEY_PREFIX + cookieValue, userId, TTL);
+		stringRedisTemplate.opsForValue().set(USER_ID_KEY_PREFIX + userId, cookieValue, TTL);
 
 		return userId;
 	}

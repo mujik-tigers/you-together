@@ -8,11 +8,15 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.redis.core.RedisTemplate;
 
 import site.youtogether.IntegrationTestSupport;
+import site.youtogether.exception.room.PasswordNotMatchException;
 import site.youtogether.room.Room;
 import site.youtogether.room.dto.RoomDetail;
 import site.youtogether.room.dto.RoomList;
@@ -121,15 +125,46 @@ class RoomServiceTest extends IntegrationTestSupport {
 		String cookieValue = "adljfkalskdfj";
 
 		// when
-		roomService.enter(cookieValue, room.getCode());
+		roomService.enter(cookieValue, room.getCode(), null);
 
 		// then
 		Long userId = userTrackingStorage.findByCookieValue(cookieValue).get();
 		Room savedRoom = roomStorage.findById(room.getCode()).get();
-		User enterUser = savedRoom.findParticipantBy(userId);
 
 		assertThat(savedRoom.getParticipants()).containsKey(userId);
-		assertThat(savedRoom.getParticipants().get(userId)).usingRecursiveComparison().isEqualTo(enterUser);
+	}
+
+	@Test
+	@DisplayName("비밀번호가 있는 방에 입장한다")
+	void enterPasswordRoom() throws Exception {
+		// given
+		String password = "myLittleCat";
+		String cookieValue = "fd98lls01adafg";
+		Room room = createPasswordRoom(LocalDateTime.of(2024, 4, 10, 11, 37, 0), "황똥땡의 방", password);
+
+		// when
+		roomService.enter(cookieValue, room.getCode(), password);
+
+		// then
+		Long userId = userTrackingStorage.findByCookieValue(cookieValue).get();
+		Room savedRoom = roomStorage.findById(room.getCode()).get();
+
+		assertThat(savedRoom.getParticipants()).containsKey(userId);
+	}
+
+	@ParameterizedTest
+	@NullAndEmptySource
+	@ValueSource(strings = "notMatchPassword")
+	@DisplayName("입력한 비밀번호가 없거나 일치하지 않으면 방에 입장할 수 없다")
+	void enterPasswordRoomFail(String passwordInput) throws Exception {
+		// given
+		String password = "myLittleCat";
+		String cookieValue = "fd98lls01adafg";
+		Room room = createPasswordRoom(LocalDateTime.of(2024, 4, 10, 11, 37, 0), "황똥땡의 방", password);
+
+		// when // then
+		assertThatThrownBy(() -> roomService.enter(cookieValue, room.getCode(), passwordInput))
+			.isInstanceOf(PasswordNotMatchException.class);
 	}
 
 	@Test
@@ -142,7 +177,7 @@ class RoomServiceTest extends IntegrationTestSupport {
 			.nickname("황똥땡")
 			.role(Role.GUEST)
 			.build();
-		room.enterParticipant(user);
+		room.enterParticipant(user, null);
 		roomStorage.save(room);
 
 		// when
@@ -160,6 +195,23 @@ class RoomServiceTest extends IntegrationTestSupport {
 
 		Room room = Room.builder()
 			.title(title)
+			.host(user)
+			.createdAt(createTime)
+			.build();
+
+		roomStorage.save(room);
+
+		return room;
+	}
+
+	private Room createPasswordRoom(LocalDateTime createTime, String title, String password) {
+		User user = User.builder()
+			.userId(100L)
+			.build();
+
+		Room room = Room.builder()
+			.title(title)
+			.password(password)
 			.host(user)
 			.createdAt(createTime)
 			.build();

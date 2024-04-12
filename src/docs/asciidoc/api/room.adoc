@@ -16,6 +16,21 @@ include::{snippets}/create-room-success/response-fields.adoc[]
 
 {nbsp}
 
+[[create-password-room-success]]
+=== 방 생성 성공: 비밀 번호가 있는 방
+
+==== HTTP Request
+
+include::{snippets}/create-password-room-success/http-request.adoc[]
+include::{snippets}/create-password-room-success/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/create-password-room-success/http-response.adoc[]
+include::{snippets}/create-password-room-success/response-fields.adoc[]
+
+{nbsp}
+
 [[create-room-fail-room-setting-error]]
 === 방 생성 실패: 요청 데이터 오류가 발생했습니다
 
@@ -85,3 +100,48 @@ include::{snippets}/enter-room-fail-single-room-participant-violation/http-reque
 
 include::{snippets}/enter-room-fail-single-room-participant-violation/http-response.adoc[]
 include::{snippets}/enter-room-fail-single-room-participant-violation/response-fields.adoc[]
+
+{nbsp}
+
+[[enter-password-room-success]]
+=== 방 입장 성공: 비밀번호가 있는 방
+
+==== HTTP Request
+
+include::{snippets}/enter-password-room-success/http-request.adoc[]
+include::{snippets}/enter-password-room-success/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/enter-password-room-success/http-response.adoc[]
+include::{snippets}/enter-password-room-success/response-fields.adoc[]
+
+{nbsp}
+
+[[enter-password-room-fail-password-wrong]]
+=== 방 입장 실패: 비밀번호가 틀립니다
+
+==== HTTP Request
+
+include::{snippets}/enter-password-room-fail-password-wrong/http-request.adoc[]
+include::{snippets}/enter-password-room-fail-password-wrong/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/enter-password-room-fail-password-wrong/http-response.adoc[]
+include::{snippets}/enter-password-room-fail-password-wrong/response-fields.adoc[]
+
+{nbsp}
+
+[[enter-password-room-fail-password-form]]
+=== 방 입장 실패: 비밀번호 형식 오류
+
+==== HTTP Request
+
+include::{snippets}/enter-password-room-fail-password-form/http-request.adoc[]
+include::{snippets}/enter-password-room-fail-password-form/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/enter-password-room-fail-password-form/http-response.adoc[]
+include::{snippets}/enter-password-room-fail-password-form/response-fields.adoc[]
