@@ -15,7 +15,6 @@ import site.youtogether.room.infrastructure.RoomStorage;
 import site.youtogether.user.Role;
 import site.youtogether.user.User;
 import site.youtogether.user.dto.UserInfo;
-import site.youtogether.user.infrastructure.UserStorage;
 
 class UserServiceTest extends IntegrationTestSupport {
 
@@ -25,13 +24,9 @@ class UserServiceTest extends IntegrationTestSupport {
 	@Autowired
 	private RoomStorage roomStorage;
 
-	@Autowired
-	private UserStorage userStorage;
-
 	@AfterEach
 	void clean() {
 		roomStorage.deleteAll();
-		userStorage.deleteAll();
 	}
 
 	@Test
@@ -47,7 +42,6 @@ class UserServiceTest extends IntegrationTestSupport {
 			.build();
 		room.enterParticipant(user);
 		roomStorage.save(room);
-		userStorage.save(user);
 
 		String updateNickname = "연똥땡";
 
@@ -61,7 +55,7 @@ class UserServiceTest extends IntegrationTestSupport {
 		User participant = savedRoom.getParticipants().get(user.getUserId());
 		assertThat(participant.getNickname()).isEqualTo(updateNickname);
 
-		User savedUser = userStorage.findById(user.getUserId()).get();
+		User savedUser = savedRoom.findParticipantBy(user.getUserId());
 		assertThat(savedUser.getNickname()).isEqualTo(updateNickname);
 	}
 
@@ -85,7 +79,7 @@ class UserServiceTest extends IntegrationTestSupport {
 		assertThat(participant.getNickname()).isEqualTo(updateNickname);
 		assertThat(savedRoom.getHost().getNickname()).isEqualTo(updateNickname);
 
-		User savedUser = userStorage.findById(hostId).get();
+		User savedUser = savedRoom.findParticipantBy(hostId);
 		assertThat(savedUser.getNickname()).isEqualTo(updateNickname);
 	}
 
@@ -101,7 +95,6 @@ class UserServiceTest extends IntegrationTestSupport {
 			.createdAt(createTime)
 			.build();
 
-		userStorage.save(user);
 		roomStorage.save(room);
 
 		return room;

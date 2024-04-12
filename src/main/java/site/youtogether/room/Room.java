@@ -5,6 +5,7 @@ import static site.youtogether.util.AppConstants.*;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.data.annotation.Id;
 
@@ -16,6 +17,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import site.youtogether.exception.user.UserNoExistenceException;
 import site.youtogether.user.User;
 import site.youtogether.util.RandomUtil;
 
@@ -50,6 +52,11 @@ public class Room {
 		participants.put(host.getUserId(), host);
 	}
 
+	public User findParticipantBy(Long userId) {
+		return Optional.ofNullable(participants.get(userId))
+			.orElseThrow(UserNoExistenceException::new);
+	}
+
 	public boolean hasPassword() {
 		return password != null;
 	}
@@ -62,13 +69,15 @@ public class Room {
 		participants.remove(userId);
 	}
 
-	public void changeParticipantName(Long userId, String updateNickname) {
-		User user = participants.get(userId);
+	public User changeParticipantName(Long userId, String updateNickname) {
+		User user = findParticipantBy(userId);
 		user.changeNickname(updateNickname);
 
 		if (userId.equals(host.getUserId())) {
 			host = user;
 		}
+
+		return user;
 	}
 
 }
