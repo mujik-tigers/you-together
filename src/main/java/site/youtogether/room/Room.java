@@ -18,6 +18,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import site.youtogether.exception.room.PasswordNotMatchException;
+import site.youtogether.exception.room.RoomCapacityExceededException;
 import site.youtogether.exception.user.UserNoExistenceException;
 import site.youtogether.user.User;
 import site.youtogether.util.RandomUtil;
@@ -66,6 +67,10 @@ public class Room {
 		if (password != null) {
 			if (!password.equals(passwordInput))
 				throw new PasswordNotMatchException();
+		}
+
+		if (participants.size() >= capacity) {
+			throw new RoomCapacityExceededException();
 		}
 
 		participants.put(user.getUserId(), user);

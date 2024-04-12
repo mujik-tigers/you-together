@@ -93,6 +93,7 @@ class UserServiceTest extends IntegrationTestSupport {
 			.title(title)
 			.host(user)
 			.createdAt(createTime)
+			.capacity(10)
 			.build();
 
 		roomStorage.save(room);

@@ -17,6 +17,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 
 import site.youtogether.IntegrationTestSupport;
 import site.youtogether.exception.room.PasswordNotMatchException;
+import site.youtogether.exception.room.RoomCapacityExceededException;
 import site.youtogether.room.Room;
 import site.youtogether.room.dto.RoomDetail;
 import site.youtogether.room.dto.RoomList;
@@ -168,6 +169,19 @@ class RoomServiceTest extends IntegrationTestSupport {
 	}
 
 	@Test
+	@DisplayName("인원이 꽉 찬 방은 입장할 수 없다")
+	void enterFullRoomFail() throws Exception {
+		// given
+		int capacity = 1;
+		String cookieValue = "fd98lls01adafg";
+		Room room = createRoom(LocalDateTime.of(2024, 4, 10, 11, 37, 0), "황똥땡의 방", capacity);
+
+		// when // then
+		assertThatThrownBy(() -> roomService.enter(cookieValue, room.getCode(), null))
+			.isInstanceOf(RoomCapacityExceededException.class);
+	}
+
+	@Test
 	@DisplayName("방을 떠난다")
 	void leaveRoom() throws Exception {
 		// given
@@ -197,6 +211,24 @@ class RoomServiceTest extends IntegrationTestSupport {
 			.title(title)
 			.host(user)
 			.createdAt(createTime)
+			.capacity(10)
+			.build();
+
+		roomStorage.save(room);
+
+		return room;
+	}
+
+	private Room createRoom(LocalDateTime createTime, String title, int capacity) {
+		User user = User.builder()
+			.userId(100L)
+			.build();
+
+		Room room = Room.builder()
+			.title(title)
+			.host(user)
+			.createdAt(createTime)
+			.capacity(capacity)
 			.build();
 
 		roomStorage.save(room);
@@ -214,6 +246,7 @@ class RoomServiceTest extends IntegrationTestSupport {
 			.password(password)
 			.host(user)
 			.createdAt(createTime)
+			.capacity(10)
 			.build();
 
 		roomStorage.save(room);

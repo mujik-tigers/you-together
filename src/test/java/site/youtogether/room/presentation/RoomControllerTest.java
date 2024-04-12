@@ -25,6 +25,7 @@ import org.springframework.restdocs.payload.JsonFieldType;
 import jakarta.servlet.http.Cookie;
 import site.youtogether.RestDocsSupport;
 import site.youtogether.exception.room.PasswordNotMatchException;
+import site.youtogether.exception.room.RoomCapacityExceededException;
 import site.youtogether.exception.room.SingleRoomParticipationViolationException;
 import site.youtogether.room.Room;
 import site.youtogether.room.dto.PasswordInput;
@@ -472,8 +473,7 @@ class RoomControllerTest extends RestDocsSupport {
 				.contentType(MediaType.APPLICATION_JSON))
 			.andDo(print())
 			.andExpect(status().isForbidden())
-			.andExpect(cookie().exists(cookieProperties.getName()))
-			.andExpect(cookie().maxAge(cookieProperties.getName(), 0))
+			.andExpect(cookie().doesNotExist(cookieProperties.getName()))
 			.andExpect(jsonPath("$.code").value(ROOM_PASSWORD_NOT_MATCH.getStatus().value()))
 			.andExpect(jsonPath("$.status").value(ROOM_PASSWORD_NOT_MATCH.getStatus().getReasonPhrase()))
 			.andExpect(jsonPath("$.result").value(ResponseResult.EXCEPTION_OCCURRED.getDescription()))
@@ -521,6 +521,40 @@ class RoomControllerTest extends RestDocsSupport {
 				requestFields(
 					fieldWithPath("passwordInput").type(JsonFieldType.STRING).description("입력한 비밀번호")
 				),
+				responseFields(
+					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
+					fieldWithPath("status").type(JsonFieldType.STRING).description("상태"),
+					fieldWithPath("result").type(JsonFieldType.STRING).description("결과"),
+					fieldWithPath("data").type(JsonFieldType.ARRAY).description("응답 데이터"),
+					fieldWithPath("data[].type").type(JsonFieldType.STRING).description("오류 타입"),
+					fieldWithPath("data[].message").type(JsonFieldType.STRING).description("오류 메시지")
+				)
+			));
+	}
+
+	@Test
+	@DisplayName("방 입장 실패: 방의 참가 인원이 가득 참")
+	void enterFullRoomFail() throws Exception {
+		// given
+		String roomCode = "1e7050f7d7";
+
+		given(roomService.enter(anyString(), eq(roomCode), eq(null)))
+			.willThrow(new RoomCapacityExceededException());
+
+		// when // then
+		mockMvc.perform(post("/rooms/{roomCode}", roomCode))
+			.andDo(print())
+			.andExpect(status().isForbidden())
+			.andExpect(cookie().doesNotExist(cookieProperties.getName()))
+			.andExpect(jsonPath("$.code").value(ROOM_CAPACITY_EXCEEDED.getStatus().value()))
+			.andExpect(jsonPath("$.status").value(ROOM_CAPACITY_EXCEEDED.getStatus().getReasonPhrase()))
+			.andExpect(jsonPath("$.result").value(ResponseResult.EXCEPTION_OCCURRED.getDescription()))
+			.andExpect(jsonPath("$.data").isArray())
+			.andExpect(jsonPath("$.data[0].type").value(RoomCapacityExceededException.class.getSimpleName()))
+			.andExpect(jsonPath("$.data[0].message").value(ROOM_CAPACITY_EXCEEDED.getMessage()))
+			.andDo(document("enter-full-room-fail",
+				preprocessRequest(prettyPrint()),
+				preprocessResponse(prettyPrint()),
 				responseFields(
 					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
 					fieldWithPath("status").type(JsonFieldType.STRING).description("상태"),
