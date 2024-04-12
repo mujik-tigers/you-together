@@ -9,6 +9,7 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import site.youtogether.message.ChatMessage;
 import site.youtogether.message.application.RedisPublisher;
 import site.youtogether.room.application.RoomService;
@@ -16,6 +17,7 @@ import site.youtogether.user.User;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class MessageEventListener {
 
 	private final RedisPublisher redisPublisher;
@@ -23,6 +25,7 @@ public class MessageEventListener {
 
 	@EventListener
 	public void handleWebSocketSubscriberListener(SessionSubscribeEvent event) {
+		log.info("웹 소켓 구독 시작");
 		SimpMessageHeaderAccessor headerAccessor = SimpMessageHeaderAccessor.wrap(event.getMessage());
 
 		String simpDestination = event.getMessage().getHeaders().get("simpDestination").toString();
@@ -38,6 +41,7 @@ public class MessageEventListener {
 
 	@EventListener
 	public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
+		log.info("웹 소켓 커넥션 종료");
 		SimpMessageHeaderAccessor headerAccessor = SimpMessageHeaderAccessor.wrap(event.getMessage());
 
 		String roomCode = (String)headerAccessor.getSessionAttributes().get(ROOM_CODE);

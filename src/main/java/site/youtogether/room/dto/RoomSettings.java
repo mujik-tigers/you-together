@@ -20,7 +20,7 @@ public class RoomSettings {
 	@Range(min = 2, max = 10, message = "정원은 {min}명 이상 {max}명 이하로 입력해 주세요")
 	private int capacity;
 
-	@Pattern(regexp = "^[0-9a-zA-Z]{5,10}$", message = "비밀번호는 5자 이상 10자 이하의 영문 또는 숫자로 입력해 주세요")
+	@Pattern(regexp = "^[0-9a-zA-Z]{1,30}$", message = "비밀번호는 1자 이상 30자 이하의 영문 또는 숫자로 입력해 주세요")
 	private String password;
 
 	@Builder

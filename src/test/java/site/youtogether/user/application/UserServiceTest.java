@@ -40,7 +40,7 @@ class UserServiceTest extends IntegrationTestSupport {
 			.nickname("연츠비")
 			.role(Role.GUEST)
 			.build();
-		room.enterParticipant(user);
+		room.enterParticipant(user, null);
 		roomStorage.save(room);
 
 		String updateNickname = "연똥땡";
@@ -93,6 +93,7 @@ class UserServiceTest extends IntegrationTestSupport {
 			.title(title)
 			.host(user)
 			.createdAt(createTime)
+			.capacity(10)
 			.build();
 
 		roomStorage.save(room);

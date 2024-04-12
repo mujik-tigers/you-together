@@ -22,6 +22,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import site.youtogether.config.property.CookieProperties;
 import site.youtogether.room.application.RoomService;
+import site.youtogether.room.dto.PasswordInput;
 import site.youtogether.room.dto.RoomDetail;
 import site.youtogether.room.dto.RoomList;
 import site.youtogether.room.dto.RoomSettings;
@@ -35,19 +36,14 @@ public class RoomController {
 
 	private final CookieProperties cookieProperties;
 	private final RoomService roomService;
+	private final HttpServletResponse response;
 
 	@PostMapping("/rooms")
-	public ResponseEntity<ApiResponse<RoomDetail>> createRoom(@Valid @RequestBody RoomSettings roomSettings, HttpServletResponse response) {
-		// Generate a new session code and set it as a cookie.
-		ResponseCookie cookie = generateSessionCookie();
+	public ResponseEntity<ApiResponse<RoomDetail>> createRoom(@Valid @RequestBody RoomSettings roomSettings) {
+		ResponseCookie sessionCookie = generateSessionCookie();
+		RoomDetail roomDetail = roomService.create(sessionCookie.getValue(), roomSettings, LocalDateTime.now());
 
-		// Create a new room with the generated session code.
-		RoomDetail roomDetail = roomService.create(cookie.getValue(), roomSettings, LocalDateTime.now());
-
-		// Add the cookie to the response header.
-		response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-
-		// Return a response indicating successful room creation.
+		response.setHeader(HttpHeaders.SET_COOKIE, sessionCookie.toString());
 		return ResponseEntity.status(HttpStatus.CREATED)
 			.body(ApiResponse.created(ResponseResult.ROOM_CREATION_SUCCESS, roomDetail));
 	}
@@ -61,13 +57,14 @@ public class RoomController {
 	}
 
 	@PostMapping("/rooms/{roomCode}")
-	public ResponseEntity<ApiResponse<RoomDetail>> enterRoom(@PathVariable String roomCode, HttpServletResponse response) {
-		ResponseCookie cookie = generateSessionCookie();
+	public ResponseEntity<ApiResponse<RoomDetail>> enterRoom(@PathVariable String roomCode,
+		@Valid @RequestBody(required = false) PasswordInput form) {
 
-		RoomDetail roomDetail = roomService.enter(cookie.getValue(), roomCode);
+		ResponseCookie sessionCookie = generateSessionCookie();
+		String passwordInput = form == null ? null : form.getPasswordInput();
+		RoomDetail roomDetail = roomService.enter(sessionCookie.getValue(), roomCode, passwordInput);
 
-		response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-
+		response.setHeader(HttpHeaders.SET_COOKIE, sessionCookie.toString());
 		return ResponseEntity.ok(
 			ApiResponse.ok(ResponseResult.ROOM_ENTER_SUCCESS, roomDetail));
 	}
