@@ -35,19 +35,13 @@ public class RoomController {
 
 	private final CookieProperties cookieProperties;
 	private final RoomService roomService;
+	private final HttpServletResponse response;
 
 	@PostMapping("/rooms")
-	public ResponseEntity<ApiResponse<RoomDetail>> createRoom(@Valid @RequestBody RoomSettings roomSettings, HttpServletResponse response) {
-		// Generate a new session code and set it as a cookie.
+	public ResponseEntity<ApiResponse<RoomDetail>> createRoom(@Valid @RequestBody RoomSettings roomSettings) {
 		ResponseCookie cookie = generateSessionCookie();
-
-		// Create a new room with the generated session code.
 		RoomDetail roomDetail = roomService.create(cookie.getValue(), roomSettings, LocalDateTime.now());
 
-		// Add the cookie to the response header.
-		response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-
-		// Return a response indicating successful room creation.
 		return ResponseEntity.status(HttpStatus.CREATED)
 			.body(ApiResponse.created(ResponseResult.ROOM_CREATION_SUCCESS, roomDetail));
 	}
@@ -61,19 +55,16 @@ public class RoomController {
 	}
 
 	@PostMapping("/rooms/{roomCode}")
-	public ResponseEntity<ApiResponse<RoomDetail>> enterRoom(@PathVariable String roomCode, HttpServletResponse response) {
+	public ResponseEntity<ApiResponse<RoomDetail>> enterRoom(@PathVariable String roomCode) {
 		ResponseCookie cookie = generateSessionCookie();
-
 		RoomDetail roomDetail = roomService.enter(cookie.getValue(), roomCode);
-
-		response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
 		return ResponseEntity.ok(
 			ApiResponse.ok(ResponseResult.ROOM_ENTER_SUCCESS, roomDetail));
 	}
 
 	private ResponseCookie generateSessionCookie() {
-		return ResponseCookie.from(cookieProperties.getName(), RandomUtil.generateRandomCode(COOKIE_VALUE_LENGTH))
+		ResponseCookie sessionCookie = ResponseCookie.from(cookieProperties.getName(), RandomUtil.generateRandomCode(COOKIE_VALUE_LENGTH))
 			.domain(cookieProperties.getDomain())
 			.path(cookieProperties.getPath())
 			.sameSite(cookieProperties.getSameSite())
@@ -81,6 +72,9 @@ public class RoomController {
 			.httpOnly(true)
 			.secure(true)
 			.build();
+
+		response.setHeader(HttpHeaders.SET_COOKIE, sessionCookie.toString());
+		return sessionCookie;
 	}
 
 }
