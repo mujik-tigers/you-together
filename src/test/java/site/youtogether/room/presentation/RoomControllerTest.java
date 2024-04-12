@@ -24,8 +24,11 @@ import org.springframework.restdocs.payload.JsonFieldType;
 
 import jakarta.servlet.http.Cookie;
 import site.youtogether.RestDocsSupport;
+import site.youtogether.exception.room.PasswordNotMatchException;
+import site.youtogether.exception.room.RoomCapacityExceededException;
 import site.youtogether.exception.room.SingleRoomParticipationViolationException;
 import site.youtogether.room.Room;
+import site.youtogether.room.dto.PasswordInput;
 import site.youtogether.room.dto.RoomDetail;
 import site.youtogether.room.dto.RoomList;
 import site.youtogether.room.dto.RoomSettings;
@@ -45,11 +48,16 @@ class RoomControllerTest extends RestDocsSupport {
 		String hostNickname = "황똥땡";
 		int capacity = 10;
 
-		RoomSettings roomSettings = RoomSettings.builder().capacity(capacity).title(roomTitle).password(null).build();
+		RoomSettings roomSettings = RoomSettings.builder()
+			.capacity(capacity)
+			.title(roomTitle)
+			.password(null)
+			.build();
 
 		// Setting up response data for the created room
 		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, hostNickname, capacity, 1, false);
-		given(roomService.create(anyString(), any(RoomSettings.class), any(LocalDateTime.class))).willReturn(createdRoomDetail);
+		given(roomService.create(anyString(), any(RoomSettings.class), any(LocalDateTime.class)))
+			.willReturn(createdRoomDetail);
 
 		// when / then
 		String cookieName = cookieProperties.getName();
@@ -98,11 +106,84 @@ class RoomControllerTest extends RestDocsSupport {
 	}
 
 	@Test
+	@DisplayName("방 생성 성공: 비밀 번호가 있는 방")
+	void createPasswordRoomSuccess() throws Exception {
+		// given
+		// Setting up request data for creating a room
+		String roomCode = "1e7050f7d7";
+		String roomTitle = "재밌는 쇼츠 같이 보기";
+		String hostNickname = "황똥땡";
+		String password = "mySecretRoom";
+		int capacity = 10;
+
+		RoomSettings roomSettings = RoomSettings.builder()
+			.capacity(capacity)
+			.title(roomTitle)
+			.password(password)
+			.build();
+
+		// Setting up response data for the created room
+		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, hostNickname, capacity, 1, true);
+		given(roomService.create(anyString(), any(RoomSettings.class), any(LocalDateTime.class)))
+			.willReturn(createdRoomDetail);
+
+		// when / then
+		String cookieName = cookieProperties.getName();
+
+		mockMvc.perform(post("/rooms")
+				.content(objectMapper.writeValueAsString(roomSettings))
+				.contentType(MediaType.APPLICATION_JSON))
+			.andDo(print())
+			.andExpect(status().isCreated())
+			.andExpect(cookie().exists(cookieName))
+			.andExpect(cookie().domain(cookieName, cookieProperties.getDomain()))
+			.andExpect(cookie().path(cookieName, cookieProperties.getPath()))
+			.andExpect(cookie().sameSite(cookieName, cookieProperties.getSameSite()))
+			.andExpect(cookie().maxAge(cookieName, cookieProperties.getExpiry()))
+			.andExpect(cookie().httpOnly(cookieName, true))
+			.andExpect(cookie().secure(cookieName, true))
+			.andExpect(jsonPath("$.code").value(HttpStatus.CREATED.value()))
+			.andExpect(jsonPath("$.status").value(HttpStatus.CREATED.getReasonPhrase()))
+			.andExpect(jsonPath("$.result").value(ResponseResult.ROOM_CREATION_SUCCESS.getDescription()))
+			.andExpect(jsonPath("$.data.roomCode").value(roomCode))
+			.andExpect(jsonPath("$.data.roomTitle").value(roomTitle))
+			.andExpect(jsonPath("$.data.nickname").value(hostNickname))
+			.andExpect(jsonPath("$.data.capacity").value(capacity))
+			.andExpect(jsonPath("$.data.currentParticipant").value(1))
+			.andExpect(jsonPath("$.data.passwordExist").value(true))
+			.andDo(document("create-password-room-success",
+				preprocessRequest(prettyPrint()),
+				preprocessResponse(prettyPrint()),
+				requestFields(
+					fieldWithPath("capacity").type(JsonFieldType.NUMBER).description("정원"),
+					fieldWithPath("title").type(JsonFieldType.STRING).description("제목"),
+					fieldWithPath("password").type(JsonFieldType.STRING).description("비밀번호").optional()),
+				responseFields(
+					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
+					fieldWithPath("status").type(JsonFieldType.STRING).description("상태"),
+					fieldWithPath("result").type(JsonFieldType.STRING).description("결과"),
+					fieldWithPath("data").type(JsonFieldType.OBJECT).description("응답 데이터"),
+					fieldWithPath("data.roomCode").type(JsonFieldType.STRING).description("방 식별 코드"),
+					fieldWithPath("data.roomTitle").type(JsonFieldType.STRING).description("방 제목"),
+					fieldWithPath("data.nickname").type(JsonFieldType.STRING).description("내 닉네임"),
+					fieldWithPath("data.capacity").type(JsonFieldType.NUMBER).description("정원"),
+					fieldWithPath("data.currentParticipant").type(JsonFieldType.NUMBER).description("현재 참가자 수"),
+					fieldWithPath("data.passwordExist").type(JsonFieldType.BOOLEAN).description("비밀번호 존재 여부")
+				)
+			));
+	}
+
+	@Test
 	@DisplayName("방 생성 실패: 요청 데이터 오류가 발생했습니다")
 	void createRoomFail_RoomSettingError() throws Exception {
 		// given
 		// Setting up request data for creating a room
-		RoomSettings roomSettings = RoomSettings.builder().capacity(11).title(" ").password("a1b2").build();
+		RoomSettings roomSettings = RoomSettings
+			.builder()
+			.capacity(11)
+			.title(" ")
+			.password("a1b2")
+			.build();
 
 		// when / then
 		mockMvc.perform(post("/rooms")
@@ -239,7 +320,7 @@ class RoomControllerTest extends RestDocsSupport {
 		int capacity = 10;
 
 		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, nickname, capacity, 2, false);
-		given(roomService.enter(anyString(), eq(roomCode)))
+		given(roomService.enter(anyString(), eq(roomCode), eq(null)))
 			.willReturn(createdRoomDetail);
 
 		String cookieName = cookieProperties.getName();
@@ -288,7 +369,8 @@ class RoomControllerTest extends RestDocsSupport {
 		// given
 		String roomCode = "1e7050f7d7";
 		Cookie sessionCookie = new Cookie(cookieProperties.getName(), "a85192c998454a1ea055");
-		given(userTrackingStorage.exists(anyString())).willReturn(true);
+		given(userTrackingStorage.exists(anyString()))
+			.willReturn(true);
 
 		// when // then
 		mockMvc.perform(post("/rooms/{roomCode}", roomCode)
@@ -303,6 +385,174 @@ class RoomControllerTest extends RestDocsSupport {
 			.andExpect(jsonPath("$.data[0].type").value(SingleRoomParticipationViolationException.class.getSimpleName()))
 			.andExpect(jsonPath("$.data[0].message").value(SINGLE_ROOM_PARTICIPATION_VIOLATION.getMessage()))
 			.andDo(document("enter-room-fail-single-room-participant-violation",
+				preprocessRequest(prettyPrint()),
+				preprocessResponse(prettyPrint()),
+				responseFields(
+					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
+					fieldWithPath("status").type(JsonFieldType.STRING).description("상태"),
+					fieldWithPath("result").type(JsonFieldType.STRING).description("결과"),
+					fieldWithPath("data").type(JsonFieldType.ARRAY).description("응답 데이터"),
+					fieldWithPath("data[].type").type(JsonFieldType.STRING).description("오류 타입"),
+					fieldWithPath("data[].message").type(JsonFieldType.STRING).description("오류 메시지")
+				)
+			));
+	}
+
+	@Test
+	@DisplayName("방 입장 성공: 비밀번호가 있는 방")
+	void enterPasswordRoom() throws Exception {
+		// given
+		String roomCode = "1e7050f7d7";
+		String roomTitle = "재밌는 쇼츠 같이 보기";
+		String nickname = "황똥땡";
+		String password = "mySecretRoom";
+		int capacity = 10;
+
+		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, nickname, capacity, 2, true);
+		given(roomService.enter(anyString(), eq(roomCode), eq(password)))
+			.willReturn(createdRoomDetail);
+
+		String cookieName = cookieProperties.getName();
+
+		// when // then
+		mockMvc.perform(post("/rooms/{roomCode}", roomCode)
+				.content(objectMapper.writeValueAsString(new PasswordInput(password)))
+				.contentType(MediaType.APPLICATION_JSON))
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(cookie().exists(cookieName))
+			.andExpect(cookie().domain(cookieName, cookieProperties.getDomain()))
+			.andExpect(cookie().path(cookieName, cookieProperties.getPath()))
+			.andExpect(cookie().sameSite(cookieName, cookieProperties.getSameSite()))
+			.andExpect(cookie().maxAge(cookieName, cookieProperties.getExpiry()))
+			.andExpect(cookie().httpOnly(cookieName, true))
+			.andExpect(cookie().secure(cookieName, true))
+			.andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
+			.andExpect(jsonPath("$.status").value(HttpStatus.OK.getReasonPhrase()))
+			.andExpect(jsonPath("$.result").value(ResponseResult.ROOM_ENTER_SUCCESS.getDescription()))
+			.andExpect(jsonPath("$.data.roomCode").value(roomCode))
+			.andExpect(jsonPath("$.data.roomTitle").value(roomTitle))
+			.andExpect(jsonPath("$.data.nickname").value(nickname))
+			.andExpect(jsonPath("$.data.capacity").value(capacity))
+			.andExpect(jsonPath("$.data.currentParticipant").value(2))
+			.andExpect(jsonPath("$.data.passwordExist").value(true))
+			.andDo(document("enter-password-room-success",
+				preprocessRequest(prettyPrint()),
+				preprocessResponse(prettyPrint()),
+				requestFields(
+					fieldWithPath("passwordInput").type(JsonFieldType.STRING).description("입력한 비밀번호")
+				),
+				responseFields(
+					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
+					fieldWithPath("status").type(JsonFieldType.STRING).description("상태"),
+					fieldWithPath("result").type(JsonFieldType.STRING).description("결과"),
+					fieldWithPath("data").type(JsonFieldType.OBJECT).description("응답 데이터"),
+					fieldWithPath("data.roomCode").type(JsonFieldType.STRING).description("방 식별 코드"),
+					fieldWithPath("data.roomTitle").type(JsonFieldType.STRING).description("방 제목"),
+					fieldWithPath("data.nickname").type(JsonFieldType.STRING).description("내 닉네임"),
+					fieldWithPath("data.capacity").type(JsonFieldType.NUMBER).description("정원"),
+					fieldWithPath("data.currentParticipant").type(JsonFieldType.NUMBER).description("현재 참가자 수"),
+					fieldWithPath("data.passwordExist").type(JsonFieldType.BOOLEAN).description("비밀번호 존재 여부")
+				)
+			));
+	}
+
+	@Test
+	@DisplayName("방 입장 실패: 비밀번호가 틀립니다")
+	void enterPasswordRoomFail() throws Exception {
+		// given
+		String roomCode = "1e7050f7d7";
+		String password = "notMatchPassword";
+
+		given(roomService.enter(anyString(), eq(roomCode), eq(password)))
+			.willThrow(new PasswordNotMatchException());
+
+		// when // then
+		mockMvc.perform(post("/rooms/{roomCode}", roomCode)
+				.content(objectMapper.writeValueAsString(new PasswordInput(password)))
+				.contentType(MediaType.APPLICATION_JSON))
+			.andDo(print())
+			.andExpect(status().isForbidden())
+			.andExpect(cookie().doesNotExist(cookieProperties.getName()))
+			.andExpect(jsonPath("$.code").value(ROOM_PASSWORD_NOT_MATCH.getStatus().value()))
+			.andExpect(jsonPath("$.status").value(ROOM_PASSWORD_NOT_MATCH.getStatus().getReasonPhrase()))
+			.andExpect(jsonPath("$.result").value(ResponseResult.EXCEPTION_OCCURRED.getDescription()))
+			.andExpect(jsonPath("$.data").isArray())
+			.andExpect(jsonPath("$.data[0].type").value(PasswordNotMatchException.class.getSimpleName()))
+			.andExpect(jsonPath("$.data[0].message").value(ROOM_PASSWORD_NOT_MATCH.getMessage()))
+			.andDo(document("enter-password-room-fail-password-wrong",
+				preprocessRequest(prettyPrint()),
+				preprocessResponse(prettyPrint()),
+				requestFields(
+					fieldWithPath("passwordInput").type(JsonFieldType.STRING).description("입력한 비밀번호")
+				),
+				responseFields(
+					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
+					fieldWithPath("status").type(JsonFieldType.STRING).description("상태"),
+					fieldWithPath("result").type(JsonFieldType.STRING).description("결과"),
+					fieldWithPath("data").type(JsonFieldType.ARRAY).description("응답 데이터"),
+					fieldWithPath("data[].type").type(JsonFieldType.STRING).description("오류 타입"),
+					fieldWithPath("data[].message").type(JsonFieldType.STRING).description("오류 메시지")
+				)
+			));
+	}
+
+	@Test
+	@DisplayName("방 입장 실패: 비밀번호 형식 오류")
+	void enterPasswordRoomFormFail() throws Exception {
+		// given
+		String roomCode = "1e7050f7d7";
+		String password = " a ";
+
+		// when // then
+		mockMvc.perform(post("/rooms/{roomCode}", roomCode)
+				.content(objectMapper.writeValueAsString(new PasswordInput(password)))
+				.contentType(MediaType.APPLICATION_JSON))
+			.andDo(print())
+			.andExpect(status().isBadRequest())
+			.andExpect(cookie().doesNotExist(cookieProperties.getName()))
+			.andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
+			.andExpect(jsonPath("$.status").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
+			.andExpect(jsonPath("$.result").value(ResponseResult.EXCEPTION_OCCURRED.getDescription()))
+			.andExpect(jsonPath("$.data").isArray())
+			.andDo(document("enter-password-room-fail-password-form",
+				preprocessRequest(prettyPrint()),
+				preprocessResponse(prettyPrint()),
+				requestFields(
+					fieldWithPath("passwordInput").type(JsonFieldType.STRING).description("입력한 비밀번호")
+				),
+				responseFields(
+					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
+					fieldWithPath("status").type(JsonFieldType.STRING).description("상태"),
+					fieldWithPath("result").type(JsonFieldType.STRING).description("결과"),
+					fieldWithPath("data").type(JsonFieldType.ARRAY).description("응답 데이터"),
+					fieldWithPath("data[].type").type(JsonFieldType.STRING).description("오류 타입"),
+					fieldWithPath("data[].message").type(JsonFieldType.STRING).description("오류 메시지")
+				)
+			));
+	}
+
+	@Test
+	@DisplayName("방 입장 실패: 방의 참가 인원이 가득 참")
+	void enterFullRoomFail() throws Exception {
+		// given
+		String roomCode = "1e7050f7d7";
+
+		given(roomService.enter(anyString(), eq(roomCode), eq(null)))
+			.willThrow(new RoomCapacityExceededException());
+
+		// when // then
+		mockMvc.perform(post("/rooms/{roomCode}", roomCode))
+			.andDo(print())
+			.andExpect(status().isForbidden())
+			.andExpect(cookie().doesNotExist(cookieProperties.getName()))
+			.andExpect(jsonPath("$.code").value(ROOM_CAPACITY_EXCEEDED.getStatus().value()))
+			.andExpect(jsonPath("$.status").value(ROOM_CAPACITY_EXCEEDED.getStatus().getReasonPhrase()))
+			.andExpect(jsonPath("$.result").value(ResponseResult.EXCEPTION_OCCURRED.getDescription()))
+			.andExpect(jsonPath("$.data").isArray())
+			.andExpect(jsonPath("$.data[0].type").value(RoomCapacityExceededException.class.getSimpleName()))
+			.andExpect(jsonPath("$.data[0].message").value(ROOM_CAPACITY_EXCEEDED.getMessage()))
+			.andDo(document("enter-full-room-fail",
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
 				responseFields(

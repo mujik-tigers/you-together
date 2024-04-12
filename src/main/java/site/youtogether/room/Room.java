@@ -17,6 +17,8 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import site.youtogether.exception.room.PasswordNotMatchException;
+import site.youtogether.exception.room.RoomCapacityExceededException;
 import site.youtogether.exception.user.UserNoExistenceException;
 import site.youtogether.user.User;
 import site.youtogether.util.RandomUtil;
@@ -41,7 +43,7 @@ public class Room {
 	private Map<Long, User> participants = new HashMap<>(10);
 
 	@Builder
-	public Room(String title, int capacity, String password, LocalDateTime createdAt, User host) {
+	private Room(String title, int capacity, String password, LocalDateTime createdAt, User host) {
 		this.code = RandomUtil.generateRandomCode(ROOM_CODE_LENGTH);
 		this.title = title;
 		this.capacity = capacity;
@@ -61,7 +63,16 @@ public class Room {
 		return password != null;
 	}
 
-	public void enterParticipant(User user) {
+	public void enterParticipant(User user, String passwordInput) {
+		if (password != null) {
+			if (!password.equals(passwordInput))
+				throw new PasswordNotMatchException();
+		}
+
+		if (participants.size() >= capacity) {
+			throw new RoomCapacityExceededException();
+		}
+
 		participants.put(user.getUserId(), user);
 	}
 

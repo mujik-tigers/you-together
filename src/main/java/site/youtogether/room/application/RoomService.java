@@ -51,8 +51,8 @@ public class RoomService {
 		return new RoomList(roomSlice);
 	}
 
-	public RoomDetail enter(String cookieValue, String roomCode) {
-		Long userId = userTrackingStorage.save(cookieValue);
+	public RoomDetail enter(String cookieValue, String roomCode, String passwordInput) {
+		Long userId = userTrackingStorage.save(cookieValue);        // TODO: 트랜잭션 안되서, enter 실패 시, userTrackingStorage 에 실패한 데이터가 쌓임.
 
 		User user = User.builder()
 			.userId(userId)
@@ -63,7 +63,7 @@ public class RoomService {
 		Room room = roomStorage.findById(roomCode)
 			.orElseThrow(RoomNoExistenceException::new);
 
-		room.enterParticipant(user);
+		room.enterParticipant(user, passwordInput);
 		roomStorage.save(room);
 
 		return new RoomDetail(room, user);
