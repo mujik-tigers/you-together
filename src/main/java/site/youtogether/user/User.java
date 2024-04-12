@@ -2,12 +2,9 @@ package site.youtogether.user;
 
 import org.springframework.data.annotation.Id;
 
-import com.redis.om.spring.annotations.Document;
-
 import lombok.Builder;
 import lombok.Getter;
 
-@Document(value = "user")
 @Getter
 public class User {
 

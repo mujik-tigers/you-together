@@ -15,7 +15,6 @@ import site.youtogether.room.Room;
 import site.youtogether.room.infrastructure.RoomStorage;
 import site.youtogether.user.Role;
 import site.youtogether.user.User;
-import site.youtogether.user.infrastructure.UserStorage;
 
 @Profile("!test")
 @Component
@@ -26,13 +25,11 @@ public class Initializer implements ApplicationRunner {
 	private static final int PASSWORD_ROOM_COUNT = 55;
 
 	private final RoomStorage roomStorage;
-	private final UserStorage userStorage;
 	private final RedisTemplate<String, String> redisTemplate;
 
 	@Override
 	public void run(ApplicationArguments args) throws Exception {
 		roomStorage.deleteAll();
-		userStorage.deleteAll();
 		redisTemplate.delete(redisTemplate.keys(USER_TRACKING_KEY_PREFIX + "*"));
 		redisTemplate.delete(redisTemplate.keys(USER_ID_KEY_PREFIX + "*"));
 

@@ -15,7 +15,6 @@ import site.youtogether.room.dto.RoomSettings;
 import site.youtogether.room.infrastructure.RoomStorage;
 import site.youtogether.user.Role;
 import site.youtogether.user.User;
-import site.youtogether.user.infrastructure.UserStorage;
 import site.youtogether.user.infrastructure.UserTrackingStorage;
 import site.youtogether.util.RandomUtil;
 
@@ -24,7 +23,6 @@ import site.youtogether.util.RandomUtil;
 public class RoomService {
 
 	private final RoomStorage roomStorage;
-	private final UserStorage userStorage;
 	private final UserTrackingStorage userTrackingStorage;
 
 	public RoomDetail create(String cookieValue, RoomSettings roomSettings, LocalDateTime now) {
@@ -44,9 +42,7 @@ public class RoomService {
 			.host(host)
 			.build();
 
-		userStorage.save(host);
 		roomStorage.save(room);
-
 		return new RoomDetail(room, host);
 	}
 
@@ -68,8 +64,6 @@ public class RoomService {
 			.orElseThrow(RoomNoExistenceException::new);
 
 		room.enterParticipant(user);
-
-		userStorage.save(user);
 		roomStorage.save(room);
 
 		return new RoomDetail(room, user);
@@ -80,10 +74,16 @@ public class RoomService {
 			.orElseThrow(RoomNoExistenceException::new);
 
 		room.leaveParticipant(userId);
-		userStorage.deleteById(userId);
 		userTrackingStorage.delete(userId);
 
 		roomStorage.save(room);
+	}
+
+	public User findParticipant(String roomCode, Long userId) {
+		Room room = roomStorage.findById(roomCode)
+			.orElseThrow(RoomNoExistenceException::new);
+
+		return room.findParticipantBy(userId);
 	}
 
 }
