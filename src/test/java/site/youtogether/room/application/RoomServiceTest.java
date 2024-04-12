@@ -20,7 +20,6 @@ import site.youtogether.room.dto.RoomSettings;
 import site.youtogether.room.infrastructure.RoomStorage;
 import site.youtogether.user.Role;
 import site.youtogether.user.User;
-import site.youtogether.user.infrastructure.UserStorage;
 import site.youtogether.user.infrastructure.UserTrackingStorage;
 
 class RoomServiceTest extends IntegrationTestSupport {
@@ -32,9 +31,6 @@ class RoomServiceTest extends IntegrationTestSupport {
 	private RoomStorage roomStorage;
 
 	@Autowired
-	private UserStorage userStorage;
-
-	@Autowired
 	private UserTrackingStorage userTrackingStorage;
 
 	@Autowired
@@ -43,7 +39,6 @@ class RoomServiceTest extends IntegrationTestSupport {
 	@AfterEach
 	void clean() {
 		roomStorage.deleteAll();
-		userStorage.deleteAll();
 
 		redisTemplate.delete(redisTemplate.keys(USER_TRACKING_KEY_PREFIX + "*"));
 		redisTemplate.delete(redisTemplate.keys(USER_ID_KEY_PREFIX + "*"));
@@ -66,7 +61,7 @@ class RoomServiceTest extends IntegrationTestSupport {
 		// then
 		Room room = roomStorage.findById(createdRoomDetail.getRoomCode()).get();
 		Long userId = userTrackingStorage.findByCookieValue(cookieValue).get();
-		User user = userStorage.findById(userId).get();
+		User user = room.findParticipantBy(userId);
 
 		assertThat(createdRoomDetail.getRoomCode()).hasSize(ROOM_CODE_LENGTH);
 		assertThat(createdRoomDetail.getRoomCode()).isEqualTo(room.getCode());
@@ -130,8 +125,8 @@ class RoomServiceTest extends IntegrationTestSupport {
 
 		// then
 		Long userId = userTrackingStorage.findByCookieValue(cookieValue).get();
-		User enterUser = userStorage.findById(userId).get();
 		Room savedRoom = roomStorage.findById(room.getCode()).get();
+		User enterUser = savedRoom.findParticipantBy(userId);
 
 		assertThat(savedRoom.getParticipants()).containsKey(userId);
 		assertThat(savedRoom.getParticipants().get(userId)).usingRecursiveComparison().isEqualTo(enterUser);
@@ -156,12 +151,11 @@ class RoomServiceTest extends IntegrationTestSupport {
 		// then
 		Room savedRoom = roomStorage.findById(room.getCode()).get();
 		assertThat(savedRoom.getParticipants()).doesNotContainKey(user.getUserId());
-		assertThat(userStorage.findById(user.getUserId())).isEmpty();
 	}
 
 	private Room createRoom(LocalDateTime createTime, String title) {
 		User user = User.builder()
-			.userId(1L)
+			.userId(100L)
 			.build();
 
 		Room room = Room.builder()

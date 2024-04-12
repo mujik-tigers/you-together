@@ -7,24 +7,23 @@ import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
-import site.youtogether.exception.user.UserNoExistenceException;
 import site.youtogether.message.ChatMessage;
 import site.youtogether.message.application.RedisPublisher;
+import site.youtogether.room.application.RoomService;
 import site.youtogether.user.User;
-import site.youtogether.user.infrastructure.UserStorage;
 
 @RestController
 @RequiredArgsConstructor
 public class MessageController {
 
-	private final UserStorage userStorage;
+	private final RoomService roomService;
 	private final RedisPublisher redisPublisher;
 
 	@MessageMapping("/messages")
 	public void handleMessage(ChatMessage chatMessage, SimpMessageHeaderAccessor headerAccessor) {
+		String roomCode = (String)headerAccessor.getSessionAttributes().get(ROOM_CODE);
 		Long userId = (Long)headerAccessor.getSessionAttributes().get(USER_ID);
-		User user = userStorage.findById(userId)
-			.orElseThrow(UserNoExistenceException::new);
+		User user = roomService.findParticipant(roomCode, userId);
 
 		chatMessage.setUserId(user.getUserId());
 		chatMessage.setNickname(user.getNickname());
