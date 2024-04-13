@@ -34,6 +34,7 @@ import site.youtogether.room.dto.RoomList;
 import site.youtogether.room.dto.RoomSettings;
 import site.youtogether.user.Role;
 import site.youtogether.user.User;
+import site.youtogether.user.dto.UserInfo;
 import site.youtogether.util.api.ResponseResult;
 
 class RoomControllerTest extends RestDocsSupport {
@@ -53,11 +54,7 @@ class RoomControllerTest extends RestDocsSupport {
 			.password(null)
 			.build();
 
-		User user = User.builder()
-			.userId(1L)
-			.nickname("황똥땡")
-			.role(Role.HOST)
-			.build();
+		UserInfo user = new UserInfo(1L, "황똥땡", Role.HOST);
 
 		// Setting up response data for the created room
 		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, user, capacity, 1, false);
@@ -130,11 +127,7 @@ class RoomControllerTest extends RestDocsSupport {
 			.password(password)
 			.build();
 
-		User user = User.builder()
-			.userId(1L)
-			.nickname("황똥땡")
-			.role(Role.HOST)
-			.build();
+		UserInfo user = new UserInfo(1L, "황똥땡", Role.HOST);
 
 		// Setting up response data for the created room
 		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, user, capacity, 1, true);
@@ -336,11 +329,7 @@ class RoomControllerTest extends RestDocsSupport {
 		String nickname = "황똥땡";
 		int capacity = 10;
 
-		User user = User.builder()
-			.userId(2L)
-			.nickname("황똥땡")
-			.role(Role.HOST)
-			.build();
+		UserInfo user = new UserInfo(2L, "황똥땡", Role.GUEST);
 
 		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, user, capacity, 2, false);
 		given(roomService.enter(anyString(), eq(roomCode), eq(null)))
@@ -434,11 +423,7 @@ class RoomControllerTest extends RestDocsSupport {
 		String password = "mySecretRoom";
 		int capacity = 10;
 
-		User user = User.builder()
-			.userId(2L)
-			.nickname("황똥땡")
-			.role(Role.HOST)
-			.build();
+		UserInfo user = new UserInfo(2L, "황똥땡", Role.GUEST);
 
 		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, user, capacity, 2, true);
 		given(roomService.enter(anyString(), eq(roomCode), eq(password)))
