@@ -11,7 +11,7 @@ public class RoomDetail {
 
 	private final String roomCode;
 	private final String roomTitle;
-	private final String nickname;
+	private final User user;
 	private final int capacity;
 	private final int currentParticipant;
 	private final boolean passwordExist;
@@ -19,7 +19,7 @@ public class RoomDetail {
 	public RoomDetail(Room room, User user) {
 		this.roomCode = room.getCode();
 		this.roomTitle = room.getTitle();
-		this.nickname = user.getNickname();
+		this.user = user;
 		this.capacity = room.getCapacity();
 		this.currentParticipant = 1;
 		this.passwordExist = room.getPassword() != null;
