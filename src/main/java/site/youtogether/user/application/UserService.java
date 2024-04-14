@@ -9,6 +9,7 @@ import site.youtogether.room.Room;
 import site.youtogether.room.infrastructure.RoomStorage;
 import site.youtogether.user.User;
 import site.youtogether.user.dto.UserInfo;
+import site.youtogether.user.dto.UserRoleChangeForm;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +27,17 @@ public class UserService {
 		redisSubscriber.sendParticipantsInfo(roomCode);
 
 		return new UserInfo(user);
+	}
+
+	public UserInfo changeUserRole(Long userId, UserRoleChangeForm form) {
+		Room room = roomStorage.findById(form.getRoomCode())
+			.orElseThrow(RoomNoExistenceException::new);
+		User changedUser = room.changeParticipantRole(userId, form.getChangedUserId(), form.getChangeUserRole());
+		roomStorage.save(room);
+
+		redisSubscriber.sendParticipantsInfo(room.getCode());
+
+		return new UserInfo(changedUser);
 	}
 
 }
