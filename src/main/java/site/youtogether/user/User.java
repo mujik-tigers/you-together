@@ -37,4 +37,8 @@ public class User {
 		return role.isLowerThan(Role.MANAGER);
 	}
 
+	public boolean isViewer() {
+		return role == Role.VIEWER;
+	}
+
 }
