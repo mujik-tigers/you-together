@@ -347,7 +347,7 @@ class UserControllerTest extends RestDocsSupport {
 			.andExpect(jsonPath("$.data").isArray())
 			.andExpect(jsonPath("$.data[0].type").value(NotManageableUserException.class.getSimpleName()))
 			.andExpect(jsonPath("$.data[0].message").value(ErrorType.NOT_MANAGEABLE.getMessage()))
-			.andDo(document("change-higher-or-equal-role-fail",
+			.andDo(document("not-manageable-change-role-fail",
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
 				requestFields(
