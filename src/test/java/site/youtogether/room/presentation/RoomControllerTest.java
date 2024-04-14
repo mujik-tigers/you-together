@@ -34,6 +34,7 @@ import site.youtogether.room.dto.RoomList;
 import site.youtogether.room.dto.RoomSettings;
 import site.youtogether.user.Role;
 import site.youtogether.user.User;
+import site.youtogether.user.dto.UserInfo;
 import site.youtogether.util.api.ResponseResult;
 
 class RoomControllerTest extends RestDocsSupport {
@@ -53,11 +54,7 @@ class RoomControllerTest extends RestDocsSupport {
 			.password(null)
 			.build();
 
-		User user = User.builder()
-			.userId(1L)
-			.nickname("황똥땡")
-			.role(Role.HOST)
-			.build();
+		UserInfo user = new UserInfo(10L, "황똥땡", Role.HOST);
 
 		// Setting up response data for the created room
 		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, user, capacity, 1, false);
@@ -105,7 +102,7 @@ class RoomControllerTest extends RestDocsSupport {
 					fieldWithPath("data.user").type(JsonFieldType.OBJECT).description("유저"),
 					fieldWithPath("data.user.userId").type(JsonFieldType.NUMBER).description("유저 아이디"),
 					fieldWithPath("data.user.nickname").type(JsonFieldType.STRING).description("유저 닉네임"),
-					fieldWithPath("data.user.role").type(JsonFieldType.STRING).description("유저 등급"),
+					fieldWithPath("data.user.role").type(JsonFieldType.STRING).description("유저 역할"),
 					fieldWithPath("data.capacity").type(JsonFieldType.NUMBER).description("정원"),
 					fieldWithPath("data.currentParticipant").type(JsonFieldType.NUMBER).description("현재 참가자 수"),
 					fieldWithPath("data.passwordExist").type(JsonFieldType.BOOLEAN).description("비밀번호 존재 여부")
@@ -120,7 +117,6 @@ class RoomControllerTest extends RestDocsSupport {
 		// Setting up request data for creating a room
 		String roomCode = "1e7050f7d7";
 		String roomTitle = "재밌는 쇼츠 같이 보기";
-		String hostNickname = "황똥땡";
 		String password = "mySecretRoom";
 		int capacity = 10;
 
@@ -130,11 +126,7 @@ class RoomControllerTest extends RestDocsSupport {
 			.password(password)
 			.build();
 
-		User user = User.builder()
-			.userId(1L)
-			.nickname("황똥땡")
-			.role(Role.HOST)
-			.build();
+		UserInfo user = new UserInfo(10L, "황똥땡", Role.HOST);
 
 		// Setting up response data for the created room
 		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, user, capacity, 1, true);
@@ -182,7 +174,7 @@ class RoomControllerTest extends RestDocsSupport {
 					fieldWithPath("data.user").type(JsonFieldType.OBJECT).description("유저"),
 					fieldWithPath("data.user.userId").type(JsonFieldType.NUMBER).description("유저 아이디"),
 					fieldWithPath("data.user.nickname").type(JsonFieldType.STRING).description("유저 닉네임"),
-					fieldWithPath("data.user.role").type(JsonFieldType.STRING).description("유저 등급"),
+					fieldWithPath("data.user.role").type(JsonFieldType.STRING).description("유저 역할"),
 					fieldWithPath("data.capacity").type(JsonFieldType.NUMBER).description("정원"),
 					fieldWithPath("data.currentParticipant").type(JsonFieldType.NUMBER).description("현재 참가자 수"),
 					fieldWithPath("data.passwordExist").type(JsonFieldType.BOOLEAN).description("비밀번호 존재 여부")
@@ -333,14 +325,9 @@ class RoomControllerTest extends RestDocsSupport {
 		// given
 		String roomCode = "1e7050f7d7";
 		String roomTitle = "재밌는 쇼츠 같이 보기";
-		String nickname = "황똥땡";
 		int capacity = 10;
 
-		User user = User.builder()
-			.userId(2L)
-			.nickname("황똥땡")
-			.role(Role.HOST)
-			.build();
+		UserInfo user = new UserInfo(10L, "황똥땡", Role.HOST);
 
 		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, user, capacity, 2, false);
 		given(roomService.enter(anyString(), eq(roomCode), eq(null)))
@@ -381,7 +368,7 @@ class RoomControllerTest extends RestDocsSupport {
 					fieldWithPath("data.user").type(JsonFieldType.OBJECT).description("유저"),
 					fieldWithPath("data.user.userId").type(JsonFieldType.NUMBER).description("유저 아이디"),
 					fieldWithPath("data.user.nickname").type(JsonFieldType.STRING).description("유저 닉네임"),
-					fieldWithPath("data.user.role").type(JsonFieldType.STRING).description("유저 등급"),
+					fieldWithPath("data.user.role").type(JsonFieldType.STRING).description("유저 역할"),
 					fieldWithPath("data.capacity").type(JsonFieldType.NUMBER).description("정원"),
 					fieldWithPath("data.currentParticipant").type(JsonFieldType.NUMBER).description("현재 참가자 수"),
 					fieldWithPath("data.passwordExist").type(JsonFieldType.BOOLEAN).description("비밀번호 존재 여부")
@@ -430,15 +417,10 @@ class RoomControllerTest extends RestDocsSupport {
 		// given
 		String roomCode = "1e7050f7d7";
 		String roomTitle = "재밌는 쇼츠 같이 보기";
-		String nickname = "황똥땡";
 		String password = "mySecretRoom";
 		int capacity = 10;
 
-		User user = User.builder()
-			.userId(2L)
-			.nickname("황똥땡")
-			.role(Role.HOST)
-			.build();
+		UserInfo user = new UserInfo(10L, "황똥땡", Role.HOST);
 
 		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, user, capacity, 2, true);
 		given(roomService.enter(anyString(), eq(roomCode), eq(password)))
@@ -484,7 +466,7 @@ class RoomControllerTest extends RestDocsSupport {
 					fieldWithPath("data.user").type(JsonFieldType.OBJECT).description("유저"),
 					fieldWithPath("data.user.userId").type(JsonFieldType.NUMBER).description("유저 아이디"),
 					fieldWithPath("data.user.nickname").type(JsonFieldType.STRING).description("유저 닉네임"),
-					fieldWithPath("data.user.role").type(JsonFieldType.STRING).description("유저 등급"),
+					fieldWithPath("data.user.role").type(JsonFieldType.STRING).description("유저 역할"),
 					fieldWithPath("data.capacity").type(JsonFieldType.NUMBER).description("정원"),
 					fieldWithPath("data.currentParticipant").type(JsonFieldType.NUMBER).description("현재 참가자 수"),
 					fieldWithPath("data.passwordExist").type(JsonFieldType.BOOLEAN).description("비밀번호 존재 여부")

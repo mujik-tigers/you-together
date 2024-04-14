@@ -19,7 +19,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import site.youtogether.exception.room.PasswordNotMatchException;
 import site.youtogether.exception.room.RoomCapacityExceededException;
+import site.youtogether.exception.user.HigherOrEqualRoleChangeException;
+import site.youtogether.exception.user.HigherOrEqualRoleUserChangeException;
+import site.youtogether.exception.user.SelfRoleChangeException;
 import site.youtogether.exception.user.UserNoExistenceException;
+import site.youtogether.user.Role;
 import site.youtogether.user.User;
 import site.youtogether.util.RandomUtil;
 
@@ -39,7 +43,6 @@ public class Room {
 
 	private int capacity;
 	private String password;
-	private User host;
 	private Map<Long, User> participants = new HashMap<>(10);
 
 	@Builder
@@ -49,7 +52,6 @@ public class Room {
 		this.capacity = capacity;
 		this.createdAt = createdAt;
 		this.password = password;
-		this.host = host;
 
 		participants.put(host.getUserId(), host);
 	}
@@ -84,11 +86,26 @@ public class Room {
 		User user = findParticipantBy(userId);
 		user.changeNickname(updateNickname);
 
-		if (userId.equals(host.getUserId())) {
-			host = user;
+		return user;
+	}
+
+	public User changeParticipantRole(Long userId, Long changedUserId, Role changeRole) {
+		User user = findParticipantBy(userId);
+		User changedUser = findParticipantBy(changedUserId);
+		if (userId.equals(changedUserId)) {
+			throw new SelfRoleChangeException();
 		}
 
-		return user;
+		if (user.hasLowerOrEqualRoleThan(changedUser.getRole())) {
+			throw new HigherOrEqualRoleUserChangeException();
+		}
+
+		if (user.hasLowerOrEqualRoleThan(changeRole)) {
+			throw new HigherOrEqualRoleChangeException();
+		}
+
+		changedUser.changeRole(changeRole);
+		return changedUser;
 	}
 
 }
