@@ -21,6 +21,7 @@ import site.youtogether.RestDocsSupport;
 import site.youtogether.exception.ErrorType;
 import site.youtogether.exception.user.HigherOrEqualRoleChangeException;
 import site.youtogether.exception.user.HigherOrEqualRoleUserChangeException;
+import site.youtogether.exception.user.NotManageableUserException;
 import site.youtogether.exception.user.SelfRoleChangeException;
 import site.youtogether.user.Role;
 import site.youtogether.user.dto.UpdateUserForm;
@@ -298,6 +299,54 @@ class UserControllerTest extends RestDocsSupport {
 			.andExpect(jsonPath("$.data").isArray())
 			.andExpect(jsonPath("$.data[0].type").value(HigherOrEqualRoleChangeException.class.getSimpleName()))
 			.andExpect(jsonPath("$.data[0].message").value(ErrorType.HIGHER_OR_EQUAL_ROLE_CHANGE.getMessage()))
+			.andDo(document("change-higher-or-equal-role-fail",
+				preprocessRequest(prettyPrint()),
+				preprocessResponse(prettyPrint()),
+				requestFields(
+					fieldWithPath("roomCode").type(JsonFieldType.STRING).description("방 코드"),
+					fieldWithPath("changedUserId").type(JsonFieldType.NUMBER).description("변경할 유저의 아이디"),
+					fieldWithPath("changeUserRole").type(JsonFieldType.STRING).description("변경할 역할")
+				),
+				responseFields(
+					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
+					fieldWithPath("status").type(JsonFieldType.STRING).description("상태"),
+					fieldWithPath("result").type(JsonFieldType.STRING).description("결과"),
+					fieldWithPath("data").type(JsonFieldType.ARRAY).description("응답 데이터"),
+					fieldWithPath("data[].type").type(JsonFieldType.STRING).description("오류 타입"),
+					fieldWithPath("data[].message").type(JsonFieldType.STRING).description("오류 메시지")
+				)
+			));
+	}
+
+	@Test
+	@DisplayName("다른 유저의 역할 변경 실패: 매니저 등급보다 낮은 역할의 유저는 다른 유저의 역할을 변경할 수 없다")
+	void notManageableUserRoleChangeFail() throws Exception {
+		// given
+		Long userId = 1L;
+		Long changedUserId = 2L;
+		String roomCode = "fad14a7434";
+		UserRoleChangeForm userRoleChangeForm = new UserRoleChangeForm(roomCode, changedUserId, Role.VIEWER);
+
+		Cookie sessionCookie = new Cookie(cookieProperties.getName(), "a85192c998454a1ea055");
+		given(userTrackingStorage.findByCookieValue(eq(sessionCookie.getValue())))                // ArgumentResolver 에서 사용
+			.willReturn(Optional.of(userId));
+
+		given(userService.changeUserRole(eq(userId), any(UserRoleChangeForm.class)))
+			.willThrow(new NotManageableUserException());
+
+		// when // then
+		mockMvc.perform(patch("/users/change-role")
+				.content(objectMapper.writeValueAsString(userRoleChangeForm))
+				.contentType(MediaType.APPLICATION_JSON)
+				.cookie(sessionCookie))
+			.andDo(print())
+			.andExpect(status().isForbidden())
+			.andExpect(jsonPath("$.code").value(HttpStatus.FORBIDDEN.value()))
+			.andExpect(jsonPath("$.status").value(HttpStatus.FORBIDDEN.getReasonPhrase()))
+			.andExpect(jsonPath("$.result").value(ResponseResult.EXCEPTION_OCCURRED.getDescription()))
+			.andExpect(jsonPath("$.data").isArray())
+			.andExpect(jsonPath("$.data[0].type").value(NotManageableUserException.class.getSimpleName()))
+			.andExpect(jsonPath("$.data[0].message").value(ErrorType.NOT_MANAGEABLE.getMessage()))
 			.andDo(document("change-higher-or-equal-role-fail",
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
