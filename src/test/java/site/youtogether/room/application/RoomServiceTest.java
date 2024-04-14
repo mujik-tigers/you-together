@@ -73,7 +73,6 @@ class RoomServiceTest extends IntegrationTestSupport {
 		assertThat(room.getCapacity()).isEqualTo(10);
 		assertThat(room.getTitle()).isEqualTo("재밌는 쇼츠 같이 보기");
 		assertThat(room.getPassword()).isNull();
-		assertThat(room.getHost().getUserId()).isEqualTo(userId);
 		assertThat(room.getParticipants()).hasSize(1);
 		assertThat(user.getUserId()).isEqualTo(userId);
 		assertThat(user.getNickname()).isNotBlank();

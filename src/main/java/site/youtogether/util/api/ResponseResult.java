@@ -14,7 +14,8 @@ public enum ResponseResult {
 	ROOM_LIST_FETCH_SUCCESS("방 목록 조회에 성공했습니다"),
 
 	// User
-	USER_NICKNAME_UPDATE_SUCCESS("유저 닉네임 변경에 성공했습니다");
+	USER_NICKNAME_UPDATE_SUCCESS("유저 닉네임 변경에 성공했습니다"),
+	USER_ROLE_CHANGE_SUCCESS("유저의 역할 변경에 성공했습니다");
 
 	private final String description;
 

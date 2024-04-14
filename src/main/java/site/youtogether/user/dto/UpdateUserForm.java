@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @Getter
 public class UpdateUserForm {
 
+	@NotBlank
 	private String roomCode;
 
 	@NotBlank(message = "공백이 아닌 문자를 1개 이상 입력해 주세요")
