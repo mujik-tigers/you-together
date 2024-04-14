@@ -90,3 +90,18 @@ include::{snippets}/change-higher-or-equal-role-fail/http-response.adoc[]
 include::{snippets}/change-higher-or-equal-role-fail/response-fields.adoc[]
 
 {nbsp}
+
+[[not-manageable-change-role-fail]]
+=== 다른 유저의 역할 변경 실패: 매니저 등급보다 낮은 역할의 유저는 다른 유저의 역할을 변경할 수 없다
+
+==== HTTP Request
+
+include::{snippets}/not-manageable-change-role-fail/http-request.adoc[]
+include::{snippets}/not-manageable-change-role-fail/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/not-manageable-change-role-fail/http-response.adoc[]
+include::{snippets}/not-manageable-change-role-fail/response-fields.adoc[]
+
+{nbsp}
