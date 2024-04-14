@@ -21,6 +21,7 @@ import site.youtogether.exception.room.PasswordNotMatchException;
 import site.youtogether.exception.room.RoomCapacityExceededException;
 import site.youtogether.exception.user.HigherOrEqualRoleChangeException;
 import site.youtogether.exception.user.HigherOrEqualRoleUserChangeException;
+import site.youtogether.exception.user.NotManageableUserException;
 import site.youtogether.exception.user.SelfRoleChangeException;
 import site.youtogether.exception.user.UserNoExistenceException;
 import site.youtogether.user.Role;
@@ -94,6 +95,10 @@ public class Room {
 		User changedUser = findParticipantBy(changedUserId);
 		if (userId.equals(changedUserId)) {
 			throw new SelfRoleChangeException();
+		}
+
+		if (user.isNotManageable()) {
+			throw new NotManageableUserException();
 		}
 
 		if (user.hasLowerOrEqualRoleThan(changedUser.getRole())) {

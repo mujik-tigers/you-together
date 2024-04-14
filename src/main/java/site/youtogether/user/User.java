@@ -33,4 +33,8 @@ public class User {
 		role = changeRole;
 	}
 
+	public boolean isNotManageable() {
+		return role.isLowerThan(Role.MANAGER);
+	}
+
 }

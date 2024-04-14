@@ -11,6 +11,7 @@ import org.junit.jupiter.params.provider.EnumSource;
 
 import site.youtogether.exception.user.HigherOrEqualRoleChangeException;
 import site.youtogether.exception.user.HigherOrEqualRoleUserChangeException;
+import site.youtogether.exception.user.NotManageableUserException;
 import site.youtogether.exception.user.SelfRoleChangeException;
 import site.youtogether.user.Role;
 import site.youtogether.user.User;
@@ -34,9 +35,25 @@ class RoomTest {
 		assertThat(changedUser.getRole()).isEqualTo(Role.VIEWER);
 	}
 
+	@Test
+	@DisplayName("매니저보다 낮은 역할을 가진 유저는 역할을 변경할 수 없다")
+	void notManageableUserChangeFail() throws Exception {
+		// given
+		Room room = createRoom(LocalDateTime.of(2024, 4, 14, 10, 37, 0));
+		User user1 = createUser(3L, "연츠비", Role.EDITOR);
+		User user2 = createUser(4L, "연츠비", Role.GUEST);
+
+		room.enterParticipant(user1, null);
+		room.enterParticipant(user2, null);
+
+		// when
+		assertThatThrownBy(() -> room.changeParticipantRole(user1.getUserId(), user2.getUserId(), Role.VIEWER))
+			.isInstanceOf(NotManageableUserException.class);
+	}
+
 	@ParameterizedTest
 	@DisplayName("역할을 변경하려는 유저의 등급은, 변경을 당하는 유저의 등급보다 높아야 한다")
-	@EnumSource(Role.class)
+	@EnumSource(value = Role.class, names = {"HOST", "MANAGER"})
 	void changeUserMustHigherThanChangedUser(Role role) throws Exception {
 		// given
 		Room room = createRoom(LocalDateTime.of(2024, 4, 14, 10, 37, 0));

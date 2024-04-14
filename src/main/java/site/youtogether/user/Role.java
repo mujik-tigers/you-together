@@ -14,4 +14,8 @@ public enum Role {
 		return this.weight <= compareRole.weight;
 	}
 
+	public boolean isLowerThan(Role compareRole) {
+		return this.weight < compareRole.weight;
+	}
+
 }
