@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import site.youtogether.user.application.UserService;
 import site.youtogether.user.dto.UpdateUserForm;
 import site.youtogether.user.dto.UserInfo;
+import site.youtogether.user.dto.UserRoleChangeForm;
 import site.youtogether.util.api.ApiResponse;
 import site.youtogether.util.api.ResponseResult;
 import site.youtogether.util.resolver.UserTracking;
@@ -25,6 +26,13 @@ public class UserController {
 		UserInfo userInfo = userService.updateUserNickname(userId, form.getUpdateNickname(), form.getRoomCode());
 
 		return ResponseEntity.ok(ApiResponse.ok(ResponseResult.USER_NICKNAME_UPDATE_SUCCESS, userInfo));
+	}
+
+	@PatchMapping("/users/change-role")
+	public ResponseEntity<ApiResponse<UserInfo>> changeUserRole(@UserTracking Long userId, @Valid @RequestBody UserRoleChangeForm form) {
+		UserInfo changedUserInfo = userService.changeUserRole(userId, form);
+
+		return ResponseEntity.ok(ApiResponse.ok(ResponseResult.USER_ROLE_CHANGE_SUCCESS, changedUserInfo));
 	}
 
 }

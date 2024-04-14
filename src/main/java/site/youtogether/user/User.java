@@ -22,7 +22,19 @@ public class User {
 	}
 
 	public void changeNickname(String updateNickname) {
-		this.nickname = updateNickname;
+		nickname = updateNickname;
+	}
+
+	public boolean hasLowerOrEqualRoleThan(Role compareRole) {
+		return role.isLowerOrEqualThan(compareRole);
+	}
+
+	public void changeRole(Role changeRole) {
+		role = changeRole;
+	}
+
+	public boolean isNotManageable() {
+		return role.isLowerThan(Role.MANAGER);
 	}
 
 }
