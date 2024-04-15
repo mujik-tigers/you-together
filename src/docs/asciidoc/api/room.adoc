@@ -160,3 +160,47 @@ include::{snippets}/enter-full-room-fail/http-request.adoc[]
 include::{snippets}/enter-full-room-fail/http-response.adoc[]
 include::{snippets}/enter-full-room-fail/response-fields.adoc[]
 
+{nbsp}
+
+[[change-room-title-success]]
+=== 방 제목 변경 성공
+
+==== HTTP Request
+
+include::{snippets}/change-room-title-success/http-request.adoc[]
+include::{snippets}/change-room-title-success/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/change-room-title-success/http-response.adoc[]
+include::{snippets}/change-room-title-success/response-fields.adoc[]
+
+{nbsp}
+
+[[change-room-title-form-fail]]
+=== 방 제목 변경 실패: 요청한 데이터 형식 오류
+
+==== HTTP Request
+
+include::{snippets}/change-room-title-form-fail/http-request.adoc[]
+include::{snippets}/change-room-title-form-fail/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/change-room-title-form-fail/http-response.adoc[]
+include::{snippets}/change-room-title-form-fail/response-fields.adoc[]
+
+{nbsp}
+
+[[change-room-title-not-host-fail]]
+=== 방 제목 변경 실패: 호스트가 아닌 유저는 방 제목 변경 불가
+
+==== HTTP Request
+
+include::{snippets}/change-room-title-not-host-fail/http-request.adoc[]
+include::{snippets}/change-room-title-not-host-fail/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/change-room-title-not-host-fail/http-response.adoc[]
+include::{snippets}/change-room-title-not-host-fail/response-fields.adoc[]

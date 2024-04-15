@@ -144,7 +144,7 @@ class UserControllerTest extends RestDocsSupport {
 			.willReturn(userInfo);
 
 		// when // then
-		mockMvc.perform(patch("/users/change-role")
+		mockMvc.perform(patch("/users/role")
 				.content(objectMapper.writeValueAsString(userRoleChangeForm))
 				.contentType(MediaType.APPLICATION_JSON)
 				.cookie(sessionCookie))
@@ -191,7 +191,7 @@ class UserControllerTest extends RestDocsSupport {
 			.willThrow(new SelfRoleChangeException());
 
 		// when // then
-		mockMvc.perform(patch("/users/change-role")
+		mockMvc.perform(patch("/users/role")
 				.content(objectMapper.writeValueAsString(userRoleChangeForm))
 				.contentType(MediaType.APPLICATION_JSON)
 				.cookie(sessionCookie))
@@ -239,7 +239,7 @@ class UserControllerTest extends RestDocsSupport {
 			.willThrow(new HigherOrEqualRoleUserChangeException());
 
 		// when // then
-		mockMvc.perform(patch("/users/change-role")
+		mockMvc.perform(patch("/users/role")
 				.content(objectMapper.writeValueAsString(userRoleChangeForm))
 				.contentType(MediaType.APPLICATION_JSON)
 				.cookie(sessionCookie))
@@ -287,7 +287,7 @@ class UserControllerTest extends RestDocsSupport {
 			.willThrow(new HigherOrEqualRoleChangeException());
 
 		// when // then
-		mockMvc.perform(patch("/users/change-role")
+		mockMvc.perform(patch("/users/role")
 				.content(objectMapper.writeValueAsString(userRoleChangeForm))
 				.contentType(MediaType.APPLICATION_JSON)
 				.cookie(sessionCookie))
@@ -335,7 +335,7 @@ class UserControllerTest extends RestDocsSupport {
 			.willThrow(new NotManageableUserException());
 
 		// when // then
-		mockMvc.perform(patch("/users/change-role")
+		mockMvc.perform(patch("/users/role")
 				.content(objectMapper.writeValueAsString(userRoleChangeForm))
 				.contentType(MediaType.APPLICATION_JSON)
 				.cookie(sessionCookie))
@@ -347,7 +347,7 @@ class UserControllerTest extends RestDocsSupport {
 			.andExpect(jsonPath("$.data").isArray())
 			.andExpect(jsonPath("$.data[0].type").value(NotManageableUserException.class.getSimpleName()))
 			.andExpect(jsonPath("$.data[0].message").value(ErrorType.NOT_MANAGEABLE.getMessage()))
-			.andDo(document("not-manageable-change-role-fail",
+			.andDo(document("not-manageable-role-fail",
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
 				requestFields(

@@ -28,7 +28,7 @@ public class UserController {
 		return ResponseEntity.ok(ApiResponse.ok(ResponseResult.USER_NICKNAME_UPDATE_SUCCESS, userInfo));
 	}
 
-	@PatchMapping("/users/change-role")
+	@PatchMapping("/users/role")
 	public ResponseEntity<ApiResponse<UserInfo>> changeUserRole(@UserTracking Long userId, @Valid @RequestBody UserRoleChangeForm form) {
 		UserInfo changedUserInfo = userService.changeUserRole(userId, form);
 

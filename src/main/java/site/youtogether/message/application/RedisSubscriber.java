@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import site.youtogether.exception.room.RoomNoExistenceException;
 import site.youtogether.message.ChatMessage;
 import site.youtogether.message.ParticipantsInfoMessage;
+import site.youtogether.message.RoomTitleMessage;
 import site.youtogether.room.Room;
 import site.youtogether.room.infrastructure.RoomStorage;
 import site.youtogether.user.dto.UserInfo;
@@ -43,6 +44,14 @@ public class RedisSubscriber {
 
 		ParticipantsInfoMessage participantsInfoMessage = new ParticipantsInfoMessage(participants);
 		messagingTemplate.convertAndSend("/sub/messages/rooms/" + roomCode, participantsInfoMessage);
+	}
+
+	public void sendRoomTitle(String roomCode) {
+		Room room = roomStorage.findById(roomCode)
+			.orElseThrow(RoomNoExistenceException::new);
+
+		RoomTitleMessage roomTitleMessage = new RoomTitleMessage(room);
+		messagingTemplate.convertAndSend("/sub/messages/rooms/" + roomCode, roomTitleMessage);
 	}
 
 }

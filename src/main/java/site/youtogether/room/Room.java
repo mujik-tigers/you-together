@@ -19,6 +19,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import site.youtogether.exception.room.PasswordNotMatchException;
 import site.youtogether.exception.room.RoomCapacityExceededException;
+import site.youtogether.exception.user.ChangeRoomTitleDeniedException;
 import site.youtogether.exception.user.HigherOrEqualRoleChangeException;
 import site.youtogether.exception.user.HigherOrEqualRoleUserChangeException;
 import site.youtogether.exception.user.NotManageableUserException;
@@ -111,6 +112,14 @@ public class Room {
 
 		changedUser.changeRole(changeRole);
 		return changedUser;
+	}
+
+	public void changeRoomTitle(Long userId, String updateTitle) {
+		User user = findParticipantBy(userId);
+		if (!user.isHost()) {
+			throw new ChangeRoomTitleDeniedException();
+		}
+		title = updateTitle;
 	}
 
 }
