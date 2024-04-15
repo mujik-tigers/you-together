@@ -41,4 +41,8 @@ public class User {
 		return role == Role.VIEWER;
 	}
 
+	public boolean isHost() {
+		return role == Role.HOST;
+	}
+
 }

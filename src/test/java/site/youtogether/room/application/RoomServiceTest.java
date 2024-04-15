@@ -29,6 +29,8 @@ import site.youtogether.user.infrastructure.UserTrackingStorage;
 
 class RoomServiceTest extends IntegrationTestSupport {
 
+	private static final Long HOST_ID = 100L;
+
 	@Autowired
 	private RoomService roomService;
 
@@ -201,9 +203,27 @@ class RoomServiceTest extends IntegrationTestSupport {
 		assertThat(savedRoom.getParticipants()).doesNotContainKey(user.getUserId());
 	}
 
+	@Test
+	@DisplayName("방 제목을 바꾼다")
+	void changeRoom() throws Exception {
+		// given
+		Room room = createRoom(LocalDateTime.of(2024, 4, 10, 11, 37, 0), "황똥땡의 방");
+		roomStorage.save(room);
+
+		String updateTitle = "연똥땡의 방";
+
+		// when
+		roomService.changeRoomTitle(HOST_ID, room.getCode(), updateTitle);
+
+		// then
+		Room savedRoom = roomStorage.findById(room.getCode()).get();
+		assertThat(savedRoom.getTitle()).isEqualTo(updateTitle);
+	}
+
 	private Room createRoom(LocalDateTime createTime, String title) {
 		User user = User.builder()
-			.userId(100L)
+			.userId(HOST_ID)
+			.role(Role.HOST)
 			.build();
 
 		Room room = Room.builder()
@@ -220,7 +240,8 @@ class RoomServiceTest extends IntegrationTestSupport {
 
 	private Room createRoom(LocalDateTime createTime, String title, int capacity) {
 		User user = User.builder()
-			.userId(100L)
+			.userId(HOST_ID)
+			.role(Role.HOST)
 			.build();
 
 		Room room = Room.builder()
@@ -237,7 +258,8 @@ class RoomServiceTest extends IntegrationTestSupport {
 
 	private Room createPasswordRoom(LocalDateTime createTime, String title, String password) {
 		User user = User.builder()
-			.userId(100L)
+			.role(Role.HOST)
+			.userId(HOST_ID)
 			.build();
 
 		Room room = Room.builder()
