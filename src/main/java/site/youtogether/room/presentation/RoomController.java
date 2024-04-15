@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,9 +27,12 @@ import site.youtogether.room.dto.PasswordInput;
 import site.youtogether.room.dto.RoomDetail;
 import site.youtogether.room.dto.RoomList;
 import site.youtogether.room.dto.RoomSettings;
+import site.youtogether.room.dto.RoomTitleChangeForm;
+import site.youtogether.room.dto.UpdatedRoomTitle;
 import site.youtogether.util.RandomUtil;
 import site.youtogether.util.api.ApiResponse;
 import site.youtogether.util.api.ResponseResult;
+import site.youtogether.util.resolver.UserTracking;
 
 @RestController
 @RequiredArgsConstructor
@@ -67,6 +71,14 @@ public class RoomController {
 		response.setHeader(HttpHeaders.SET_COOKIE, sessionCookie.toString());
 		return ResponseEntity.ok(
 			ApiResponse.ok(ResponseResult.ROOM_ENTER_SUCCESS, roomDetail));
+	}
+
+	@PatchMapping("/rooms/title")
+	public ResponseEntity<ApiResponse<UpdatedRoomTitle>> changeRoomTitle(@UserTracking Long userId, @Valid @RequestBody RoomTitleChangeForm form) {
+		UpdatedRoomTitle updatedRoomTitle = roomService.changeRoomTitle(userId, form.getRoomCode(), form.getUpdateTitle());
+
+		return ResponseEntity.ok(
+			ApiResponse.ok(ResponseResult.ROOM_TITLE_CHANGE_SUCCESS, updatedRoomTitle));
 	}
 
 	private ResponseCookie generateSessionCookie() {

@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
+import site.youtogether.exception.user.ChangeRoomTitleDeniedException;
 import site.youtogether.exception.user.HigherOrEqualRoleChangeException;
 import site.youtogether.exception.user.HigherOrEqualRoleUserChangeException;
 import site.youtogether.exception.user.NotManageableUserException;
@@ -87,6 +88,37 @@ class RoomTest {
 		// when // then
 		assertThatThrownBy(() -> room.changeParticipantRole(HOST_ID, HOST_ID, Role.GUEST))
 			.isInstanceOf(SelfRoleChangeException.class);
+	}
+
+	@Test
+	@DisplayName("호스트는 방 제목을 변경할 수 있다")
+	void changeRoomTitle() throws Exception {
+		// given
+		Room room = createRoom(LocalDateTime.of(2024, 4, 14, 10, 37, 0));
+		String originTitle = room.getTitle();
+		String updateTitle = "연츠비의 방";
+
+		// when
+		room.changeRoomTitle(HOST_ID, updateTitle);
+
+		// then
+		assertThat(room.getTitle()).isNotEqualTo(originTitle);
+		assertThat(room.getTitle()).isEqualTo(updateTitle);
+	}
+
+	@Test
+	@DisplayName("호스트가 아닌 유저는 방 제목을 변경할 수 없다")
+	void changeRoomTitleFail() throws Exception {
+		// given
+		Room room = createRoom(LocalDateTime.of(2024, 4, 14, 10, 37, 0));
+		User user = createUser(2L, "연츠비", Role.MANAGER);
+		room.enterParticipant(user, null);
+
+		String updateTitle = "연츠비의 방";
+
+		// when // then
+		assertThatThrownBy(() -> room.changeRoomTitle(user.getUserId(), updateTitle))
+			.isInstanceOf(ChangeRoomTitleDeniedException.class);
 	}
 
 	private Room createRoom(LocalDateTime createTime) {

@@ -18,6 +18,7 @@ public enum ErrorType {
 	HIGHER_OR_EQUAL_ROLE_CHANGE(HttpStatus.FORBIDDEN, "자신보다 높거나 같은 역할로 변경할 수 없습니다"),
 	NOT_MANAGEABLE(HttpStatus.FORBIDDEN, "다른 사람의 역할을 변경할 수 없습니다"),
 	CHAT_MESSAGE_SEND_DENIED(HttpStatus.FORBIDDEN, "채팅 메시지를 보낼 권한이 없습니다"),
+	ROOM_TITLE_CHANGE_DENIED(HttpStatus.FORBIDDEN, "방 제목을 변경할 권한이 없습니다"),
 
 	// Room
 	ROOM_NO_EXISTENCE(HttpStatus.NOT_FOUND, "방이 없습니다"),

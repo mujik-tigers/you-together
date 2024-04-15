@@ -2,15 +2,18 @@ package site.youtogether.room.presentation;
 
 import static org.mockito.BDDMockito.*;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.*;
-import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static site.youtogether.exception.ErrorType.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.DisplayName;
@@ -27,11 +30,14 @@ import site.youtogether.RestDocsSupport;
 import site.youtogether.exception.room.PasswordNotMatchException;
 import site.youtogether.exception.room.RoomCapacityExceededException;
 import site.youtogether.exception.room.SingleRoomParticipationViolationException;
+import site.youtogether.exception.user.ChangeRoomTitleDeniedException;
 import site.youtogether.room.Room;
 import site.youtogether.room.dto.PasswordInput;
 import site.youtogether.room.dto.RoomDetail;
 import site.youtogether.room.dto.RoomList;
 import site.youtogether.room.dto.RoomSettings;
+import site.youtogether.room.dto.RoomTitleChangeForm;
+import site.youtogether.room.dto.UpdatedRoomTitle;
 import site.youtogether.user.Role;
 import site.youtogether.user.User;
 import site.youtogether.user.dto.UserInfo;
@@ -572,6 +578,141 @@ class RoomControllerTest extends RestDocsSupport {
 			.andDo(document("enter-full-room-fail",
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
+				responseFields(
+					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
+					fieldWithPath("status").type(JsonFieldType.STRING).description("상태"),
+					fieldWithPath("result").type(JsonFieldType.STRING).description("결과"),
+					fieldWithPath("data").type(JsonFieldType.ARRAY).description("응답 데이터"),
+					fieldWithPath("data[].type").type(JsonFieldType.STRING).description("오류 타입"),
+					fieldWithPath("data[].message").type(JsonFieldType.STRING).description("오류 메시지")
+				)
+			));
+	}
+
+	@Test
+	@DisplayName("방 제목 변경 성공")
+	void updateRoomTitle() throws Exception {
+		// given
+		String roomCode = "1e7050f7d7";
+		Long userId = 10L;
+		String updateTitle = "연똥땡의 방";
+		RoomTitleChangeForm form = new RoomTitleChangeForm(roomCode, updateTitle);
+
+		Cookie sessionCookie = new Cookie(cookieProperties.getName(), "a85192c998454a1ea055");
+		given(userTrackingStorage.findByCookieValue(eq(sessionCookie.getValue())))
+			.willReturn(Optional.of(userId));
+
+		given(roomService.changeRoomTitle(eq(userId), eq(roomCode), eq(updateTitle)))
+			.willReturn(new UpdatedRoomTitle(roomCode, updateTitle));
+
+		// when // then
+		mockMvc.perform(patch("/rooms/title")
+				.content(objectMapper.writeValueAsString(form))
+				.contentType(MediaType.APPLICATION_JSON)
+				.cookie(sessionCookie))
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
+			.andExpect(jsonPath("$.status").value(HttpStatus.OK.getReasonPhrase()))
+			.andExpect(jsonPath("$.result").value(ResponseResult.ROOM_TITLE_CHANGE_SUCCESS.getDescription()))
+			.andExpect(jsonPath("$.data.roomCode").value(roomCode))
+			.andExpect(jsonPath("$.data.updatedRoomTitle").value(updateTitle))
+			.andDo(document("change-room-title-success",
+				preprocessRequest(prettyPrint()),
+				preprocessResponse(prettyPrint()),
+				requestFields(
+					fieldWithPath("roomCode").type(JsonFieldType.STRING).description("방 코드"),
+					fieldWithPath("updateTitle").type(JsonFieldType.STRING).description("변경할 방 제목")
+				),
+				responseFields(
+					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
+					fieldWithPath("status").type(JsonFieldType.STRING).description("상태"),
+					fieldWithPath("result").type(JsonFieldType.STRING).description("결과"),
+					fieldWithPath("data").type(JsonFieldType.OBJECT).description("응답 데이터"),
+					fieldWithPath("data.roomCode").type(JsonFieldType.STRING).description("방 코드"),
+					fieldWithPath("data.updatedRoomTitle").type(JsonFieldType.STRING).description("변경된 방 제목")
+				)
+			));
+	}
+
+	@Test
+	@DisplayName("방 제목 변경 실패: 요청한 데이터 형식 오류")
+	void updateRoomTitleFailForm() throws Exception {
+		// given
+		String roomCode = "1e7050f7d7";
+		Long userId = 10L;
+		String updateTitle = "  ";
+		RoomTitleChangeForm form = new RoomTitleChangeForm(roomCode, updateTitle);
+
+		Cookie sessionCookie = new Cookie(cookieProperties.getName(), "a85192c998454a1ea055");
+		given(userTrackingStorage.findByCookieValue(eq(sessionCookie.getValue())))
+			.willReturn(Optional.of(userId));
+
+		// when // then
+		mockMvc.perform(patch("/rooms/title")
+				.content(objectMapper.writeValueAsString(form))
+				.contentType(MediaType.APPLICATION_JSON)
+				.cookie(sessionCookie))
+			.andDo(print())
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
+			.andExpect(jsonPath("$.status").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
+			.andExpect(jsonPath("$.result").value(ResponseResult.EXCEPTION_OCCURRED.getDescription()))
+			.andExpect(jsonPath("$.data").isArray())
+			.andDo(document("change-room-title-form-fail",
+				preprocessRequest(prettyPrint()),
+				preprocessResponse(prettyPrint()),
+				requestFields(
+					fieldWithPath("roomCode").type(JsonFieldType.STRING).description("방 코드"),
+					fieldWithPath("updateTitle").type(JsonFieldType.STRING).description("변경할 방 제목")
+				),
+				responseFields(
+					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
+					fieldWithPath("status").type(JsonFieldType.STRING).description("상태"),
+					fieldWithPath("result").type(JsonFieldType.STRING).description("결과"),
+					fieldWithPath("data").type(JsonFieldType.ARRAY).description("응답 데이터"),
+					fieldWithPath("data[].type").type(JsonFieldType.STRING).description("오류 타입"),
+					fieldWithPath("data[].message").type(JsonFieldType.STRING).description("오류 메시지")
+				)
+			));
+	}
+
+	@Test
+	@DisplayName("방 제목 변경 실패: 호스트가 아닌 유저는 방 제목 변경 불가")
+	void updateRoomTitleFailNotHost() throws Exception {
+		// given
+		String roomCode = "1e7050f7d7";
+		Long userId = 10L;
+		String updateTitle = "연똥땡의 방";
+		RoomTitleChangeForm form = new RoomTitleChangeForm(roomCode, updateTitle);
+
+		Cookie sessionCookie = new Cookie(cookieProperties.getName(), "a85192c998454a1ea055");
+		given(userTrackingStorage.findByCookieValue(eq(sessionCookie.getValue())))
+			.willReturn(Optional.of(userId));
+
+		given(roomService.changeRoomTitle(eq(userId), eq(roomCode), eq(updateTitle)))
+			.willThrow(new ChangeRoomTitleDeniedException());
+
+		// when // then
+		mockMvc.perform(patch("/rooms/title")
+				.content(objectMapper.writeValueAsString(form))
+				.contentType(MediaType.APPLICATION_JSON)
+				.cookie(sessionCookie))
+			.andDo(print())
+			.andExpect(status().isForbidden())
+			.andExpect(jsonPath("$.code").value(HttpStatus.FORBIDDEN.value()))
+			.andExpect(jsonPath("$.status").value(HttpStatus.FORBIDDEN.getReasonPhrase()))
+			.andExpect(jsonPath("$.result").value(ResponseResult.EXCEPTION_OCCURRED.getDescription()))
+			.andExpect(jsonPath("$.data").isArray())
+			.andExpect(jsonPath("$.data[0].type").value(ChangeRoomTitleDeniedException.class.getSimpleName()))
+			.andExpect(jsonPath("$.data[0].message").value(ROOM_TITLE_CHANGE_DENIED.getMessage()))
+			.andDo(document("change-room-title-not-host-fail",
+				preprocessRequest(prettyPrint()),
+				preprocessResponse(prettyPrint()),
+				requestFields(
+					fieldWithPath("roomCode").type(JsonFieldType.STRING).description("방 코드"),
+					fieldWithPath("updateTitle").type(JsonFieldType.STRING).description("변경할 방 제목")
+				),
 				responseFields(
 					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
 					fieldWithPath("status").type(JsonFieldType.STRING).description("상태"),
