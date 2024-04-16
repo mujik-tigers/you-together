@@ -5,7 +5,6 @@ import java.util.List;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
@@ -19,19 +18,14 @@ import site.youtogether.user.dto.UserInfo;
 
 @Service
 @RequiredArgsConstructor
-public class RedisSubscriber {
+public class MessageService {
 
 	private final RoomStorage roomStorage;
 	private final ObjectMapper objectMapper;
 	private final SimpMessageSendingOperations messagingTemplate;
 
-	public void sendChat(String publishMessage) {
-		try {
-			ChatMessage chatMessage = objectMapper.readValue(publishMessage, ChatMessage.class);
-			messagingTemplate.convertAndSend("/sub/messages/rooms/" + chatMessage.getRoomCode(), chatMessage);
-		} catch (JsonProcessingException e) {
-			throw new RuntimeException(e);
-		}
+	public void sendChat(ChatMessage chatMessage) {
+		messagingTemplate.convertAndSend("/sub/messages/rooms/" + chatMessage.getRoomCode(), chatMessage);
 	}
 
 	public void sendParticipantsInfo(String roomCode) {

@@ -4,7 +4,7 @@ import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
 import site.youtogether.exception.room.RoomNoExistenceException;
-import site.youtogether.message.application.RedisSubscriber;
+import site.youtogether.message.application.MessageService;
 import site.youtogether.room.Room;
 import site.youtogether.room.infrastructure.RoomStorage;
 import site.youtogether.user.User;
@@ -16,7 +16,7 @@ import site.youtogether.user.dto.UserRoleChangeForm;
 public class UserService {
 
 	private final RoomStorage roomStorage;
-	private final RedisSubscriber redisSubscriber;
+	private final MessageService messageService;
 
 	public UserInfo updateUserNickname(Long userId, String updateNickname, String roomCode) {
 		Room room = roomStorage.findById(roomCode)
@@ -24,7 +24,7 @@ public class UserService {
 		User user = room.changeParticipantName(userId, updateNickname);
 		roomStorage.save(room);
 
-		redisSubscriber.sendParticipantsInfo(roomCode);
+		messageService.sendParticipantsInfo(roomCode);
 
 		return new UserInfo(user);
 	}
@@ -35,7 +35,7 @@ public class UserService {
 		User changedUser = room.changeParticipantRole(userId, form.getChangedUserId(), form.getChangeUserRole());
 		roomStorage.save(room);
 
-		redisSubscriber.sendParticipantsInfo(room.getCode());
+		messageService.sendParticipantsInfo(room.getCode());
 
 		return new UserInfo(changedUser);
 	}
