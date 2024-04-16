@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
 import site.youtogether.exception.room.RoomNoExistenceException;
-import site.youtogether.message.application.RedisSubscriber;
+import site.youtogether.message.application.MessageService;
 import site.youtogether.room.Room;
 import site.youtogether.room.dto.RoomDetail;
 import site.youtogether.room.dto.RoomList;
@@ -26,7 +26,7 @@ public class RoomService {
 
 	private final RoomStorage roomStorage;
 	private final UserTrackingStorage userTrackingStorage;
-	private final RedisSubscriber redisSubscriber;
+	private final MessageService messageService;
 
 	public RoomDetail create(String cookieValue, RoomSettings roomSettings, LocalDateTime now) {
 		Long userId = userTrackingStorage.save(cookieValue);
@@ -95,7 +95,7 @@ public class RoomService {
 		room.changeRoomTitle(userId, updateTitle);
 		roomStorage.save(room);
 
-		redisSubscriber.sendRoomTitle(roomCode);
+		messageService.sendRoomTitle(roomCode);
 		return new UpdatedRoomTitle(room);
 	}
 

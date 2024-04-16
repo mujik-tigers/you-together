@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 import lombok.RequiredArgsConstructor;
 import site.youtogether.exception.user.ChatMessageSendDeniedException;
 import site.youtogether.message.ChatMessage;
-import site.youtogether.message.application.RedisPublisher;
+import site.youtogether.message.application.MessageService;
 import site.youtogether.room.application.RoomService;
 import site.youtogether.user.User;
 
@@ -18,7 +18,7 @@ import site.youtogether.user.User;
 public class MessageController {
 
 	private final RoomService roomService;
-	private final RedisPublisher redisPublisher;
+	private final MessageService messageService;
 
 	@MessageMapping("/messages")
 	public void handleMessage(ChatMessage chatMessage, SimpMessageHeaderAccessor headerAccessor) {
@@ -33,7 +33,7 @@ public class MessageController {
 		chatMessage.setUserId(user.getUserId());
 		chatMessage.setNickname(user.getNickname());
 
-		redisPublisher.publishChat(chatMessage);
+		messageService.sendChat(chatMessage);
 	}
 
 }
