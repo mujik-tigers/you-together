@@ -11,7 +11,7 @@ import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import site.youtogether.message.ChatMessage;
-import site.youtogether.message.application.RedisPublisher;
+import site.youtogether.message.application.MessageService;
 import site.youtogether.room.application.RoomService;
 import site.youtogether.user.User;
 
@@ -20,8 +20,8 @@ import site.youtogether.user.User;
 @Slf4j
 public class MessageEventListener {
 
-	private final RedisPublisher redisPublisher;
 	private final RoomService roomService;
+	private final MessageService messageService;
 
 	@EventListener
 	public void handleWebSocketSubscriberListener(SessionSubscribeEvent event) {
@@ -35,8 +35,8 @@ public class MessageEventListener {
 		Long userId = (Long)headerAccessor.getSessionAttributes().get(USER_ID);
 		User user = roomService.findParticipant(roomCode, userId);
 
-		redisPublisher.publishParticipantsInfo(roomCode);
-		redisPublisher.publishChat(new ChatMessage(roomCode, null, "[알림]", user.getNickname() + "님이 입장하셨습니다."));
+		messageService.sendParticipantsInfo(roomCode);
+		messageService.sendChat(new ChatMessage(roomCode, null, "[알림]", user.getNickname() + "님이 입장하셨습니다."));
 	}
 
 	@EventListener
@@ -49,8 +49,8 @@ public class MessageEventListener {
 		User user = roomService.findParticipant(roomCode, userId);
 
 		roomService.leave(roomCode, userId);
-		redisPublisher.publishParticipantsInfo(roomCode);
-		redisPublisher.publishChat(new ChatMessage(roomCode, null, "[알림]", user.getNickname() + "님이 퇴장하셨습니다."));
+		messageService.sendParticipantsInfo(roomCode);
+		messageService.sendChat(new ChatMessage(roomCode, null, "[알림]", user.getNickname() + "님이 퇴장하셨습니다."));
 	}
 
 }
