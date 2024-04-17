@@ -4,6 +4,10 @@ import org.springframework.data.annotation.Id;
 
 import lombok.Builder;
 import lombok.Getter;
+import site.youtogether.exception.user.HigherOrEqualRoleChangeException;
+import site.youtogether.exception.user.HigherOrEqualRoleUserChangeException;
+import site.youtogether.exception.user.NotManageableUserException;
+import site.youtogether.exception.user.SelfRoleChangeException;
 
 @Getter
 public class User {
@@ -43,6 +47,27 @@ public class User {
 
 	public boolean isHost() {
 		return role == Role.HOST;
+	}
+
+	public User changeOtherUserRole(User changedUser, Role changeRole) {
+		if (userId.equals(changedUser.getUserId())) {
+			throw new SelfRoleChangeException();
+		}
+
+		if (isNotManageable()) {
+			throw new NotManageableUserException();
+		}
+
+		if (hasLowerOrEqualRoleThan(changedUser.getRole())) {
+			throw new HigherOrEqualRoleUserChangeException();
+		}
+
+		if (hasLowerOrEqualRoleThan(changeRole)) {
+			throw new HigherOrEqualRoleChangeException();
+		}
+
+		changedUser.changeRole(changeRole);
+		return changedUser;
 	}
 
 }
