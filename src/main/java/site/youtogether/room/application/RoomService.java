@@ -72,12 +72,12 @@ public class RoomService {
 		return new RoomDetail(room, user);
 	}
 
-	public void leave(String roomCode, Long userId) {
+	public void leave(String roomCode, Long userId, String cookieValue) {
 		Room room = roomStorage.findById(roomCode)
 			.orElseThrow(RoomNoExistenceException::new);
 
 		room.leaveParticipant(userId);
-		userTrackingStorage.delete(userId);
+		userTrackingStorage.delete(cookieValue);
 
 		roomStorage.save(room);
 	}

@@ -15,7 +15,6 @@ import site.youtogether.util.RandomUtil;
 public class UserTrackingStorage {
 
 	private final RedisTemplate<String, Long> redisTemplate;
-	private final RedisTemplate<String, String> stringRedisTemplate;
 
 	public boolean exists(String cookieValue) {
 		Long userId = redisTemplate.opsForValue().get(USER_TRACKING_KEY_PREFIX + cookieValue);
@@ -26,7 +25,6 @@ public class UserTrackingStorage {
 	public Long save(String cookieValue) {
 		Long userId = RandomUtil.generateUserId();
 		redisTemplate.opsForValue().set(USER_TRACKING_KEY_PREFIX + cookieValue, userId, TTL);
-		stringRedisTemplate.opsForValue().set(USER_ID_KEY_PREFIX + userId, cookieValue, TTL);
 
 		return userId;
 	}
@@ -37,11 +35,8 @@ public class UserTrackingStorage {
 		return Optional.ofNullable(userId);
 	}
 
-	public void delete(Long userId) {
-		String cookieValue = stringRedisTemplate.opsForValue().get(USER_ID_KEY_PREFIX + userId);
-
+	public void delete(String cookieValue) {
 		redisTemplate.delete(USER_TRACKING_KEY_PREFIX + cookieValue);
-		redisTemplate.delete(USER_ID_KEY_PREFIX + userId);
 	}
 
 }

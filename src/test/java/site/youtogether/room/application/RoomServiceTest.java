@@ -48,7 +48,6 @@ class RoomServiceTest extends IntegrationTestSupport {
 		roomStorage.deleteAll();
 
 		redisTemplate.delete(redisTemplate.keys(USER_TRACKING_KEY_PREFIX + "*"));
-		redisTemplate.delete(redisTemplate.keys(USER_ID_KEY_PREFIX + "*"));
 	}
 
 	@Test
@@ -196,7 +195,7 @@ class RoomServiceTest extends IntegrationTestSupport {
 		roomStorage.save(room);
 
 		// when
-		roomService.leave(room.getCode(), user.getUserId());
+		roomService.leave(room.getCode(), user.getUserId(), "daflksdfjl");
 
 		// then
 		Room savedRoom = roomStorage.findById(room.getCode()).get();
