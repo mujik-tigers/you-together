@@ -3,7 +3,9 @@ package site.youtogether.room;
 import static site.youtogether.util.AppConstants.*;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -77,6 +79,17 @@ public class Room {
 	}
 
 	public void leaveParticipant(Long userId) {
+		User user = findParticipantBy(userId);
+		if (user.isHost()) {
+			List<User> users = participants.values().stream()
+				.filter(u -> !u.isHost())
+				.sorted(Comparator.comparing(User::getPriority)
+					.thenComparing(User::getUserId))
+				.toList();                // TODO: findFirst().orElseGet(방 뿌시기) 해도 될듯
+
+			users.get(0).changeRole(Role.HOST);
+		}
+
 		participants.remove(userId);
 	}
 
