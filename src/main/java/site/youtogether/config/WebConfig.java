@@ -22,7 +22,7 @@ public class WebConfig implements WebMvcConfigurer {
 	@Override
 	public void addCorsMappings(CorsRegistry registry) {
 		registry.addMapping("/**")
-			.allowedOrigins("http://localhost:3000", "https://you-together-web.vercel.app")
+			.allowedOrigins("http://localhost:3000", "https://you-together-web.vercel.app", "https://localhost:3001")
 			.allowedMethods("*")
 			.allowCredentials(true)
 			.maxAge(3000);
