@@ -83,7 +83,7 @@ public class RoomController {
 
 	private ResponseCookie generateSessionCookie() {
 		return ResponseCookie.from(cookieProperties.getName(), RandomUtil.generateRandomCode(COOKIE_VALUE_LENGTH))
-			.domain(cookieProperties.getDomain())
+			// .domain(cookieProperties.getDomain())
 			.path(cookieProperties.getPath())
 			.sameSite(cookieProperties.getSameSite())
 			.maxAge(cookieProperties.getExpiry())
