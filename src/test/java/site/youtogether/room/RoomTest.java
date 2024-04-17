@@ -3,6 +3,7 @@ package site.youtogether.room;
 import static org.assertj.core.api.Assertions.*;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -119,6 +120,29 @@ class RoomTest {
 		// when // then
 		assertThatThrownBy(() -> room.changeRoomTitle(user.getUserId(), updateTitle))
 			.isInstanceOf(ChangeRoomTitleDeniedException.class);
+	}
+
+	@Test
+	@DisplayName("호스트가 방을 떠나는 경우, 차등급의 유저 중, 가장 먼저 들어온 유저에게 호스트를 넘긴다")
+	void hostLeaveRoom() throws Exception {
+		// given
+		Room room = createRoom(LocalDateTime.of(2024, 4, 14, 10, 37, 0));
+		User user1 = createUser(2L, "황츠비", Role.GUEST);
+		User user2 = createUser(3L, "연츠비", Role.MANAGER);
+		User user3 = createUser(4L, "연똥땡", Role.MANAGER);
+
+		room.enterParticipant(user1, null);
+		room.enterParticipant(user2, null);
+		room.enterParticipant(user3, null);
+
+		// when
+		room.leaveParticipant(HOST_ID);
+
+		// then
+		Map<Long, User> participants = room.getParticipants();
+
+		assertThat(participants).doesNotContainKey(HOST_ID);
+		assertThat(user2.getRole()).isEqualTo(Role.HOST);
 	}
 
 	private Room createRoom(LocalDateTime createTime) {

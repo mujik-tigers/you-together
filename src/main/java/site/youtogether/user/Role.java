@@ -18,4 +18,8 @@ public enum Role {
 		return this.weight < compareRole.weight;
 	}
 
+	public int getPriority() {
+		return weight * -1;
+	}
+
 }

@@ -70,4 +70,8 @@ public class User {
 		return changedUser;
 	}
 
+	public int getPriority() {
+		return role.getPriority();
+	}
+
 }

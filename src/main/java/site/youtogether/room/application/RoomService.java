@@ -7,6 +7,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
+import site.youtogether.exception.room.RoomEmptyException;
 import site.youtogether.exception.room.RoomNoExistenceException;
 import site.youtogether.message.application.MessageService;
 import site.youtogether.room.Room;
@@ -76,9 +77,14 @@ public class RoomService {
 		Room room = roomStorage.findById(roomCode)
 			.orElseThrow(RoomNoExistenceException::new);
 
-		room.leaveParticipant(userId);
 		userTrackingStorage.delete(cookieValue);
 
+		try {
+			room.leaveParticipant(userId);
+		} catch (RoomEmptyException e) {
+			roomStorage.deleteById(roomCode);
+			return;
+		}
 		roomStorage.save(room);
 	}
 

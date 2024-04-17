@@ -203,6 +203,20 @@ class RoomServiceTest extends IntegrationTestSupport {
 	}
 
 	@Test
+	@DisplayName("마지막 참가자가 방을 나가면 방은 없어진다")
+	void autoDeleteRoom() throws Exception {
+		// given
+		Room room = createRoom(LocalDateTime.of(2024, 4, 10, 11, 37, 0), "연똥땡의 방");
+		roomStorage.save(room);
+
+		// when
+		roomService.leave(room.getCode(), HOST_ID, "sdfalkjasdlkfjla");
+
+		// then
+		assertThat(roomStorage.existsById(room.getCode())).isFalse();
+	}
+
+	@Test
 	@DisplayName("방 제목을 바꾼다")
 	void changeRoom() throws Exception {
 		// given
