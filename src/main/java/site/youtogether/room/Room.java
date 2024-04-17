@@ -5,7 +5,6 @@ import static site.youtogether.util.AppConstants.*;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -21,6 +20,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import site.youtogether.exception.room.PasswordNotMatchException;
 import site.youtogether.exception.room.RoomCapacityExceededException;
+import site.youtogether.exception.room.RoomEmptyException;
 import site.youtogether.exception.user.ChangeRoomTitleDeniedException;
 import site.youtogether.exception.user.UserNoExistenceException;
 import site.youtogether.user.Role;
@@ -81,13 +81,14 @@ public class Room {
 	public void leaveParticipant(Long userId) {
 		User user = findParticipantBy(userId);
 		if (user.isHost()) {
-			List<User> users = participants.values().stream()
+			User delegatedUser = participants.values().stream()
 				.filter(u -> !u.isHost())
 				.sorted(Comparator.comparing(User::getPriority)
 					.thenComparing(User::getUserId))
-				.toList();                // TODO: findFirst().orElseGet(방 뿌시기) 해도 될듯
+				.findFirst()
+				.orElseThrow(RoomEmptyException::new);
 
-			users.get(0).changeRole(Role.HOST);
+			delegatedUser.changeRole(Role.HOST);
 		}
 
 		participants.remove(userId);
