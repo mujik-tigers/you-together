@@ -48,7 +48,6 @@ class RoomServiceTest extends IntegrationTestSupport {
 		roomStorage.deleteAll();
 
 		redisTemplate.delete(redisTemplate.keys(USER_TRACKING_KEY_PREFIX + "*"));
-		redisTemplate.delete(redisTemplate.keys(USER_ID_KEY_PREFIX + "*"));
 	}
 
 	@Test
@@ -196,11 +195,25 @@ class RoomServiceTest extends IntegrationTestSupport {
 		roomStorage.save(room);
 
 		// when
-		roomService.leave(room.getCode(), user.getUserId());
+		roomService.leave(room.getCode(), user.getUserId(), "daflksdfjl");
 
 		// then
 		Room savedRoom = roomStorage.findById(room.getCode()).get();
 		assertThat(savedRoom.getParticipants()).doesNotContainKey(user.getUserId());
+	}
+
+	@Test
+	@DisplayName("마지막 참가자가 방을 나가면 방은 없어진다")
+	void autoDeleteRoom() throws Exception {
+		// given
+		Room room = createRoom(LocalDateTime.of(2024, 4, 10, 11, 37, 0), "연똥땡의 방");
+		roomStorage.save(room);
+
+		// when
+		roomService.leave(room.getCode(), HOST_ID, "sdfalkjasdlkfjla");
+
+		// then
+		assertThat(roomStorage.existsById(room.getCode())).isFalse();
 	}
 
 	@Test

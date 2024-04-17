@@ -39,6 +39,7 @@ public class StompHandshakeInterceptor implements HandshakeInterceptor {
 			.map(cookie -> cookie.substring(cookie.indexOf("=") + 1))
 			.findAny()
 			.orElseThrow(CookieNoExistenceException::new);
+		attributes.put(SESSION_COOKIE, cookieValue);
 
 		Long userId = userTrackingStorage.findByCookieValue(cookieValue)
 			.orElseThrow(CookieInvalidException::new);

@@ -31,7 +31,6 @@ public class Initializer implements ApplicationRunner {
 	public void run(ApplicationArguments args) throws Exception {
 		roomStorage.deleteAll();
 		redisTemplate.delete(redisTemplate.keys(USER_TRACKING_KEY_PREFIX + "*"));
-		redisTemplate.delete(redisTemplate.keys(USER_ID_KEY_PREFIX + "*"));
 
 		for (long i = 0; i < NO_PASSWORD_ROOM_COUNT; i++) {
 			User host = User.builder()
