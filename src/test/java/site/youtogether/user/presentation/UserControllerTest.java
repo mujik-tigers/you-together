@@ -54,10 +54,11 @@ class UserControllerTest extends RestDocsSupport {
 			.willReturn(true);
 
 		// when // then
+		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 		mockMvc.perform(patch("/users")
 				.content(objectMapper.writeValueAsString(form))
 				.contentType(MediaType.APPLICATION_JSON)
-				.header(HttpHeaders.AUTHORIZATION, "Bearer token"))
+				.header(HttpHeaders.AUTHORIZATION, token))
 			.andDo(print())
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
@@ -107,10 +108,11 @@ class UserControllerTest extends RestDocsSupport {
 			.willReturn(true);
 
 		// when // then
+		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 		mockMvc.perform(patch("/users")
 				.content(objectMapper.writeValueAsString(form))
 				.contentType(MediaType.APPLICATION_JSON)
-				.header(HttpHeaders.AUTHORIZATION, "Bearer token"))
+				.header(HttpHeaders.AUTHORIZATION, token))
 			.andDo(print())
 			.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
@@ -157,10 +159,11 @@ class UserControllerTest extends RestDocsSupport {
 			.willReturn(true);
 
 		// when // then
+		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 		mockMvc.perform(patch("/users/role")
 				.content(objectMapper.writeValueAsString(userRoleChangeForm))
 				.contentType(MediaType.APPLICATION_JSON)
-				.header(HttpHeaders.AUTHORIZATION, "Bearer token"))
+				.header(HttpHeaders.AUTHORIZATION, token))
 			.andDo(print())
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
@@ -208,10 +211,11 @@ class UserControllerTest extends RestDocsSupport {
 			.willReturn(true);
 
 		// when // then
+		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 		mockMvc.perform(patch("/users/role")
 				.content(objectMapper.writeValueAsString(userRoleChangeForm))
 				.contentType(MediaType.APPLICATION_JSON)
-				.header(HttpHeaders.AUTHORIZATION, "Bearer token"))
+				.header(HttpHeaders.AUTHORIZATION, token))
 			.andDo(print())
 			.andExpect(status().isForbidden())
 			.andExpect(jsonPath("$.code").value(HttpStatus.FORBIDDEN.value()))
@@ -260,10 +264,11 @@ class UserControllerTest extends RestDocsSupport {
 			.willReturn(true);
 
 		// when // then
+		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 		mockMvc.perform(patch("/users/role")
 				.content(objectMapper.writeValueAsString(userRoleChangeForm))
 				.contentType(MediaType.APPLICATION_JSON)
-				.header(HttpHeaders.AUTHORIZATION, "Bearer token"))
+				.header(HttpHeaders.AUTHORIZATION, token))
 			.andDo(print())
 			.andExpect(status().isForbidden())
 			.andExpect(jsonPath("$.code").value(HttpStatus.FORBIDDEN.value()))
@@ -312,10 +317,11 @@ class UserControllerTest extends RestDocsSupport {
 			.willReturn(true);
 
 		// when // then
+		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 		mockMvc.perform(patch("/users/role")
 				.content(objectMapper.writeValueAsString(userRoleChangeForm))
 				.contentType(MediaType.APPLICATION_JSON)
-				.header(HttpHeaders.AUTHORIZATION, "Bearer token"))
+				.header(HttpHeaders.AUTHORIZATION, token))
 			.andDo(print())
 			.andExpect(status().isForbidden())
 			.andExpect(jsonPath("$.code").value(HttpStatus.FORBIDDEN.value()))
@@ -364,10 +370,11 @@ class UserControllerTest extends RestDocsSupport {
 			.willReturn(true);
 
 		// when // then
+		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 		mockMvc.perform(patch("/users/role")
 				.content(objectMapper.writeValueAsString(userRoleChangeForm))
 				.contentType(MediaType.APPLICATION_JSON)
-				.header(HttpHeaders.AUTHORIZATION, "Bearer token"))
+				.header(HttpHeaders.AUTHORIZATION, token))
 			.andDo(print())
 			.andExpect(status().isForbidden())
 			.andExpect(jsonPath("$.code").value(HttpStatus.FORBIDDEN.value()))

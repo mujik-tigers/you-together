@@ -96,12 +96,12 @@ include::{snippets}/change-higher-or-equal-role-fail/response-fields.adoc[]
 
 ==== HTTP Request
 
-include::{snippets}/not-manageable-change-role-fail/http-request.adoc[]
-include::{snippets}/not-manageable-change-role-fail/request-fields.adoc[]
+include::{snippets}/not-manageable-role-fail/http-request.adoc[]
+include::{snippets}/not-manageable-role-fail/request-fields.adoc[]
 
 ==== HTTP Response
 
-include::{snippets}/not-manageable-change-role-fail/http-response.adoc[]
-include::{snippets}/not-manageable-change-role-fail/response-fields.adoc[]
+include::{snippets}/not-manageable-role-fail/http-response.adoc[]
+include::{snippets}/not-manageable-role-fail/response-fields.adoc[]
 
 {nbsp}
