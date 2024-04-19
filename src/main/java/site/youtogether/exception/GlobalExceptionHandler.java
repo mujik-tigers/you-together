@@ -14,15 +14,12 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import lombok.RequiredArgsConstructor;
-import site.youtogether.config.property.CookieProperties;
 import site.youtogether.util.api.ApiResponse;
 import site.youtogether.util.api.ResponseResult;
 
 @RestControllerAdvice
 @RequiredArgsConstructor
 public class GlobalExceptionHandler {
-
-	private final CookieProperties cookieProperties;
 
 	@ExceptionHandler(BindException.class)
 	public ResponseEntity<ApiResponse<Object>> handleBindException(BindException exception) {

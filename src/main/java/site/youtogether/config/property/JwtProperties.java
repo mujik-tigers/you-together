@@ -5,15 +5,12 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-@ConfigurationProperties("cookie")
+@ConfigurationProperties("jwt")
 @RequiredArgsConstructor
 @Getter
-public class CookieProperties {
+public class JwtProperties {
 
-	private final String name;
-	private final String domain;
-	private final String path;
-	private final String sameSite;
-	private final int expiry;
+	private final String issuer;
+	private final String secretKey;
 
 }

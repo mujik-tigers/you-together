@@ -25,43 +25,44 @@ class UserTrackingStorageTest extends IntegrationTestSupport {
 	}
 
 	@Test
-	@DisplayName("랜덤 유저 아이디를 만들고, 해당 유저 아이디를 클라이언트로부터 받은 쿠키 값에 대응되도록 저장한다")
+	@DisplayName("사용자 아이디 그룹에 새로운 아이디를 저장한다")
 	void save() throws Exception {
 		// given
-		String cookieValue = "dlkafldjkfldlkfajlds";
+		Long userId = 100L;
 
 		// when
-		Long userId = userTrackingStorage.save(cookieValue);
+		userTrackingStorage.save(userId);
 
 		// then
-		Long saved = redisTemplate.opsForValue().get(USER_TRACKING_KEY_PREFIX + cookieValue);
-		assertThat(saved).isEqualTo(userId);
+		Boolean isSaved = redisTemplate.opsForSet().isMember(USER_TRACKING_GROUP, userId);
+		assertThat(isSaved).isTrue();
 	}
 
 	@Test
-	@DisplayName("클라이언트로부터 받은 쿠키 값을 사용하여 대응되는 유저 아이디를 찾는다")
-	void findByCookieValue() throws Exception {
+	@DisplayName("사용자 아이디가 그룹에 존재하는지 확인할 수 있다")
+	void existsTrue() throws Exception {
 		// given
-		String cookieValue = "asdklhlkasdghklashg";
-		Long userId = 1L;
-		redisTemplate.opsForValue()
-			.set(USER_TRACKING_KEY_PREFIX + cookieValue, userId);
+		Long userId = 100L;
+		redisTemplate.opsForSet().add(USER_TRACKING_GROUP, userId);
 
 		// when
-		Long findUserId = userTrackingStorage.findByCookieValue(cookieValue).get();
+		boolean exists = userTrackingStorage.exists(userId);
 
 		// then
-		assertThat(findUserId).isEqualTo(userId);
+		assertThat(exists).isTrue();
 	}
 
 	@Test
-	@DisplayName("클라이언트로부터 받은 쿠키 값과 대응되는 유저 아이디가 없는 경우 예외가 발생한다")
-	void findByCookieFail() throws Exception {
+	@DisplayName("사용자 아이디가 그룹에 없음을 확인할 수 있다")
+	void existsFalse() throws Exception {
 		// given
-		String cookieValue = "asdklhlkasdghklashg";
+		Long userId = 100L;
 
-		// when // then
-		assertThat(userTrackingStorage.findByCookieValue(cookieValue)).isEmpty();
+		// when
+		boolean exists = userTrackingStorage.exists(userId);
+
+		// then
+		assertThat(exists).isFalse();
 	}
 
 }

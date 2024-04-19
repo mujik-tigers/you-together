@@ -2,13 +2,10 @@ package site.youtogether.user.infrastructure;
 
 import static site.youtogether.util.AppConstants.*;
 
-import java.util.Optional;
-
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
 import lombok.RequiredArgsConstructor;
-import site.youtogether.util.RandomUtil;
 
 @Repository
 @RequiredArgsConstructor
@@ -16,27 +13,16 @@ public class UserTrackingStorage {
 
 	private final RedisTemplate<String, Long> redisTemplate;
 
-	public boolean exists(String cookieValue) {
-		Long userId = redisTemplate.opsForValue().get(USER_TRACKING_KEY_PREFIX + cookieValue);
-
-		return userId != null;
+	public boolean exists(Long userId) {
+		return redisTemplate.opsForSet().isMember(USER_TRACKING_GROUP, userId);
 	}
 
-	public Long save(String cookieValue) {
-		Long userId = RandomUtil.generateUserId();
-		redisTemplate.opsForValue().set(USER_TRACKING_KEY_PREFIX + cookieValue, userId, TTL);
-
-		return userId;
+	public void save(Long userId) {
+		redisTemplate.opsForSet().add(USER_TRACKING_GROUP, userId);
 	}
 
-	public Optional<Long> findByCookieValue(String cookieValue) {
-		Long userId = redisTemplate.opsForValue().get(USER_TRACKING_KEY_PREFIX + cookieValue);
-
-		return Optional.ofNullable(userId);
-	}
-
-	public void delete(String cookieValue) {
-		redisTemplate.delete(USER_TRACKING_KEY_PREFIX + cookieValue);
+	public void delete(Long userId) {
+		redisTemplate.opsForSet().remove(USER_TRACKING_GROUP, userId);
 	}
 
 }
