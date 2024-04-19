@@ -241,7 +241,7 @@ class RoomControllerTest extends RestDocsSupport {
 		// when / then
 		mockMvc.perform(post("/rooms")
 				.content(objectMapper.writeValueAsString(roomSettings))
-				.header(HttpHeaders.AUTHORIZATION, token))
+				.header(HttpHeaders.AUTHORIZATION, BEARER + token))
 			.andDo(print())
 			.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.code").value(SINGLE_ROOM_PARTICIPATION_VIOLATION.getStatus().value()))
@@ -392,7 +392,7 @@ class RoomControllerTest extends RestDocsSupport {
 
 		// when // then
 		mockMvc.perform(post("/rooms/{roomCode}", roomCode)
-				.header(HttpHeaders.AUTHORIZATION, token))
+				.header(HttpHeaders.AUTHORIZATION, BEARER + token))
 			.andDo(print())
 			.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.code").value(SINGLE_ROOM_PARTICIPATION_VIOLATION.getStatus().value()))
@@ -614,7 +614,7 @@ class RoomControllerTest extends RestDocsSupport {
 		mockMvc.perform(patch("/rooms/title")
 				.content(objectMapper.writeValueAsString(form))
 				.contentType(MediaType.APPLICATION_JSON)
-				.header(HttpHeaders.AUTHORIZATION, token))
+				.header(HttpHeaders.AUTHORIZATION, BEARER + token))
 			.andDo(print())
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
@@ -662,7 +662,7 @@ class RoomControllerTest extends RestDocsSupport {
 		mockMvc.perform(patch("/rooms/title")
 				.content(objectMapper.writeValueAsString(form))
 				.contentType(MediaType.APPLICATION_JSON)
-				.header(HttpHeaders.AUTHORIZATION, token))
+				.header(HttpHeaders.AUTHORIZATION, BEARER + token))
 			.andDo(print())
 			.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
@@ -704,16 +704,16 @@ class RoomControllerTest extends RestDocsSupport {
 		Claims claims = Jwts.claims();
 		claims.put(USER_ID, userId);
 		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
-		given(jwtService.parse(eq(token)))
+		given(jwtService.parse(anyString()))
 			.willReturn(claims);
-		given(userTrackingStorage.exists(eq(userId)))
+		given(userTrackingStorage.exists(anyLong()))
 			.willReturn(true);
 
 		// when // then
 		mockMvc.perform(patch("/rooms/title")
 				.content(objectMapper.writeValueAsString(form))
 				.contentType(MediaType.APPLICATION_JSON)
-				.header(HttpHeaders.AUTHORIZATION, token))
+				.header(HttpHeaders.AUTHORIZATION, BEARER + token))
 			.andDo(print())
 			.andExpect(status().isForbidden())
 			.andExpect(jsonPath("$.code").value(HttpStatus.FORBIDDEN.value()))
