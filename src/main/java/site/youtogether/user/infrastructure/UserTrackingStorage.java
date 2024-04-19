@@ -11,17 +11,17 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UserTrackingStorage {
 
-	private final RedisTemplate<String, String> redisTemplate;
+	private final RedisTemplate<String, Long> redisTemplate;
 
-	public boolean exists(String userId) {
+	public boolean exists(Long userId) {
 		return redisTemplate.opsForSet().isMember(USER_TRACKING_GROUP, userId);
 	}
 
 	public void save(Long userId) {
-		redisTemplate.opsForSet().add(USER_TRACKING_GROUP, String.valueOf(userId));
+		redisTemplate.opsForSet().add(USER_TRACKING_GROUP, userId);
 	}
 
-	public void delete(String userId) {
+	public void delete(Long userId) {
 		redisTemplate.opsForSet().remove(USER_TRACKING_GROUP, userId);
 	}
 

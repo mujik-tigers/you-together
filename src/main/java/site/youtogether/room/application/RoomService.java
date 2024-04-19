@@ -56,8 +56,6 @@ public class RoomService {
 	}
 
 	public RoomDetail enter(Long userId, String roomCode, String passwordInput) {
-		userTrackingStorage.save(userId);        // TODO: 트랜잭션 안되서, enter 실패 시, userTrackingStorage 에 실패한 데이터가 쌓임.
-
 		User user = User.builder()
 			.userId(userId)
 			.nickname(RandomUtil.generateUserNickname())
@@ -69,6 +67,7 @@ public class RoomService {
 
 		room.enterParticipant(user, passwordInput);
 		roomStorage.save(room);
+		userTrackingStorage.save(userId);    // TODO: 트랜잭션 안되서, enter 실패 시, userTrackingStorage 에 실패한 데이터가 쌓임.
 
 		return new RoomDetail(room, user);
 	}
@@ -77,7 +76,7 @@ public class RoomService {
 		Room room = roomStorage.findById(roomCode)
 			.orElseThrow(RoomNoExistenceException::new);
 
-		userTrackingStorage.delete(String.valueOf(userId));
+		userTrackingStorage.delete(userId);
 
 		try {
 			room.leaveParticipant(userId);

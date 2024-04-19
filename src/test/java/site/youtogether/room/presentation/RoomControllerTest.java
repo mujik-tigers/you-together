@@ -10,10 +10,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static site.youtogether.exception.ErrorType.*;
+import static site.youtogether.util.AppConstants.*;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.DisplayName;
@@ -26,7 +27,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
 
-import jakarta.servlet.http.Cookie;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
 import site.youtogether.RestDocsSupport;
 import site.youtogether.exception.room.PasswordNotMatchException;
 import site.youtogether.exception.room.RoomCapacityExceededException;
@@ -62,6 +64,10 @@ class RoomControllerTest extends RestDocsSupport {
 			.build();
 
 		UserInfo user = new UserInfo(10L, "황똥땡", Role.HOST);
+
+		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
+		given(jwtService.issue(anyLong(), any()))
+			.willReturn(token);
 
 		// Setting up response data for the created room
 		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, user, capacity, 1, false);
@@ -132,6 +138,10 @@ class RoomControllerTest extends RestDocsSupport {
 		given(roomService.create(anyLong(), any(RoomSettings.class), any(LocalDateTime.class)))
 			.willReturn(createdRoomDetail);
 
+		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
+		given(jwtService.issue(anyLong(), any(Duration.class)))
+			.willReturn(token);
+
 		// when / then
 		mockMvc.perform(post("/rooms")
 				.content(objectMapper.writeValueAsString(roomSettings))
@@ -191,6 +201,7 @@ class RoomControllerTest extends RestDocsSupport {
 				.contentType(MediaType.APPLICATION_JSON))
 			.andDo(print())
 			.andExpect(status().isBadRequest())
+			.andExpect(header().doesNotExist(HttpHeaders.AUTHORIZATION))
 			.andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
 			.andExpect(jsonPath("$.status").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
 			.andExpect(jsonPath("$.result").value(ResponseResult.EXCEPTION_OCCURRED.getDescription()))
@@ -217,17 +228,20 @@ class RoomControllerTest extends RestDocsSupport {
 	@DisplayName("방 생성 실패: 다수의 방에 참가할 수 없습니다")
 	void createRoomFail_SingleRoomParticipantViolation() throws Exception {
 		// given
-		// Setting up session cookie and request data for creating a room
-		// This indicates that a session cookie is already present, implying participation in a room
 		RoomSettings roomSettings = RoomSettings.builder().capacity(10).title("재밌는 쇼츠 같이 보기").password(null).build();
+		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 
-		// Setting up user tracking storage for interceptor
-		given(userTrackingStorage.exists(anyString())).willReturn(true);
+		Claims claims = Jwts.claims();
+		claims.put(USER_ID, 1L);
+		given(jwtService.parse(anyString()))
+			.willReturn(claims);
+
+		given(userTrackingStorage.exists(anyLong())).willReturn(true);
 
 		// when / then
 		mockMvc.perform(post("/rooms")
 				.content(objectMapper.writeValueAsString(roomSettings))
-				.contentType(MediaType.APPLICATION_JSON).cookie(sessionCookie))
+				.header(HttpHeaders.AUTHORIZATION, token))
 			.andDo(print())
 			.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.code").value(SINGLE_ROOM_PARTICIPATION_VIOLATION.getStatus().value()))
@@ -270,6 +284,7 @@ class RoomControllerTest extends RestDocsSupport {
 				.param("keyword", "침착"))
 			.andDo(print())
 			.andExpect(status().isOk())
+			.andExpect(header().doesNotExist(HttpHeaders.AUTHORIZATION))
 			.andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
 			.andExpect(jsonPath("$.status").value(HttpStatus.OK.getReasonPhrase()))
 			.andExpect(jsonPath("$.result").value(ResponseResult.ROOM_LIST_FETCH_SUCCESS.getDescription()))
@@ -317,8 +332,12 @@ class RoomControllerTest extends RestDocsSupport {
 
 		UserInfo user = new UserInfo(10L, "황똥땡", Role.HOST);
 
+		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
+		given(jwtService.issue(anyLong(), any()))
+			.willReturn(token);
+
 		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, user, capacity, 2, false);
-		given(roomService.enter(anyString(), eq(roomCode), eq(null)))
+		given(roomService.enter(anyLong(), eq(roomCode), eq(null)))
 			.willReturn(createdRoomDetail);
 
 		// when // then
@@ -361,11 +380,19 @@ class RoomControllerTest extends RestDocsSupport {
 	void enterRoomFail() throws Exception {
 		// given
 		String roomCode = "1e7050f7d7";
-		given(userTrackingStorage.exists(anyString()))
+		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
+
+		Claims claims = Jwts.claims();
+		claims.put(USER_ID, 1L);
+		given(jwtService.parse(anyString()))
+			.willReturn(claims);
+
+		given(userTrackingStorage.exists(anyLong()))
 			.willReturn(true);
 
 		// when // then
-		mockMvc.perform(post("/rooms/{roomCode}", roomCode))
+		mockMvc.perform(post("/rooms/{roomCode}", roomCode)
+				.header(HttpHeaders.AUTHORIZATION, token))
 			.andDo(print())
 			.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.code").value(SINGLE_ROOM_PARTICIPATION_VIOLATION.getStatus().value()))
@@ -396,12 +423,19 @@ class RoomControllerTest extends RestDocsSupport {
 		String roomTitle = "재밌는 쇼츠 같이 보기";
 		String password = "mySecretRoom";
 		int capacity = 10;
+		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 
 		UserInfo user = new UserInfo(10L, "황똥땡", Role.HOST);
 
 		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, user, capacity, 2, true);
 		given(roomService.enter(anyLong(), eq(roomCode), eq(password)))
 			.willReturn(createdRoomDetail);
+
+		given(jwtService.issue(anyLong(), any(Duration.class)))
+			.willReturn(token);
+
+		given(userTrackingStorage.exists(anyLong()))
+			.willReturn(true);
 
 		// when // then
 		mockMvc.perform(post("/rooms/{roomCode}", roomCode)
@@ -459,6 +493,7 @@ class RoomControllerTest extends RestDocsSupport {
 				.contentType(MediaType.APPLICATION_JSON))
 			.andDo(print())
 			.andExpect(status().isForbidden())
+			.andExpect(header().doesNotExist(HttpHeaders.AUTHORIZATION))
 			.andExpect(jsonPath("$.code").value(ROOM_PASSWORD_NOT_MATCH.getStatus().value()))
 			.andExpect(jsonPath("$.status").value(ROOM_PASSWORD_NOT_MATCH.getStatus().getReasonPhrase()))
 			.andExpect(jsonPath("$.result").value(ResponseResult.EXCEPTION_OCCURRED.getDescription()))
@@ -495,6 +530,7 @@ class RoomControllerTest extends RestDocsSupport {
 				.contentType(MediaType.APPLICATION_JSON))
 			.andDo(print())
 			.andExpect(status().isBadRequest())
+			.andExpect(header().doesNotExist(HttpHeaders.AUTHORIZATION))
 			.andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
 			.andExpect(jsonPath("$.status").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
 			.andExpect(jsonPath("$.result").value(ResponseResult.EXCEPTION_OCCURRED.getDescription()))
@@ -520,8 +556,11 @@ class RoomControllerTest extends RestDocsSupport {
 	@DisplayName("방 입장 실패: 방의 참가 인원이 가득 참")
 	void enterFullRoomFail() throws Exception {
 		// given
+		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 		String roomCode = "1e7050f7d7";
 
+		given(jwtService.issue(anyLong(), any()))
+			.willReturn(token);
 		given(roomService.enter(anyLong(), eq(roomCode), eq(null)))
 			.willThrow(new RoomCapacityExceededException());
 
@@ -529,6 +568,7 @@ class RoomControllerTest extends RestDocsSupport {
 		mockMvc.perform(post("/rooms/{roomCode}", roomCode))
 			.andDo(print())
 			.andExpect(status().isForbidden())
+			.andExpect(header().doesNotExist(HttpHeaders.AUTHORIZATION))
 			.andExpect(jsonPath("$.code").value(ROOM_CAPACITY_EXCEEDED.getStatus().value()))
 			.andExpect(jsonPath("$.status").value(ROOM_CAPACITY_EXCEEDED.getStatus().getReasonPhrase()))
 			.andExpect(jsonPath("$.result").value(ResponseResult.EXCEPTION_OCCURRED.getDescription()))
@@ -561,10 +601,19 @@ class RoomControllerTest extends RestDocsSupport {
 		given(roomService.changeRoomTitle(eq(userId), eq(roomCode), eq(updateTitle)))
 			.willReturn(new UpdatedRoomTitle(roomCode, updateTitle));
 
+		Claims claims = Jwts.claims();
+		claims.put(USER_ID, userId);
+		given(jwtService.parse(anyString()))
+			.willReturn(claims);
+
+		given(userTrackingStorage.exists(anyLong()))
+			.willReturn(true);
+
 		// when // then
 		mockMvc.perform(patch("/rooms/title")
 				.content(objectMapper.writeValueAsString(form))
-				.contentType(MediaType.APPLICATION_JSON))
+				.contentType(MediaType.APPLICATION_JSON)
+				.header(HttpHeaders.AUTHORIZATION, "Bearer token"))
 			.andDo(print())
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
@@ -595,17 +644,23 @@ class RoomControllerTest extends RestDocsSupport {
 	void updateRoomTitleFailForm() throws Exception {
 		// given
 		String roomCode = "1e7050f7d7";
-		String userId = "10";
+		Long userId = 10L;
 		String updateTitle = "  ";
 		RoomTitleChangeForm form = new RoomTitleChangeForm(roomCode, updateTitle);
 
-		given(userTrackingStorage.exists(eq(userId)))
-			.willReturn(false);
+		Claims claims = Jwts.claims();
+		claims.put(USER_ID, userId);
+		given(jwtService.parse(anyString()))
+			.willReturn(claims);
+
+		given(userTrackingStorage.exists(anyLong()))
+			.willReturn(true);
 
 		// when // then
 		mockMvc.perform(patch("/rooms/title")
 				.content(objectMapper.writeValueAsString(form))
-				.contentType(MediaType.APPLICATION_JSON))
+				.contentType(MediaType.APPLICATION_JSON)
+				.header(HttpHeaders.AUTHORIZATION, "Bearer token"))
 			.andDo(print())
 			.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
@@ -639,18 +694,24 @@ class RoomControllerTest extends RestDocsSupport {
 		String updateTitle = "연똥땡의 방";
 		RoomTitleChangeForm form = new RoomTitleChangeForm(roomCode, updateTitle);
 
-		Cookie sessionCookie = new Cookie(cookieProperties.getName(), "a85192c998454a1ea055");
-		given(userTrackingStorage.findByCookieValue(eq(sessionCookie.getValue())))
-			.willReturn(Optional.of(userId));
-
+		given(userTrackingStorage.exists(eq(userId)))
+			.willReturn(true);
 		given(roomService.changeRoomTitle(eq(userId), eq(roomCode), eq(updateTitle)))
 			.willThrow(new ChangeRoomTitleDeniedException());
+
+		Claims claims = Jwts.claims();
+		claims.put(USER_ID, userId);
+		String bearerHeader = "it's jwt";
+		given(jwtService.parse(eq(bearerHeader)))
+			.willReturn(claims);
+		given(userTrackingStorage.exists(eq(userId)))
+			.willReturn(true);
 
 		// when // then
 		mockMvc.perform(patch("/rooms/title")
 				.content(objectMapper.writeValueAsString(form))
 				.contentType(MediaType.APPLICATION_JSON)
-				.cookie(sessionCookie))
+				.header(HttpHeaders.AUTHORIZATION, bearerHeader))
 			.andDo(print())
 			.andExpect(status().isForbidden())
 			.andExpect(jsonPath("$.code").value(HttpStatus.FORBIDDEN.value()))

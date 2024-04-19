@@ -1,5 +1,7 @@
 package site.youtogether.util.interceptor;
 
+import static site.youtogether.util.AppConstants.*;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
@@ -31,8 +33,13 @@ public class SingleRoomCheckInterceptor implements HandlerInterceptor {
 			return true;
 		}
 
-		Claims claims = jwtService.parse(request.getHeader(HttpHeaders.AUTHORIZATION));
-		if (userTrackingStorage.exists(claims.getId())) {
+		String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+		if (authorizationHeader == null) {
+			return true;
+		}
+
+		Claims claims = jwtService.parse(authorizationHeader);
+		if (userTrackingStorage.exists((Long)claims.get(USER_ID))) {
 			throw new SingleRoomParticipationViolationException();
 		}
 

@@ -10,6 +10,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import site.youtogether.config.PropertiesConfig;
+import site.youtogether.jwt.JwtService;
 import site.youtogether.room.application.RoomService;
 import site.youtogether.room.presentation.RoomController;
 import site.youtogether.user.application.UserService;
@@ -35,6 +36,9 @@ public abstract class RestDocsSupport {
 
 	@MockBean
 	protected UserService userService;
+
+	@MockBean
+	protected JwtService jwtService;
 
 	@MockBean
 	protected UserTrackingStorage userTrackingStorage;

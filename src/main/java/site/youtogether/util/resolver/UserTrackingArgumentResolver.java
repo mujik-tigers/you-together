@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import site.youtogether.exception.jwt.InvalidTokenException;
 import site.youtogether.jwt.JwtService;
 import site.youtogether.user.infrastructure.UserTrackingStorage;
+import site.youtogether.util.AppConstants;
 
 @Component
 @RequiredArgsConstructor
@@ -37,12 +38,13 @@ public class UserTrackingArgumentResolver implements HandlerMethodArgumentResolv
 
 		assert request != null;
 		Claims claims = jwtService.parse(request.getHeader(HttpHeaders.AUTHORIZATION));
+		Long userId = (Long)claims.get(AppConstants.USER_ID);
 
-		if (!userTrackingStorage.exists(claims.getId())) {
+		if (!userTrackingStorage.exists(userId)) {
 			throw new InvalidTokenException();
 		}
 
-		return Long.parseLong(claims.getId());
+		return userId;
 	}
 
 }

@@ -7,16 +7,17 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
-import java.util.Optional;
+import static site.youtogether.util.AppConstants.*;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
 
-import jakarta.servlet.http.Cookie;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
 import site.youtogether.RestDocsSupport;
 import site.youtogether.exception.ErrorType;
 import site.youtogether.exception.user.HigherOrEqualRoleChangeException;
@@ -40,19 +41,23 @@ class UserControllerTest extends RestDocsSupport {
 		Long userId = 1L;
 		UpdateUserForm form = new UpdateUserForm(roomCode, updateNickname);
 		UserInfo userInfo = new UserInfo(userId, updateNickname, Role.GUEST);
-		Cookie sessionCookie = new Cookie(cookieProperties.getName(), "a85192c998454a1ea055");
-
-		given(userTrackingStorage.findByCookieValue(eq(sessionCookie.getValue())))        // ArgumentResolver 에서 사용
-			.willReturn(Optional.of(userId));
 
 		given(userService.updateUserNickname(eq(userId), eq(updateNickname), eq(roomCode)))
 			.willReturn(userInfo);
+
+		Claims claims = Jwts.claims();
+		claims.put(USER_ID, userId);
+
+		given(jwtService.parse(anyString()))
+			.willReturn(claims);
+		given(userTrackingStorage.exists(anyLong()))
+			.willReturn(true);
 
 		// when // then
 		mockMvc.perform(patch("/users")
 				.content(objectMapper.writeValueAsString(form))
 				.contentType(MediaType.APPLICATION_JSON)
-				.cookie(sessionCookie))
+				.header(HttpHeaders.AUTHORIZATION, "Bearer token"))
 			.andDo(print())
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
@@ -89,19 +94,23 @@ class UserControllerTest extends RestDocsSupport {
 		Long userId = 1L;
 		UpdateUserForm form = new UpdateUserForm(roomCode, updateNickname);
 		UserInfo userInfo = new UserInfo(userId, updateNickname, Role.GUEST);
-		Cookie sessionCookie = new Cookie(cookieProperties.getName(), "a85192c998454a1ea055");
-
-		given(userTrackingStorage.findByCookieValue(eq(sessionCookie.getValue())))        // ArgumentResolver 에서 사용
-			.willReturn(Optional.of(userId));
 
 		given(userService.updateUserNickname(eq(userId), eq(updateNickname), eq(roomCode)))
 			.willReturn(userInfo);
+
+		Claims claims = Jwts.claims();
+		claims.put(USER_ID, userId);
+
+		given(jwtService.parse(anyString()))
+			.willReturn(claims);
+		given(userTrackingStorage.exists(anyLong()))
+			.willReturn(true);
 
 		// when // then
 		mockMvc.perform(patch("/users")
 				.content(objectMapper.writeValueAsString(form))
 				.contentType(MediaType.APPLICATION_JSON)
-				.cookie(sessionCookie))
+				.header(HttpHeaders.AUTHORIZATION, "Bearer token"))
 			.andDo(print())
 			.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
@@ -136,18 +145,22 @@ class UserControllerTest extends RestDocsSupport {
 		UserRoleChangeForm userRoleChangeForm = new UserRoleChangeForm(roomCode, changedUserId, Role.VIEWER);
 		UserInfo userInfo = new UserInfo(changedUserId, "연츠비", userRoleChangeForm.getChangeUserRole());
 
-		Cookie sessionCookie = new Cookie(cookieProperties.getName(), "a85192c998454a1ea055");
-		given(userTrackingStorage.findByCookieValue(eq(sessionCookie.getValue())))                // ArgumentResolver 에서 사용
-			.willReturn(Optional.of(hostId));
-
 		given(userService.changeUserRole(eq(hostId), any(UserRoleChangeForm.class)))
 			.willReturn(userInfo);
+
+		Claims claims = Jwts.claims();
+		claims.put(USER_ID, hostId);
+
+		given(jwtService.parse(anyString()))
+			.willReturn(claims);
+		given(userTrackingStorage.exists(anyLong()))
+			.willReturn(true);
 
 		// when // then
 		mockMvc.perform(patch("/users/role")
 				.content(objectMapper.writeValueAsString(userRoleChangeForm))
 				.contentType(MediaType.APPLICATION_JSON)
-				.cookie(sessionCookie))
+				.header(HttpHeaders.AUTHORIZATION, "Bearer token"))
 			.andDo(print())
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
@@ -183,18 +196,22 @@ class UserControllerTest extends RestDocsSupport {
 		String roomCode = "fad14a7434";
 		UserRoleChangeForm userRoleChangeForm = new UserRoleChangeForm(roomCode, hostId, Role.VIEWER);
 
-		Cookie sessionCookie = new Cookie(cookieProperties.getName(), "a85192c998454a1ea055");
-		given(userTrackingStorage.findByCookieValue(eq(sessionCookie.getValue())))                // ArgumentResolver 에서 사용
-			.willReturn(Optional.of(hostId));
-
 		given(userService.changeUserRole(eq(hostId), any(UserRoleChangeForm.class)))
 			.willThrow(new SelfRoleChangeException());
+
+		Claims claims = Jwts.claims();
+		claims.put(USER_ID, hostId);
+
+		given(jwtService.parse(anyString()))
+			.willReturn(claims);
+		given(userTrackingStorage.exists(anyLong()))
+			.willReturn(true);
 
 		// when // then
 		mockMvc.perform(patch("/users/role")
 				.content(objectMapper.writeValueAsString(userRoleChangeForm))
 				.contentType(MediaType.APPLICATION_JSON)
-				.cookie(sessionCookie))
+				.header(HttpHeaders.AUTHORIZATION, "Bearer token"))
 			.andDo(print())
 			.andExpect(status().isForbidden())
 			.andExpect(jsonPath("$.code").value(HttpStatus.FORBIDDEN.value()))
@@ -231,18 +248,22 @@ class UserControllerTest extends RestDocsSupport {
 		String roomCode = "fad14a7434";
 		UserRoleChangeForm userRoleChangeForm = new UserRoleChangeForm(roomCode, changedUserId, Role.VIEWER);
 
-		Cookie sessionCookie = new Cookie(cookieProperties.getName(), "a85192c998454a1ea055");
-		given(userTrackingStorage.findByCookieValue(eq(sessionCookie.getValue())))                // ArgumentResolver 에서 사용
-			.willReturn(Optional.of(userId));
-
 		given(userService.changeUserRole(eq(userId), any(UserRoleChangeForm.class)))
 			.willThrow(new HigherOrEqualRoleUserChangeException());
+
+		Claims claims = Jwts.claims();
+		claims.put(USER_ID, userId);
+
+		given(jwtService.parse(anyString()))
+			.willReturn(claims);
+		given(userTrackingStorage.exists(anyLong()))
+			.willReturn(true);
 
 		// when // then
 		mockMvc.perform(patch("/users/role")
 				.content(objectMapper.writeValueAsString(userRoleChangeForm))
 				.contentType(MediaType.APPLICATION_JSON)
-				.cookie(sessionCookie))
+				.header(HttpHeaders.AUTHORIZATION, "Bearer token"))
 			.andDo(print())
 			.andExpect(status().isForbidden())
 			.andExpect(jsonPath("$.code").value(HttpStatus.FORBIDDEN.value()))
@@ -279,18 +300,22 @@ class UserControllerTest extends RestDocsSupport {
 		String roomCode = "fad14a7434";
 		UserRoleChangeForm userRoleChangeForm = new UserRoleChangeForm(roomCode, changedUserId, Role.VIEWER);
 
-		Cookie sessionCookie = new Cookie(cookieProperties.getName(), "a85192c998454a1ea055");
-		given(userTrackingStorage.findByCookieValue(eq(sessionCookie.getValue())))                // ArgumentResolver 에서 사용
-			.willReturn(Optional.of(userId));
-
 		given(userService.changeUserRole(eq(userId), any(UserRoleChangeForm.class)))
 			.willThrow(new HigherOrEqualRoleChangeException());
+
+		Claims claims = Jwts.claims();
+		claims.put(USER_ID, userId);
+
+		given(jwtService.parse(anyString()))
+			.willReturn(claims);
+		given(userTrackingStorage.exists(anyLong()))
+			.willReturn(true);
 
 		// when // then
 		mockMvc.perform(patch("/users/role")
 				.content(objectMapper.writeValueAsString(userRoleChangeForm))
 				.contentType(MediaType.APPLICATION_JSON)
-				.cookie(sessionCookie))
+				.header(HttpHeaders.AUTHORIZATION, "Bearer token"))
 			.andDo(print())
 			.andExpect(status().isForbidden())
 			.andExpect(jsonPath("$.code").value(HttpStatus.FORBIDDEN.value()))
@@ -327,18 +352,22 @@ class UserControllerTest extends RestDocsSupport {
 		String roomCode = "fad14a7434";
 		UserRoleChangeForm userRoleChangeForm = new UserRoleChangeForm(roomCode, changedUserId, Role.VIEWER);
 
-		Cookie sessionCookie = new Cookie(cookieProperties.getName(), "a85192c998454a1ea055");
-		given(userTrackingStorage.findByCookieValue(eq(sessionCookie.getValue())))                // ArgumentResolver 에서 사용
-			.willReturn(Optional.of(userId));
-
 		given(userService.changeUserRole(eq(userId), any(UserRoleChangeForm.class)))
 			.willThrow(new NotManageableUserException());
+
+		Claims claims = Jwts.claims();
+		claims.put(USER_ID, userId);
+
+		given(jwtService.parse(anyString()))
+			.willReturn(claims);
+		given(userTrackingStorage.exists(anyLong()))
+			.willReturn(true);
 
 		// when // then
 		mockMvc.perform(patch("/users/role")
 				.content(objectMapper.writeValueAsString(userRoleChangeForm))
 				.contentType(MediaType.APPLICATION_JSON)
-				.cookie(sessionCookie))
+				.header(HttpHeaders.AUTHORIZATION, "Bearer token"))
 			.andDo(print())
 			.andExpect(status().isForbidden())
 			.andExpect(jsonPath("$.code").value(HttpStatus.FORBIDDEN.value()))

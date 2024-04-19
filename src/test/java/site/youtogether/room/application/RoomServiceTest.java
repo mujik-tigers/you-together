@@ -54,7 +54,6 @@ class RoomServiceTest extends IntegrationTestSupport {
 	void createSuccess() {
 		// given
 		Long userId = 2L;
-		String cookieValue = "7644a835e52e45dfa385";
 		RoomSettings roomSettings = RoomSettings.builder()
 			.capacity(10)
 			.title("재밌는 쇼츠 같이 보기")
@@ -77,7 +76,7 @@ class RoomServiceTest extends IntegrationTestSupport {
 		assertThat(user.getUserId()).isEqualTo(userId);
 		assertThat(user.getNickname()).isNotBlank();
 		assertThat(user.getRole()).isEqualTo(Role.HOST);
-		assertThat(userTrackingStorage.exists(cookieValue)).isTrue();
+		assertThat(userTrackingStorage.exists(userId)).isTrue();
 	}
 
 	@Test
