@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.SliceImpl;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
@@ -64,24 +65,16 @@ class RoomControllerTest extends RestDocsSupport {
 
 		// Setting up response data for the created room
 		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, user, capacity, 1, false);
-		given(roomService.create(anyString(), any(RoomSettings.class), any(LocalDateTime.class)))
+		given(roomService.create(anyLong(), any(RoomSettings.class), any(LocalDateTime.class)))
 			.willReturn(createdRoomDetail);
 
 		// when / then
-		String cookieName = cookieProperties.getName();
-
 		mockMvc.perform(post("/rooms")
 				.content(objectMapper.writeValueAsString(roomSettings))
 				.contentType(MediaType.APPLICATION_JSON))
 			.andDo(print())
 			.andExpect(status().isCreated())
-			.andExpect(cookie().exists(cookieName))
-			.andExpect(cookie().domain(cookieName, cookieProperties.getDomain()))
-			.andExpect(cookie().path(cookieName, cookieProperties.getPath()))
-			.andExpect(cookie().sameSite(cookieName, cookieProperties.getSameSite()))
-			.andExpect(cookie().maxAge(cookieName, cookieProperties.getExpiry()))
-			.andExpect(cookie().httpOnly(cookieName, true))
-			.andExpect(cookie().secure(cookieName, true))
+			.andExpect(header().exists(HttpHeaders.AUTHORIZATION))
 			.andExpect(jsonPath("$.code").value(HttpStatus.CREATED.value()))
 			.andExpect(jsonPath("$.status").value(HttpStatus.CREATED.getReasonPhrase()))
 			.andExpect(jsonPath("$.result").value(ResponseResult.ROOM_CREATION_SUCCESS.getDescription()))
@@ -136,24 +129,16 @@ class RoomControllerTest extends RestDocsSupport {
 
 		// Setting up response data for the created room
 		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, user, capacity, 1, true);
-		given(roomService.create(anyString(), any(RoomSettings.class), any(LocalDateTime.class)))
+		given(roomService.create(anyLong(), any(RoomSettings.class), any(LocalDateTime.class)))
 			.willReturn(createdRoomDetail);
 
 		// when / then
-		String cookieName = cookieProperties.getName();
-
 		mockMvc.perform(post("/rooms")
 				.content(objectMapper.writeValueAsString(roomSettings))
 				.contentType(MediaType.APPLICATION_JSON))
 			.andDo(print())
 			.andExpect(status().isCreated())
-			.andExpect(cookie().exists(cookieName))
-			.andExpect(cookie().domain(cookieName, cookieProperties.getDomain()))
-			.andExpect(cookie().path(cookieName, cookieProperties.getPath()))
-			.andExpect(cookie().sameSite(cookieName, cookieProperties.getSameSite()))
-			.andExpect(cookie().maxAge(cookieName, cookieProperties.getExpiry()))
-			.andExpect(cookie().httpOnly(cookieName, true))
-			.andExpect(cookie().secure(cookieName, true))
+			.andExpect(header().exists(HttpHeaders.AUTHORIZATION))
 			.andExpect(jsonPath("$.code").value(HttpStatus.CREATED.value()))
 			.andExpect(jsonPath("$.status").value(HttpStatus.CREATED.getReasonPhrase()))
 			.andExpect(jsonPath("$.result").value(ResponseResult.ROOM_CREATION_SUCCESS.getDescription()))
@@ -206,7 +191,6 @@ class RoomControllerTest extends RestDocsSupport {
 				.contentType(MediaType.APPLICATION_JSON))
 			.andDo(print())
 			.andExpect(status().isBadRequest())
-			.andExpect(cookie().doesNotExist(cookieProperties.getName()))
 			.andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
 			.andExpect(jsonPath("$.status").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
 			.andExpect(jsonPath("$.result").value(ResponseResult.EXCEPTION_OCCURRED.getDescription()))
@@ -235,7 +219,6 @@ class RoomControllerTest extends RestDocsSupport {
 		// given
 		// Setting up session cookie and request data for creating a room
 		// This indicates that a session cookie is already present, implying participation in a room
-		Cookie sessionCookie = new Cookie(cookieProperties.getName(), "a85192c998454a1ea055");
 		RoomSettings roomSettings = RoomSettings.builder().capacity(10).title("재밌는 쇼츠 같이 보기").password(null).build();
 
 		// Setting up user tracking storage for interceptor
@@ -247,7 +230,6 @@ class RoomControllerTest extends RestDocsSupport {
 				.contentType(MediaType.APPLICATION_JSON).cookie(sessionCookie))
 			.andDo(print())
 			.andExpect(status().isBadRequest())
-			.andExpect(cookie().doesNotExist(cookieProperties.getName()))
 			.andExpect(jsonPath("$.code").value(SINGLE_ROOM_PARTICIPATION_VIOLATION.getStatus().value()))
 			.andExpect(jsonPath("$.status").value(SINGLE_ROOM_PARTICIPATION_VIOLATION.getStatus().getReasonPhrase()))
 			.andExpect(jsonPath("$.result").value(ResponseResult.EXCEPTION_OCCURRED.getDescription()))
@@ -339,19 +321,11 @@ class RoomControllerTest extends RestDocsSupport {
 		given(roomService.enter(anyString(), eq(roomCode), eq(null)))
 			.willReturn(createdRoomDetail);
 
-		String cookieName = cookieProperties.getName();
-
 		// when // then
 		mockMvc.perform(post("/rooms/{roomCode}", roomCode))
 			.andDo(print())
 			.andExpect(status().isOk())
-			.andExpect(cookie().exists(cookieName))
-			.andExpect(cookie().domain(cookieName, cookieProperties.getDomain()))
-			.andExpect(cookie().path(cookieName, cookieProperties.getPath()))
-			.andExpect(cookie().sameSite(cookieName, cookieProperties.getSameSite()))
-			.andExpect(cookie().maxAge(cookieName, cookieProperties.getExpiry()))
-			.andExpect(cookie().httpOnly(cookieName, true))
-			.andExpect(cookie().secure(cookieName, true))
+			.andExpect(header().exists(HttpHeaders.AUTHORIZATION))
 			.andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
 			.andExpect(jsonPath("$.status").value(HttpStatus.OK.getReasonPhrase()))
 			.andExpect(jsonPath("$.result").value(ResponseResult.ROOM_ENTER_SUCCESS.getDescription()))
@@ -387,16 +361,13 @@ class RoomControllerTest extends RestDocsSupport {
 	void enterRoomFail() throws Exception {
 		// given
 		String roomCode = "1e7050f7d7";
-		Cookie sessionCookie = new Cookie(cookieProperties.getName(), "a85192c998454a1ea055");
 		given(userTrackingStorage.exists(anyString()))
 			.willReturn(true);
 
 		// when // then
-		mockMvc.perform(post("/rooms/{roomCode}", roomCode)
-				.cookie(sessionCookie))
+		mockMvc.perform(post("/rooms/{roomCode}", roomCode))
 			.andDo(print())
 			.andExpect(status().isBadRequest())
-			.andExpect(cookie().doesNotExist(cookieProperties.getName()))
 			.andExpect(jsonPath("$.code").value(SINGLE_ROOM_PARTICIPATION_VIOLATION.getStatus().value()))
 			.andExpect(jsonPath("$.status").value(SINGLE_ROOM_PARTICIPATION_VIOLATION.getStatus().getReasonPhrase()))
 			.andExpect(jsonPath("$.result").value(ResponseResult.EXCEPTION_OCCURRED.getDescription()))
@@ -429,10 +400,8 @@ class RoomControllerTest extends RestDocsSupport {
 		UserInfo user = new UserInfo(10L, "황똥땡", Role.HOST);
 
 		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, user, capacity, 2, true);
-		given(roomService.enter(anyString(), eq(roomCode), eq(password)))
+		given(roomService.enter(anyLong(), eq(roomCode), eq(password)))
 			.willReturn(createdRoomDetail);
-
-		String cookieName = cookieProperties.getName();
 
 		// when // then
 		mockMvc.perform(post("/rooms/{roomCode}", roomCode)
@@ -440,13 +409,7 @@ class RoomControllerTest extends RestDocsSupport {
 				.contentType(MediaType.APPLICATION_JSON))
 			.andDo(print())
 			.andExpect(status().isOk())
-			.andExpect(cookie().exists(cookieName))
-			.andExpect(cookie().domain(cookieName, cookieProperties.getDomain()))
-			.andExpect(cookie().path(cookieName, cookieProperties.getPath()))
-			.andExpect(cookie().sameSite(cookieName, cookieProperties.getSameSite()))
-			.andExpect(cookie().maxAge(cookieName, cookieProperties.getExpiry()))
-			.andExpect(cookie().httpOnly(cookieName, true))
-			.andExpect(cookie().secure(cookieName, true))
+			.andExpect(header().exists(HttpHeaders.AUTHORIZATION))
 			.andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
 			.andExpect(jsonPath("$.status").value(HttpStatus.OK.getReasonPhrase()))
 			.andExpect(jsonPath("$.result").value(ResponseResult.ROOM_ENTER_SUCCESS.getDescription()))
@@ -487,7 +450,7 @@ class RoomControllerTest extends RestDocsSupport {
 		String roomCode = "1e7050f7d7";
 		String password = "notMatchPassword";
 
-		given(roomService.enter(anyString(), eq(roomCode), eq(password)))
+		given(roomService.enter(anyLong(), eq(roomCode), eq(password)))
 			.willThrow(new PasswordNotMatchException());
 
 		// when // then
@@ -496,7 +459,6 @@ class RoomControllerTest extends RestDocsSupport {
 				.contentType(MediaType.APPLICATION_JSON))
 			.andDo(print())
 			.andExpect(status().isForbidden())
-			.andExpect(cookie().doesNotExist(cookieProperties.getName()))
 			.andExpect(jsonPath("$.code").value(ROOM_PASSWORD_NOT_MATCH.getStatus().value()))
 			.andExpect(jsonPath("$.status").value(ROOM_PASSWORD_NOT_MATCH.getStatus().getReasonPhrase()))
 			.andExpect(jsonPath("$.result").value(ResponseResult.EXCEPTION_OCCURRED.getDescription()))
@@ -533,7 +495,6 @@ class RoomControllerTest extends RestDocsSupport {
 				.contentType(MediaType.APPLICATION_JSON))
 			.andDo(print())
 			.andExpect(status().isBadRequest())
-			.andExpect(cookie().doesNotExist(cookieProperties.getName()))
 			.andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
 			.andExpect(jsonPath("$.status").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
 			.andExpect(jsonPath("$.result").value(ResponseResult.EXCEPTION_OCCURRED.getDescription()))
@@ -561,14 +522,13 @@ class RoomControllerTest extends RestDocsSupport {
 		// given
 		String roomCode = "1e7050f7d7";
 
-		given(roomService.enter(anyString(), eq(roomCode), eq(null)))
+		given(roomService.enter(anyLong(), eq(roomCode), eq(null)))
 			.willThrow(new RoomCapacityExceededException());
 
 		// when // then
 		mockMvc.perform(post("/rooms/{roomCode}", roomCode))
 			.andDo(print())
 			.andExpect(status().isForbidden())
-			.andExpect(cookie().doesNotExist(cookieProperties.getName()))
 			.andExpect(jsonPath("$.code").value(ROOM_CAPACITY_EXCEEDED.getStatus().value()))
 			.andExpect(jsonPath("$.status").value(ROOM_CAPACITY_EXCEEDED.getStatus().getReasonPhrase()))
 			.andExpect(jsonPath("$.result").value(ResponseResult.EXCEPTION_OCCURRED.getDescription()))
@@ -598,18 +558,13 @@ class RoomControllerTest extends RestDocsSupport {
 		String updateTitle = "연똥땡의 방";
 		RoomTitleChangeForm form = new RoomTitleChangeForm(roomCode, updateTitle);
 
-		Cookie sessionCookie = new Cookie(cookieProperties.getName(), "a85192c998454a1ea055");
-		given(userTrackingStorage.findByCookieValue(eq(sessionCookie.getValue())))
-			.willReturn(Optional.of(userId));
-
 		given(roomService.changeRoomTitle(eq(userId), eq(roomCode), eq(updateTitle)))
 			.willReturn(new UpdatedRoomTitle(roomCode, updateTitle));
 
 		// when // then
 		mockMvc.perform(patch("/rooms/title")
 				.content(objectMapper.writeValueAsString(form))
-				.contentType(MediaType.APPLICATION_JSON)
-				.cookie(sessionCookie))
+				.contentType(MediaType.APPLICATION_JSON))
 			.andDo(print())
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
@@ -640,19 +595,17 @@ class RoomControllerTest extends RestDocsSupport {
 	void updateRoomTitleFailForm() throws Exception {
 		// given
 		String roomCode = "1e7050f7d7";
-		Long userId = 10L;
+		String userId = "10";
 		String updateTitle = "  ";
 		RoomTitleChangeForm form = new RoomTitleChangeForm(roomCode, updateTitle);
 
-		Cookie sessionCookie = new Cookie(cookieProperties.getName(), "a85192c998454a1ea055");
-		given(userTrackingStorage.findByCookieValue(eq(sessionCookie.getValue())))
-			.willReturn(Optional.of(userId));
+		given(userTrackingStorage.exists(eq(userId)))
+			.willReturn(false);
 
 		// when // then
 		mockMvc.perform(patch("/rooms/title")
 				.content(objectMapper.writeValueAsString(form))
-				.contentType(MediaType.APPLICATION_JSON)
-				.cookie(sessionCookie))
+				.contentType(MediaType.APPLICATION_JSON))
 			.andDo(print())
 			.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
