@@ -1,28 +1,27 @@
 package site.youtogether.util.resolver;
 
-import java.util.stream.Stream;
-
 import org.springframework.core.MethodParameter;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
-import jakarta.servlet.http.Cookie;
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import site.youtogether.config.property.CookieProperties;
-import site.youtogether.exception.cookie.CookieInvalidException;
-import site.youtogether.exception.cookie.CookieNoExistenceException;
+import site.youtogether.exception.jwt.InvalidTokenException;
+import site.youtogether.jwt.JwtService;
 import site.youtogether.user.infrastructure.UserTrackingStorage;
+import site.youtogether.util.AppConstants;
 
 @Component
 @RequiredArgsConstructor
 public class UserTrackingArgumentResolver implements HandlerMethodArgumentResolver {
 
-	private final CookieProperties cookieProperties;
 	private final UserTrackingStorage userTrackingStorage;
+	private final JwtService jwtService;
 
 	@Override
 	public boolean supportsParameter(MethodParameter parameter) {
@@ -38,15 +37,14 @@ public class UserTrackingArgumentResolver implements HandlerMethodArgumentResolv
 		HttpServletRequest request = webRequest.getNativeRequest(HttpServletRequest.class);
 
 		assert request != null;
-		Stream<Cookie> cookieStream = request.getCookies() == null ? Stream.empty() : Stream.of(request.getCookies());
-		String cookieValue = cookieStream
-			.filter(cookie -> cookie.getName().equals(cookieProperties.getName()))
-			.map(cookie -> cookie.getValue())
-			.findAny()
-			.orElseThrow(CookieNoExistenceException::new);
+		Claims claims = jwtService.parse(request.getHeader(HttpHeaders.AUTHORIZATION));
+		Long userId = (Long)claims.get(AppConstants.USER_ID);
 
-		return userTrackingStorage.findByCookieValue(cookieValue)
-			.orElseThrow(CookieInvalidException::new);
+		if (!userTrackingStorage.exists(userId)) {
+			throw new InvalidTokenException();
+		}
+
+		return userId;
 	}
 
 }

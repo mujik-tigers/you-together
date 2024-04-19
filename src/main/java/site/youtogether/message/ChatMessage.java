@@ -1,5 +1,7 @@
 package site.youtogether.message;
 
+import java.time.LocalDateTime;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,5 +17,6 @@ public class ChatMessage {
 	private Long userId;
 	private String nickname;
 	private String content;
+	private final LocalDateTime createdAt = LocalDateTime.now();
 
 }

@@ -49,7 +49,7 @@ public class MessageEventListener {
 		User user = roomService.findParticipant(roomCode, userId);
 		String cookieValue = (String)headerAccessor.getSessionAttributes().get(SESSION_COOKIE);
 
-		roomService.leave(roomCode, userId, cookieValue);
+		roomService.leave(roomCode, userId);
 		messageService.sendParticipantsInfo(roomCode);
 		messageService.sendChat(new ChatMessage(roomCode, null, "[알림]", user.getNickname() + "님이 퇴장하셨습니다."));
 	}
