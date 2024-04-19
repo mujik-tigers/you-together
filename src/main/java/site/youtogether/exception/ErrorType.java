@@ -7,9 +7,9 @@ import lombok.Getter;
 @Getter
 public enum ErrorType {
 
-	// Cookie
-	COOKIE_NO_EXISTENCE(HttpStatus.UNAUTHORIZED, "세션 쿠키가 없습니다"),
-	COOKIE_INVALID(HttpStatus.BAD_REQUEST, "입력으로 들어온 세션 쿠키값과 대응되는 유저 아이디가 없습니다"),
+	// Jwt
+	AUTHORIZATION_HEADER_NO_EXISTENCE(HttpStatus.UNAUTHORIZED, "인증 헤더가 없습니다"),
+	INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다"),
 
 	// User
 	USER_NO_EXISTENCE(HttpStatus.NOT_FOUND, "유저가 존재하지 않습니다"),

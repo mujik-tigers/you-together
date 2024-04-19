@@ -46,15 +46,14 @@ class RoomServiceTest extends IntegrationTestSupport {
 	@AfterEach
 	void clean() {
 		roomStorage.deleteAll();
-
-		redisTemplate.delete(redisTemplate.keys(USER_TRACKING_KEY_PREFIX + "*"));
+		redisTemplate.delete(USER_TRACKING_GROUP);
 	}
 
 	@Test
 	@DisplayName("새로운 방과 해당 방의 HOST를 생성할 수 있다")
 	void createSuccess() {
 		// given
-		String cookieValue = "7644a835e52e45dfa385";
+		Long userId = 2L;
 		RoomSettings roomSettings = RoomSettings.builder()
 			.capacity(10)
 			.title("재밌는 쇼츠 같이 보기")
@@ -62,11 +61,10 @@ class RoomServiceTest extends IntegrationTestSupport {
 			.build();
 
 		// when
-		RoomDetail createdRoomDetail = roomService.create(cookieValue, roomSettings, LocalDateTime.now());
+		RoomDetail createdRoomDetail = roomService.create(userId, roomSettings, LocalDateTime.now());
 
 		// then
 		Room room = roomStorage.findById(createdRoomDetail.getRoomCode()).get();
-		Long userId = userTrackingStorage.findByCookieValue(cookieValue).get();
 		User user = room.findParticipantBy(userId);
 
 		assertThat(createdRoomDetail.getRoomCode()).hasSize(ROOM_CODE_LENGTH);
@@ -78,7 +76,7 @@ class RoomServiceTest extends IntegrationTestSupport {
 		assertThat(user.getUserId()).isEqualTo(userId);
 		assertThat(user.getNickname()).isNotBlank();
 		assertThat(user.getRole()).isEqualTo(Role.HOST);
-		assertThat(userTrackingStorage.exists(cookieValue)).isTrue();
+		assertThat(userTrackingStorage.exists(userId)).isTrue();
 	}
 
 	@Test
@@ -122,14 +120,14 @@ class RoomServiceTest extends IntegrationTestSupport {
 	@DisplayName("방에 입장 한다")
 	void enterRoom() throws Exception {
 		// given
+		Long userId = 2L;
 		Room room = createRoom(LocalDateTime.of(2024, 4, 10, 11, 37, 0), "연똥땡의 방");
 		String cookieValue = "adljfkalskdfj";
 
 		// when
-		roomService.enter(cookieValue, room.getCode(), null);
+		roomService.enter(userId, room.getCode(), null);
 
 		// then
-		Long userId = userTrackingStorage.findByCookieValue(cookieValue).get();
 		Room savedRoom = roomStorage.findById(room.getCode()).get();
 
 		assertThat(savedRoom.getParticipants()).containsKey(userId);
@@ -139,15 +137,15 @@ class RoomServiceTest extends IntegrationTestSupport {
 	@DisplayName("비밀번호가 있는 방에 입장한다")
 	void enterPasswordRoom() throws Exception {
 		// given
+		Long userId = 2L;
 		String password = "myLittleCat";
 		String cookieValue = "fd98lls01adafg";
 		Room room = createPasswordRoom(LocalDateTime.of(2024, 4, 10, 11, 37, 0), "황똥땡의 방", password);
 
 		// when
-		roomService.enter(cookieValue, room.getCode(), password);
+		roomService.enter(userId, room.getCode(), password);
 
 		// then
-		Long userId = userTrackingStorage.findByCookieValue(cookieValue).get();
 		Room savedRoom = roomStorage.findById(room.getCode()).get();
 
 		assertThat(savedRoom.getParticipants()).containsKey(userId);
@@ -159,12 +157,13 @@ class RoomServiceTest extends IntegrationTestSupport {
 	@DisplayName("입력한 비밀번호가 없거나 일치하지 않으면 방에 입장할 수 없다")
 	void enterPasswordRoomFail(String passwordInput) throws Exception {
 		// given
+		Long userId = 2L;
 		String password = "myLittleCat";
 		String cookieValue = "fd98lls01adafg";
 		Room room = createPasswordRoom(LocalDateTime.of(2024, 4, 10, 11, 37, 0), "황똥땡의 방", password);
 
 		// when // then
-		assertThatThrownBy(() -> roomService.enter(cookieValue, room.getCode(), passwordInput))
+		assertThatThrownBy(() -> roomService.enter(userId, room.getCode(), passwordInput))
 			.isInstanceOf(PasswordNotMatchException.class);
 	}
 
@@ -172,12 +171,13 @@ class RoomServiceTest extends IntegrationTestSupport {
 	@DisplayName("인원이 꽉 찬 방은 입장할 수 없다")
 	void enterFullRoomFail() throws Exception {
 		// given
+		Long userId = 2L;
 		int capacity = 1;
 		String cookieValue = "fd98lls01adafg";
 		Room room = createRoom(LocalDateTime.of(2024, 4, 10, 11, 37, 0), "황똥땡의 방", capacity);
 
 		// when // then
-		assertThatThrownBy(() -> roomService.enter(cookieValue, room.getCode(), null))
+		assertThatThrownBy(() -> roomService.enter(userId, room.getCode(), null))
 			.isInstanceOf(RoomCapacityExceededException.class);
 	}
 
@@ -195,7 +195,7 @@ class RoomServiceTest extends IntegrationTestSupport {
 		roomStorage.save(room);
 
 		// when
-		roomService.leave(room.getCode(), user.getUserId(), "daflksdfjl");
+		roomService.leave(room.getCode(), user.getUserId());
 
 		// then
 		Room savedRoom = roomStorage.findById(room.getCode()).get();
@@ -210,7 +210,7 @@ class RoomServiceTest extends IntegrationTestSupport {
 		roomStorage.save(room);
 
 		// when
-		roomService.leave(room.getCode(), HOST_ID, "sdfalkjasdlkfjla");
+		roomService.leave(room.getCode(), HOST_ID);
 
 		// then
 		assertThat(roomStorage.existsById(room.getCode())).isFalse();

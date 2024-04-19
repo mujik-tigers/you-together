@@ -29,8 +29,8 @@ public class RoomService {
 	private final UserTrackingStorage userTrackingStorage;
 	private final MessageService messageService;
 
-	public RoomDetail create(String cookieValue, RoomSettings roomSettings, LocalDateTime now) {
-		Long userId = userTrackingStorage.save(cookieValue);
+	public RoomDetail create(Long userId, RoomSettings roomSettings, LocalDateTime now) {
+		userTrackingStorage.save(userId);
 
 		User host = User.builder()
 			.userId(userId)
@@ -55,9 +55,7 @@ public class RoomService {
 		return new RoomList(roomSlice);
 	}
 
-	public RoomDetail enter(String cookieValue, String roomCode, String passwordInput) {
-		Long userId = userTrackingStorage.save(cookieValue);        // TODO: 트랜잭션 안되서, enter 실패 시, userTrackingStorage 에 실패한 데이터가 쌓임.
-
+	public RoomDetail enter(Long userId, String roomCode, String passwordInput) {
 		User user = User.builder()
 			.userId(userId)
 			.nickname(RandomUtil.generateUserNickname())
@@ -69,15 +67,16 @@ public class RoomService {
 
 		room.enterParticipant(user, passwordInput);
 		roomStorage.save(room);
+		userTrackingStorage.save(userId);    // TODO: 트랜잭션 안되서, enter 실패 시, userTrackingStorage 에 실패한 데이터가 쌓임.
 
 		return new RoomDetail(room, user);
 	}
 
-	public void leave(String roomCode, Long userId, String cookieValue) {
+	public void leave(String roomCode, Long userId) {
 		Room room = roomStorage.findById(roomCode)
 			.orElseThrow(RoomNoExistenceException::new);
 
-		userTrackingStorage.delete(cookieValue);
+		userTrackingStorage.delete(userId);
 
 		try {
 			room.leaveParticipant(userId);
