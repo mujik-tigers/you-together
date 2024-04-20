@@ -12,7 +12,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 
-import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,11 +36,11 @@ public class StompHandshakeInterceptor implements HandshakeInterceptor {
 		ServletServerHttpRequest req = (ServletServerHttpRequest)request;
 		HttpServletRequest servletRequest = req.getServletRequest();
 
-		Claims claims = jwtService.parse(servletRequest.getParameter(HttpHeaders.AUTHORIZATION));
-		if (!userTrackingStorage.exists((Long)claims.get(USER_ID))) {
+		Long userId = jwtService.parse(servletRequest.getParameter(HttpHeaders.AUTHORIZATION));
+		if (!userTrackingStorage.exists(userId)) {
 			throw new InvalidTokenException();
 		}
-		attributes.put(USER_ID, Long.parseLong(claims.getId()));
+		attributes.put(USER_ID, userId);
 
 		return true;
 	}

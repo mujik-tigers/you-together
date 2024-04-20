@@ -27,8 +27,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
 import site.youtogether.RestDocsSupport;
 import site.youtogether.exception.room.PasswordNotMatchException;
 import site.youtogether.exception.room.RoomCapacityExceededException;
@@ -231,10 +229,8 @@ class RoomControllerTest extends RestDocsSupport {
 		RoomSettings roomSettings = RoomSettings.builder().capacity(10).title("재밌는 쇼츠 같이 보기").password(null).build();
 		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 
-		Claims claims = Jwts.claims();
-		claims.put(USER_ID, 1L);
 		given(jwtService.parse(anyString()))
-			.willReturn(claims);
+			.willReturn(1L);
 
 		given(userTrackingStorage.exists(anyLong())).willReturn(true);
 
@@ -382,10 +378,8 @@ class RoomControllerTest extends RestDocsSupport {
 		String roomCode = "1e7050f7d7";
 		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 
-		Claims claims = Jwts.claims();
-		claims.put(USER_ID, 1L);
 		given(jwtService.parse(anyString()))
-			.willReturn(claims);
+			.willReturn(1L);
 
 		given(userTrackingStorage.exists(anyLong()))
 			.willReturn(true);
@@ -601,10 +595,8 @@ class RoomControllerTest extends RestDocsSupport {
 		given(roomService.changeRoomTitle(eq(userId), eq(roomCode), eq(updateTitle)))
 			.willReturn(new UpdatedRoomTitle(roomCode, updateTitle));
 
-		Claims claims = Jwts.claims();
-		claims.put(USER_ID, userId);
 		given(jwtService.parse(anyString()))
-			.willReturn(claims);
+			.willReturn(userId);
 
 		given(userTrackingStorage.exists(anyLong()))
 			.willReturn(true);
@@ -649,10 +641,8 @@ class RoomControllerTest extends RestDocsSupport {
 		String updateTitle = "  ";
 		RoomTitleChangeForm form = new RoomTitleChangeForm(roomCode, updateTitle);
 
-		Claims claims = Jwts.claims();
-		claims.put(USER_ID, userId);
 		given(jwtService.parse(anyString()))
-			.willReturn(claims);
+			.willReturn(1L);
 
 		given(userTrackingStorage.exists(anyLong()))
 			.willReturn(true);
@@ -701,11 +691,9 @@ class RoomControllerTest extends RestDocsSupport {
 		given(roomService.changeRoomTitle(eq(userId), eq(roomCode), eq(updateTitle)))
 			.willThrow(new ChangeRoomTitleDeniedException());
 
-		Claims claims = Jwts.claims();
-		claims.put(USER_ID, userId);
 		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 		given(jwtService.parse(anyString()))
-			.willReturn(claims);
+			.willReturn(userId);
 		given(userTrackingStorage.exists(anyLong()))
 			.willReturn(true);
 

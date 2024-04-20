@@ -16,8 +16,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
 import site.youtogether.RestDocsSupport;
 import site.youtogether.exception.ErrorType;
 import site.youtogether.exception.user.HigherOrEqualRoleChangeException;
@@ -45,11 +43,8 @@ class UserControllerTest extends RestDocsSupport {
 		given(userService.updateUserNickname(eq(userId), eq(updateNickname), eq(roomCode)))
 			.willReturn(userInfo);
 
-		Claims claims = Jwts.claims();
-		claims.put(USER_ID, userId);
-
 		given(jwtService.parse(anyString()))
-			.willReturn(claims);
+			.willReturn(1L);
 		given(userTrackingStorage.exists(anyLong()))
 			.willReturn(true);
 
@@ -99,11 +94,8 @@ class UserControllerTest extends RestDocsSupport {
 		given(userService.updateUserNickname(eq(userId), eq(updateNickname), eq(roomCode)))
 			.willReturn(userInfo);
 
-		Claims claims = Jwts.claims();
-		claims.put(USER_ID, userId);
-
 		given(jwtService.parse(anyString()))
-			.willReturn(claims);
+			.willReturn(1L);
 		given(userTrackingStorage.exists(anyLong()))
 			.willReturn(true);
 
@@ -150,11 +142,8 @@ class UserControllerTest extends RestDocsSupport {
 		given(userService.changeUserRole(eq(hostId), any(UserRoleChangeForm.class)))
 			.willReturn(userInfo);
 
-		Claims claims = Jwts.claims();
-		claims.put(USER_ID, hostId);
-
 		given(jwtService.parse(anyString()))
-			.willReturn(claims);
+			.willReturn(1L);
 		given(userTrackingStorage.exists(anyLong()))
 			.willReturn(true);
 
@@ -202,11 +191,8 @@ class UserControllerTest extends RestDocsSupport {
 		given(userService.changeUserRole(eq(hostId), any(UserRoleChangeForm.class)))
 			.willThrow(new SelfRoleChangeException());
 
-		Claims claims = Jwts.claims();
-		claims.put(USER_ID, hostId);
-
 		given(jwtService.parse(anyString()))
-			.willReturn(claims);
+			.willReturn(1L);
 		given(userTrackingStorage.exists(anyLong()))
 			.willReturn(true);
 
@@ -255,11 +241,8 @@ class UserControllerTest extends RestDocsSupport {
 		given(userService.changeUserRole(eq(userId), any(UserRoleChangeForm.class)))
 			.willThrow(new HigherOrEqualRoleUserChangeException());
 
-		Claims claims = Jwts.claims();
-		claims.put(USER_ID, userId);
-
 		given(jwtService.parse(anyString()))
-			.willReturn(claims);
+			.willReturn(1L);
 		given(userTrackingStorage.exists(anyLong()))
 			.willReturn(true);
 
@@ -308,11 +291,8 @@ class UserControllerTest extends RestDocsSupport {
 		given(userService.changeUserRole(eq(userId), any(UserRoleChangeForm.class)))
 			.willThrow(new HigherOrEqualRoleChangeException());
 
-		Claims claims = Jwts.claims();
-		claims.put(USER_ID, userId);
-
 		given(jwtService.parse(anyString()))
-			.willReturn(claims);
+			.willReturn(1L);
 		given(userTrackingStorage.exists(anyLong()))
 			.willReturn(true);
 
@@ -361,11 +341,8 @@ class UserControllerTest extends RestDocsSupport {
 		given(userService.changeUserRole(eq(userId), any(UserRoleChangeForm.class)))
 			.willThrow(new NotManageableUserException());
 
-		Claims claims = Jwts.claims();
-		claims.put(USER_ID, userId);
-
 		given(jwtService.parse(anyString()))
-			.willReturn(claims);
+			.willReturn(1L);
 		given(userTrackingStorage.exists(anyLong()))
 			.willReturn(true);
 

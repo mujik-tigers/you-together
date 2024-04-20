@@ -35,19 +35,21 @@ public class JwtService {
 			.setIssuer(jwtProperties.getIssuer())
 			.setIssuedAt(now)
 			.setExpiration(expiredAt)
-			.claim("userId", userId)
+			.claim(USER_ID, userId)
 			.signWith(SignatureAlgorithm.HS256, jwtProperties.getSecretKey())
 			.compact();
 	}
 
-	public Claims parse(String authorizationHeader) {
+	public Long parse(String authorizationHeader) {
 		validationAuthorizationHeader(authorizationHeader);
 		String token = extract(authorizationHeader);
 		try {
-			return Jwts.parser()
+			Claims claims = Jwts.parser()
 				.setSigningKey(jwtProperties.getSecretKey())
 				.parseClaimsJws(token)
 				.getBody();
+
+			return claims.get(USER_ID, Long.class);
 		} catch (ExpiredJwtException e) {
 			throw new IllegalArgumentException("토큰 시간 만료");
 		} catch (UnsupportedJwtException | MalformedJwtException e) {
