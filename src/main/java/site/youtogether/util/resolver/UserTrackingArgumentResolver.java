@@ -8,13 +8,11 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
-import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import site.youtogether.exception.jwt.InvalidTokenException;
 import site.youtogether.jwt.JwtService;
 import site.youtogether.user.infrastructure.UserTrackingStorage;
-import site.youtogether.util.AppConstants;
 
 @Component
 @RequiredArgsConstructor
@@ -37,8 +35,7 @@ public class UserTrackingArgumentResolver implements HandlerMethodArgumentResolv
 		HttpServletRequest request = webRequest.getNativeRequest(HttpServletRequest.class);
 
 		assert request != null;
-		Claims claims = jwtService.parse(request.getHeader(HttpHeaders.AUTHORIZATION));
-		Long userId = (Long)claims.get(AppConstants.USER_ID);
+		Long userId = jwtService.parse(request.getHeader(HttpHeaders.AUTHORIZATION));
 
 		if (!userTrackingStorage.exists(userId)) {
 			throw new InvalidTokenException();
