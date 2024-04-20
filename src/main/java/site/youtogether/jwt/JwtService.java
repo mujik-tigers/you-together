@@ -16,14 +16,12 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.SignatureException;
 import io.jsonwebtoken.UnsupportedJwtException;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import site.youtogether.config.property.JwtProperties;
 import site.youtogether.exception.jwt.AuthorizationHeaderNoExistenceException;
 import site.youtogether.exception.jwt.InvalidTokenException;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class JwtService {
 
 	private final JwtProperties jwtProperties;
@@ -43,10 +41,8 @@ public class JwtService {
 	}
 
 	public Claims parse(String authorizationHeader) {
-		log.info("입력으로 들어온 문자열: {}", authorizationHeader);
 		validationAuthorizationHeader(authorizationHeader);
 		String token = extract(authorizationHeader);
-		log.info("추출된 들어온 문자열: {}", token);
 		try {
 			return Jwts.parser()
 				.setSigningKey(jwtProperties.getSecretKey())

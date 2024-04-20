@@ -38,7 +38,6 @@ public class StompHandshakeInterceptor implements HandshakeInterceptor {
 		HttpServletRequest servletRequest = req.getServletRequest();
 
 		Claims claims = jwtService.parse(servletRequest.getParameter(HttpHeaders.AUTHORIZATION));
-
 		if (!userTrackingStorage.exists((Long)claims.get(USER_ID))) {
 			throw new InvalidTokenException();
 		}
