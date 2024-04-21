@@ -1,9 +1,12 @@
 package site.youtogether.user;
 
+import static site.youtogether.util.AppConstants.*;
+
 import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.redis.core.TimeToLive;
 
 import com.redis.om.spring.annotations.Document;
 
@@ -28,6 +31,9 @@ public class User {
 	private String nickname;
 	private String currentRoomCode;
 	private Map<String, Role> history = new HashMap<>();
+
+	@TimeToLive
+	private final Long expirationTime = TIME_TO_LIVE;
 
 	@Builder
 	private User(Long id, String nickname, String currentRoomCode) {
@@ -58,6 +64,11 @@ public class User {
 		return role.isLowerOrEqualThan(compareRole);
 	}
 
+	private boolean hasLowerRoleThan(Role compareRole) {
+		Role role = getRoleInCurrentRoom();
+		return role.isLowerThan(compareRole);
+	}
+
 	public void changeNickname(String updateNickname) {
 		nickname = updateNickname;
 	}
@@ -79,7 +90,7 @@ public class User {
 			throw new HigherOrEqualRoleUserChangeException();
 		}
 
-		if (hasLowerOrEqualRoleThan(newUserRole)) {
+		if (hasLowerRoleThan(newUserRole)) {
 			throw new HigherOrEqualRoleChangeException();
 		}
 

@@ -1,10 +1,13 @@
 package site.youtogether.room;
 
+import static site.youtogether.util.AppConstants.*;
+
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.redis.core.TimeToLive;
 
 import com.redis.om.spring.annotations.Document;
 import com.redis.om.spring.annotations.Indexed;
@@ -37,6 +40,9 @@ public class Room {
 	private int capacity;
 	private String password;
 	private Map<Long, Participant> participants = new HashMap<>(10);
+
+	@TimeToLive
+	private final Long expirationTime = TIME_TO_LIVE;
 
 	@Builder
 	private Room(String code, String title, int capacity, String password, LocalDateTime createdAt, User host) {
