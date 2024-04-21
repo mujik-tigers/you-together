@@ -7,15 +7,14 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static site.youtogether.util.AppConstants.*;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
 
+import jakarta.servlet.http.Cookie;
 import site.youtogether.RestDocsSupport;
 import site.youtogether.exception.ErrorType;
 import site.youtogether.exception.user.HigherOrEqualRoleChangeException;
@@ -37,23 +36,26 @@ class UserControllerTest extends RestDocsSupport {
 		String updateNickname = "내가 바로 진짜 황똥땡";
 		String roomCode = "c98780fe33";
 		Long userId = 1L;
+		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
+
+		Cookie sessionCookie = new Cookie(cookieProperties.getName(), token);
 		UpdateUserForm form = new UpdateUserForm(roomCode, updateNickname);
 		UserInfo userInfo = new UserInfo(userId, updateNickname, Role.GUEST);
+
+		given(jwtService.isValidToken(eq(token)))
+			.willReturn(true);
+
+		given(jwtService.parse(eq(token)))
+			.willReturn(userId);
 
 		given(userService.updateUserNickname(eq(userId), eq(updateNickname), eq(roomCode)))
 			.willReturn(userInfo);
 
-		given(jwtService.parse(anyString()))
-			.willReturn(1L);
-		given(userTrackingStorage.exists(anyLong()))
-			.willReturn(true);
-
 		// when // then
-		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 		mockMvc.perform(patch("/users")
 				.content(objectMapper.writeValueAsString(form))
 				.contentType(MediaType.APPLICATION_JSON)
-				.header(HttpHeaders.AUTHORIZATION, BEARER + token))
+				.cookie(sessionCookie))
 			.andDo(print())
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
@@ -88,23 +90,26 @@ class UserControllerTest extends RestDocsSupport {
 		String updateNickname = "";
 		String roomCode = "c98780fe33";
 		Long userId = 1L;
+		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
+
+		Cookie sessionCookie = new Cookie(cookieProperties.getName(), token);
 		UpdateUserForm form = new UpdateUserForm(roomCode, updateNickname);
 		UserInfo userInfo = new UserInfo(userId, updateNickname, Role.GUEST);
+
+		given(jwtService.isValidToken(eq(token)))
+			.willReturn(true);
+
+		given(jwtService.parse(eq(token)))
+			.willReturn(userId);
 
 		given(userService.updateUserNickname(eq(userId), eq(updateNickname), eq(roomCode)))
 			.willReturn(userInfo);
 
-		given(jwtService.parse(anyString()))
-			.willReturn(1L);
-		given(userTrackingStorage.exists(anyLong()))
-			.willReturn(true);
-
 		// when // then
-		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 		mockMvc.perform(patch("/users")
 				.content(objectMapper.writeValueAsString(form))
 				.contentType(MediaType.APPLICATION_JSON)
-				.header(HttpHeaders.AUTHORIZATION, BEARER + token))
+				.cookie(sessionCookie))
 			.andDo(print())
 			.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
@@ -136,23 +141,26 @@ class UserControllerTest extends RestDocsSupport {
 		Long hostId = 1L;
 		Long changedUserId = 2L;
 		String roomCode = "fad14a7434";
+		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
+
+		Cookie sessionCookie = new Cookie(cookieProperties.getName(), token);
 		UserRoleChangeForm userRoleChangeForm = new UserRoleChangeForm(roomCode, changedUserId, Role.VIEWER);
 		UserInfo userInfo = new UserInfo(changedUserId, "연츠비", userRoleChangeForm.getChangeUserRole());
+
+		given(jwtService.isValidToken(eq(token)))
+			.willReturn(true);
+
+		given(jwtService.parse(eq(token)))
+			.willReturn(hostId);
 
 		given(userService.changeUserRole(eq(hostId), any(UserRoleChangeForm.class)))
 			.willReturn(userInfo);
 
-		given(jwtService.parse(anyString()))
-			.willReturn(1L);
-		given(userTrackingStorage.exists(anyLong()))
-			.willReturn(true);
-
 		// when // then
-		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 		mockMvc.perform(patch("/users/role")
 				.content(objectMapper.writeValueAsString(userRoleChangeForm))
 				.contentType(MediaType.APPLICATION_JSON)
-				.header(HttpHeaders.AUTHORIZATION, BEARER + token))
+				.cookie(sessionCookie))
 			.andDo(print())
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
@@ -186,22 +194,25 @@ class UserControllerTest extends RestDocsSupport {
 		// given
 		Long hostId = 1L;
 		String roomCode = "fad14a7434";
+		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
+
+		Cookie sessionCookie = new Cookie(cookieProperties.getName(), token);
 		UserRoleChangeForm userRoleChangeForm = new UserRoleChangeForm(roomCode, hostId, Role.VIEWER);
+
+		given(jwtService.isValidToken(eq(token)))
+			.willReturn(true);
+
+		given(jwtService.parse(eq(token)))
+			.willReturn(hostId);
 
 		given(userService.changeUserRole(eq(hostId), any(UserRoleChangeForm.class)))
 			.willThrow(new SelfRoleChangeException());
 
-		given(jwtService.parse(anyString()))
-			.willReturn(1L);
-		given(userTrackingStorage.exists(anyLong()))
-			.willReturn(true);
-
 		// when // then
-		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 		mockMvc.perform(patch("/users/role")
 				.content(objectMapper.writeValueAsString(userRoleChangeForm))
 				.contentType(MediaType.APPLICATION_JSON)
-				.header(HttpHeaders.AUTHORIZATION, BEARER + token))
+				.cookie(sessionCookie))
 			.andDo(print())
 			.andExpect(status().isForbidden())
 			.andExpect(jsonPath("$.code").value(HttpStatus.FORBIDDEN.value()))
@@ -236,22 +247,25 @@ class UserControllerTest extends RestDocsSupport {
 		Long userId = 1L;
 		Long changedUserId = 2L;
 		String roomCode = "fad14a7434";
+		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
+
+		Cookie sessionCookie = new Cookie(cookieProperties.getName(), token);
 		UserRoleChangeForm userRoleChangeForm = new UserRoleChangeForm(roomCode, changedUserId, Role.VIEWER);
+
+		given(jwtService.isValidToken(eq(token)))
+			.willReturn(true);
+
+		given(jwtService.parse(eq(token)))
+			.willReturn(userId);
 
 		given(userService.changeUserRole(eq(userId), any(UserRoleChangeForm.class)))
 			.willThrow(new HigherOrEqualRoleUserChangeException());
 
-		given(jwtService.parse(anyString()))
-			.willReturn(1L);
-		given(userTrackingStorage.exists(anyLong()))
-			.willReturn(true);
-
 		// when // then
-		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 		mockMvc.perform(patch("/users/role")
 				.content(objectMapper.writeValueAsString(userRoleChangeForm))
 				.contentType(MediaType.APPLICATION_JSON)
-				.header(HttpHeaders.AUTHORIZATION, BEARER + token))
+				.cookie(sessionCookie))
 			.andDo(print())
 			.andExpect(status().isForbidden())
 			.andExpect(jsonPath("$.code").value(HttpStatus.FORBIDDEN.value()))
@@ -286,22 +300,25 @@ class UserControllerTest extends RestDocsSupport {
 		Long userId = 1L;
 		Long changedUserId = 2L;
 		String roomCode = "fad14a7434";
+		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
+
+		Cookie sessionCookie = new Cookie(cookieProperties.getName(), token);
 		UserRoleChangeForm userRoleChangeForm = new UserRoleChangeForm(roomCode, changedUserId, Role.VIEWER);
+
+		given(jwtService.isValidToken(eq(token)))
+			.willReturn(true);
+
+		given(jwtService.parse(eq(token)))
+			.willReturn(userId);
 
 		given(userService.changeUserRole(eq(userId), any(UserRoleChangeForm.class)))
 			.willThrow(new HigherOrEqualRoleChangeException());
 
-		given(jwtService.parse(anyString()))
-			.willReturn(1L);
-		given(userTrackingStorage.exists(anyLong()))
-			.willReturn(true);
-
 		// when // then
-		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 		mockMvc.perform(patch("/users/role")
 				.content(objectMapper.writeValueAsString(userRoleChangeForm))
 				.contentType(MediaType.APPLICATION_JSON)
-				.header(HttpHeaders.AUTHORIZATION, BEARER + token))
+				.cookie(sessionCookie))
 			.andDo(print())
 			.andExpect(status().isForbidden())
 			.andExpect(jsonPath("$.code").value(HttpStatus.FORBIDDEN.value()))
@@ -336,22 +353,25 @@ class UserControllerTest extends RestDocsSupport {
 		Long userId = 1L;
 		Long changedUserId = 2L;
 		String roomCode = "fad14a7434";
+		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
+
+		Cookie sessionCookie = new Cookie(cookieProperties.getName(), token);
 		UserRoleChangeForm userRoleChangeForm = new UserRoleChangeForm(roomCode, changedUserId, Role.VIEWER);
+
+		given(jwtService.isValidToken(eq(token)))
+			.willReturn(true);
+
+		given(jwtService.parse(eq(token)))
+			.willReturn(userId);
 
 		given(userService.changeUserRole(eq(userId), any(UserRoleChangeForm.class)))
 			.willThrow(new NotManageableUserException());
 
-		given(jwtService.parse(anyString()))
-			.willReturn(1L);
-		given(userTrackingStorage.exists(anyLong()))
-			.willReturn(true);
-
 		// when // then
-		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 		mockMvc.perform(patch("/users/role")
 				.content(objectMapper.writeValueAsString(userRoleChangeForm))
 				.contentType(MediaType.APPLICATION_JSON)
-				.header(HttpHeaders.AUTHORIZATION, BEARER + token))
+				.cookie(sessionCookie))
 			.andDo(print())
 			.andExpect(status().isForbidden())
 			.andExpect(jsonPath("$.code").value(HttpStatus.FORBIDDEN.value()))

@@ -1,5 +1,7 @@
 package site.youtogether.room.application;
 
+import static site.youtogether.util.AppConstants.*;
+
 import java.time.LocalDateTime;
 
 import org.springframework.data.domain.Pageable;
@@ -7,8 +9,8 @@ import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
-import site.youtogether.exception.room.RoomEmptyException;
 import site.youtogether.exception.room.RoomNoExistenceException;
+import site.youtogether.exception.user.UserNoExistenceException;
 import site.youtogether.message.application.MessageService;
 import site.youtogether.room.Room;
 import site.youtogether.room.dto.RoomDetail;
@@ -18,7 +20,7 @@ import site.youtogether.room.dto.UpdatedRoomTitle;
 import site.youtogether.room.infrastructure.RoomStorage;
 import site.youtogether.user.Role;
 import site.youtogether.user.User;
-import site.youtogether.user.infrastructure.UserTrackingStorage;
+import site.youtogether.user.infrastructure.UserStorage;
 import site.youtogether.util.RandomUtil;
 
 @Service
@@ -26,27 +28,28 @@ import site.youtogether.util.RandomUtil;
 public class RoomService {
 
 	private final RoomStorage roomStorage;
-	private final UserTrackingStorage userTrackingStorage;
+	private final UserStorage userStorage;
 	private final MessageService messageService;
 
 	public RoomDetail create(Long userId, RoomSettings roomSettings, LocalDateTime now) {
-		userTrackingStorage.save(userId);
+		String roomCode = RandomUtil.generateRandomCode(ROOM_CODE_LENGTH);
 
-		User host = User.builder()
-			.userId(userId)
-			.nickname(RandomUtil.generateUserNickname())
-			.role(Role.HOST)
-			.build();
+		User host = userStorage.findById(userId)
+			.orElseThrow(UserNoExistenceException::new);
+		host.changeRole(Role.HOST);
+		host.enterRoom(roomCode);
+		userStorage.save(host);
 
 		Room room = Room.builder()
+			.code(roomCode)
 			.capacity(roomSettings.getCapacity())
 			.title(roomSettings.getTitle())
 			.password(roomSettings.getPassword())
 			.createdAt(now)
 			.host(host)
 			.build();
-
 		roomStorage.save(room);
+
 		return new RoomDetail(room, host);
 	}
 
@@ -56,34 +59,34 @@ public class RoomService {
 	}
 
 	public RoomDetail enter(Long userId, String roomCode, String passwordInput) {
-		User user = User.builder()
-			.userId(userId)
-			.nickname(RandomUtil.generateUserNickname())
-			.role(Role.GUEST)
-			.build();
+		User user = userStorage.findById(userId)
+			.orElseThrow(UserNoExistenceException::new);
+
+		if (user.isFirstTimeEntering(roomCode)) {
+			user.changeRole(Role.GUEST);
+		}
+
+		user.enterRoom(roomCode);
+		userStorage.save(user);
 
 		Room room = roomStorage.findById(roomCode)
 			.orElseThrow(RoomNoExistenceException::new);
 
 		room.enterParticipant(user, passwordInput);
 		roomStorage.save(room);
-		userTrackingStorage.save(userId);    // TODO: 트랜잭션 안되서, enter 실패 시, userTrackingStorage 에 실패한 데이터가 쌓임.
 
 		return new RoomDetail(room, user);
 	}
 
 	public void leave(String roomCode, Long userId) {
+		User user = userStorage.findById(userId)
+			.orElseThrow(UserNoExistenceException::new);
+		user.leaveRoom();
+		userStorage.save(user);
+
 		Room room = roomStorage.findById(roomCode)
 			.orElseThrow(RoomNoExistenceException::new);
-
-		userTrackingStorage.delete(userId);
-
-		try {
-			room.leaveParticipant(userId);
-		} catch (RoomEmptyException e) {
-			roomStorage.deleteById(roomCode);
-			return;
-		}
+		room.leaveParticipant(userId);
 		roomStorage.save(room);
 	}
 

@@ -1,7 +1,5 @@
 package site.youtogether.room;
 
-import static site.youtogether.util.AppConstants.*;
-
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -25,7 +23,6 @@ import site.youtogether.exception.user.ChangeRoomTitleDeniedException;
 import site.youtogether.exception.user.UserNoExistenceException;
 import site.youtogether.user.Role;
 import site.youtogether.user.User;
-import site.youtogether.util.RandomUtil;
 
 @Document(value = "room")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -46,23 +43,26 @@ public class Room {
 	private Map<Long, User> participants = new HashMap<>(10);
 
 	@Builder
-	private Room(String title, int capacity, String password, LocalDateTime createdAt, User host) {
-		this.code = RandomUtil.generateRandomCode(ROOM_CODE_LENGTH);
+	private Room(String code, String title, int capacity, String password, LocalDateTime createdAt, User host) {
+		this.code = code;
 		this.title = title;
 		this.capacity = capacity;
 		this.createdAt = createdAt;
 		this.password = password;
 
-		participants.put(host.getUserId(), host);
-	}
-
-	public User findParticipantBy(Long userId) {
-		return Optional.ofNullable(participants.get(userId))
-			.orElseThrow(UserNoExistenceException::new);
+		participants.put(host.getId(), host);
 	}
 
 	public boolean hasPassword() {
 		return password != null;
+	}
+
+	public void changeRoomTitle(Long userId, String updateTitle) {
+		User user = findParticipantBy(userId);
+		if (!user.isHost()) {
+			throw new ChangeRoomTitleDeniedException();
+		}
+		title = updateTitle;
 	}
 
 	public void enterParticipant(User user, String passwordInput) {
@@ -75,7 +75,7 @@ public class Room {
 			throw new RoomCapacityExceededException();
 		}
 
-		participants.put(user.getUserId(), user);
+		participants.put(user.getId(), user);
 	}
 
 	public void leaveParticipant(Long userId) {
@@ -84,7 +84,7 @@ public class Room {
 			User delegatedUser = participants.values().stream()
 				.filter(u -> !u.isHost())
 				.sorted(Comparator.comparing(User::getPriority)
-					.thenComparing(User::getUserId))
+					.thenComparing(User::getId))
 				.findFirst()
 				.orElseThrow(RoomEmptyException::new);
 
@@ -94,11 +94,14 @@ public class Room {
 		participants.remove(userId);
 	}
 
-	public User changeParticipantName(Long userId, String updateNickname) {
+	public User findParticipantBy(Long userId) {
+		return Optional.ofNullable(participants.get(userId))
+			.orElseThrow(UserNoExistenceException::new);
+	}
+
+	public void changeParticipantName(Long userId, String updateNickname) {
 		User user = findParticipantBy(userId);
 		user.changeNickname(updateNickname);
-
-		return user;
 	}
 
 	public User changeParticipantRole(Long userId, Long changedUserId, Role changeRole) {
@@ -107,14 +110,6 @@ public class Room {
 		user.changeOtherUserRole(changedUser, changeRole);
 
 		return changedUser;
-	}
-
-	public void changeRoomTitle(Long userId, String updateTitle) {
-		User user = findParticipantBy(userId);
-		if (!user.isHost()) {
-			throw new ChangeRoomTitleDeniedException();
-		}
-		title = updateTitle;
 	}
 
 }

@@ -13,7 +13,6 @@ import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.redis.core.RedisTemplate;
 
 import site.youtogether.IntegrationTestSupport;
 import site.youtogether.exception.room.PasswordNotMatchException;
@@ -25,7 +24,7 @@ import site.youtogether.room.dto.RoomSettings;
 import site.youtogether.room.infrastructure.RoomStorage;
 import site.youtogether.user.Role;
 import site.youtogether.user.User;
-import site.youtogether.user.infrastructure.UserTrackingStorage;
+import site.youtogether.user.infrastructure.UserStorage;
 
 class RoomServiceTest extends IntegrationTestSupport {
 
@@ -38,34 +37,31 @@ class RoomServiceTest extends IntegrationTestSupport {
 	private RoomStorage roomStorage;
 
 	@Autowired
-	private UserTrackingStorage userTrackingStorage;
-
-	@Autowired
-	private RedisTemplate<String, Long> redisTemplate;
+	private UserStorage userStorage;
 
 	@AfterEach
 	void clean() {
 		roomStorage.deleteAll();
-		redisTemplate.delete(USER_TRACKING_GROUP);
+		userStorage.deleteAll();
 	}
 
 	@Test
 	@DisplayName("새로운 방과 해당 방의 HOST를 생성할 수 있다")
 	void createSuccess() {
 		// given
-		Long userId = 2L;
 		RoomSettings roomSettings = RoomSettings.builder()
 			.capacity(10)
 			.title("재밌는 쇼츠 같이 보기")
 			.password(null)
 			.build();
+		User user = createUser();
 
 		// when
-		RoomDetail createdRoomDetail = roomService.create(userId, roomSettings, LocalDateTime.now());
+		RoomDetail createdRoomDetail = roomService.create(user.getId(), roomSettings, LocalDateTime.now());
 
 		// then
 		Room room = roomStorage.findById(createdRoomDetail.getRoomCode()).get();
-		User user = room.findParticipantBy(userId);
+		User savedUser = userStorage.findById(user.getId()).get();
 
 		assertThat(createdRoomDetail.getRoomCode()).hasSize(ROOM_CODE_LENGTH);
 		assertThat(createdRoomDetail.getRoomCode()).isEqualTo(room.getCode());
@@ -73,10 +69,8 @@ class RoomServiceTest extends IntegrationTestSupport {
 		assertThat(room.getTitle()).isEqualTo("재밌는 쇼츠 같이 보기");
 		assertThat(room.getPassword()).isNull();
 		assertThat(room.getParticipants()).hasSize(1);
-		assertThat(user.getUserId()).isEqualTo(userId);
-		assertThat(user.getNickname()).isNotBlank();
-		assertThat(user.getRole()).isEqualTo(Role.HOST);
-		assertThat(userTrackingStorage.exists(userId)).isTrue();
+		assertThat(savedUser.getId()).isEqualTo(user.getId());
+		assertThat(savedUser.getRole()).isEqualTo(Role.HOST);
 	}
 
 	@Test
@@ -120,35 +114,39 @@ class RoomServiceTest extends IntegrationTestSupport {
 	@DisplayName("방에 입장 한다")
 	void enterRoom() throws Exception {
 		// given
-		Long userId = 2L;
 		Room room = createRoom(LocalDateTime.of(2024, 4, 10, 11, 37, 0), "연똥땡의 방");
-		String cookieValue = "adljfkalskdfj";
+		User user = createUser();
 
 		// when
-		roomService.enter(userId, room.getCode(), null);
+		roomService.enter(user.getId(), room.getCode(), null);
 
 		// then
 		Room savedRoom = roomStorage.findById(room.getCode()).get();
+		User savedUser = userStorage.findById(user.getId()).get();
 
-		assertThat(savedRoom.getParticipants()).containsKey(userId);
+		assertThat(savedUser.getId()).isEqualTo(user.getId());
+		assertThat(savedUser.getRole()).isEqualTo(Role.GUEST);
+		assertThat(savedRoom.getParticipants()).containsKey(savedUser.getId());
 	}
 
 	@Test
 	@DisplayName("비밀번호가 있는 방에 입장한다")
 	void enterPasswordRoom() throws Exception {
 		// given
-		Long userId = 2L;
 		String password = "myLittleCat";
-		String cookieValue = "fd98lls01adafg";
 		Room room = createPasswordRoom(LocalDateTime.of(2024, 4, 10, 11, 37, 0), "황똥땡의 방", password);
+		User user = createUser();
 
 		// when
-		roomService.enter(userId, room.getCode(), password);
+		roomService.enter(user.getId(), room.getCode(), password);
 
 		// then
 		Room savedRoom = roomStorage.findById(room.getCode()).get();
+		User savedUser = userStorage.findById(user.getId()).get();
 
-		assertThat(savedRoom.getParticipants()).containsKey(userId);
+		assertThat(savedUser.getId()).isEqualTo(user.getId());
+		assertThat(savedUser.getRole()).isEqualTo(Role.GUEST);
+		assertThat(savedRoom.getParticipants()).containsKey(savedUser.getId());
 	}
 
 	@ParameterizedTest
@@ -157,13 +155,12 @@ class RoomServiceTest extends IntegrationTestSupport {
 	@DisplayName("입력한 비밀번호가 없거나 일치하지 않으면 방에 입장할 수 없다")
 	void enterPasswordRoomFail(String passwordInput) throws Exception {
 		// given
-		Long userId = 2L;
 		String password = "myLittleCat";
-		String cookieValue = "fd98lls01adafg";
 		Room room = createPasswordRoom(LocalDateTime.of(2024, 4, 10, 11, 37, 0), "황똥땡의 방", password);
+		User user = createUser();
 
 		// when // then
-		assertThatThrownBy(() -> roomService.enter(userId, room.getCode(), passwordInput))
+		assertThatThrownBy(() -> roomService.enter(user.getId(), room.getCode(), passwordInput))
 			.isInstanceOf(PasswordNotMatchException.class);
 	}
 
@@ -171,13 +168,12 @@ class RoomServiceTest extends IntegrationTestSupport {
 	@DisplayName("인원이 꽉 찬 방은 입장할 수 없다")
 	void enterFullRoomFail() throws Exception {
 		// given
-		Long userId = 2L;
 		int capacity = 1;
-		String cookieValue = "fd98lls01adafg";
 		Room room = createRoom(LocalDateTime.of(2024, 4, 10, 11, 37, 0), "황똥땡의 방", capacity);
+		User user = createUser();
 
 		// when // then
-		assertThatThrownBy(() -> roomService.enter(userId, room.getCode(), null))
+		assertThatThrownBy(() -> roomService.enter(user.getId(), room.getCode(), null))
 			.isInstanceOf(RoomCapacityExceededException.class);
 	}
 
@@ -186,34 +182,20 @@ class RoomServiceTest extends IntegrationTestSupport {
 	void leaveRoom() throws Exception {
 		// given
 		Room room = createRoom(LocalDateTime.of(2024, 4, 10, 11, 37, 0), "연똥땡의 방");
-		User user = User.builder()
-			.userId(2L)
-			.nickname("황똥땡")
-			.role(Role.GUEST)
-			.build();
-		room.enterParticipant(user, null);
-		roomStorage.save(room);
+		User user = createUser();
+		roomService.enter(user.getId(), room.getCode(), null);
 
 		// when
-		roomService.leave(room.getCode(), user.getUserId());
+		roomService.leave(room.getCode(), user.getId());
 
 		// then
 		Room savedRoom = roomStorage.findById(room.getCode()).get();
-		assertThat(savedRoom.getParticipants()).doesNotContainKey(user.getUserId());
-	}
+		User savedUser = userStorage.findById(user.getId()).get();
 
-	@Test
-	@DisplayName("마지막 참가자가 방을 나가면 방은 없어진다")
-	void autoDeleteRoom() throws Exception {
-		// given
-		Room room = createRoom(LocalDateTime.of(2024, 4, 10, 11, 37, 0), "연똥땡의 방");
-		roomStorage.save(room);
-
-		// when
-		roomService.leave(room.getCode(), HOST_ID);
-
-		// then
-		assertThat(roomStorage.existsById(room.getCode())).isFalse();
+		assertThat(savedRoom.getParticipants()).doesNotContainKey(user.getId());
+		assertThat(savedUser.getCurrentRoomCode()).isNull();
+		assertThat(savedUser.isParticipant()).isFalse();
+		assertThat(savedUser.getPreviousRoomCode()).isEqualTo(savedRoom.getCode());
 	}
 
 	@Test
@@ -233,9 +215,18 @@ class RoomServiceTest extends IntegrationTestSupport {
 		assertThat(savedRoom.getTitle()).isEqualTo(updateTitle);
 	}
 
+	private User createUser() {
+		User user = User.builder()
+			.id(3L)
+			.nickname("황츠비")
+			.build();
+		userStorage.save(user);
+		return user;
+	}
+
 	private Room createRoom(LocalDateTime createTime, String title) {
 		User user = User.builder()
-			.userId(HOST_ID)
+			.id(HOST_ID)
 			.role(Role.HOST)
 			.build();
 
@@ -253,7 +244,7 @@ class RoomServiceTest extends IntegrationTestSupport {
 
 	private Room createRoom(LocalDateTime createTime, String title, int capacity) {
 		User user = User.builder()
-			.userId(HOST_ID)
+			.id(HOST_ID)
 			.role(Role.HOST)
 			.build();
 
@@ -272,7 +263,7 @@ class RoomServiceTest extends IntegrationTestSupport {
 	private Room createPasswordRoom(LocalDateTime createTime, String title, String password) {
 		User user = User.builder()
 			.role(Role.HOST)
-			.userId(HOST_ID)
+			.id(HOST_ID)
 			.build();
 
 		Room room = Room.builder()

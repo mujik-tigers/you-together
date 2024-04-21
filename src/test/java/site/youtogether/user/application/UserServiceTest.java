@@ -39,7 +39,7 @@ class UserServiceTest extends IntegrationTestSupport {
 		Room room = createRoom(LocalDateTime.of(2024, 4, 11, 4, 8, 0), "황똥땡의 방", "호스트 황똥땡");
 
 		User user = User.builder()
-			.userId(1L)
+			.id(1L)
 			.nickname("연츠비")
 			.role(Role.GUEST)
 			.build();
@@ -49,16 +49,16 @@ class UserServiceTest extends IntegrationTestSupport {
 		String updateNickname = "연똥땡";
 
 		// when
-		UserInfo userInfo = userService.updateUserNickname(user.getUserId(), updateNickname, room.getCode());
+		UserInfo userInfo = userService.updateUserNickname(user.getId(), updateNickname, room.getCode());
 
 		// then
 		assertThat(userInfo.getNickname()).isEqualTo(updateNickname);
 
 		Room savedRoom = roomStorage.findById(room.getCode()).get();
-		User participant = savedRoom.getParticipants().get(user.getUserId());
+		User participant = savedRoom.getParticipants().get(user.getId());
 		assertThat(participant.getNickname()).isEqualTo(updateNickname);
 
-		User savedUser = savedRoom.findParticipantBy(user.getUserId());
+		User savedUser = savedRoom.findParticipantBy(user.getId());
 		assertThat(savedUser.getNickname()).isEqualTo(updateNickname);
 	}
 
@@ -86,7 +86,7 @@ class UserServiceTest extends IntegrationTestSupport {
 	void changeUserRole() throws Exception {
 		// given
 		User user = User.builder()
-			.userId(2L)
+			.id(2L)
 			.role(Role.GUEST)
 			.build();
 
@@ -94,23 +94,23 @@ class UserServiceTest extends IntegrationTestSupport {
 		room.enterParticipant(user, null);
 		roomStorage.save(room);
 
-		UserRoleChangeForm userRoleChangeForm = new UserRoleChangeForm(room.getCode(), user.getUserId(), Role.VIEWER);
+		UserRoleChangeForm userRoleChangeForm = new UserRoleChangeForm(room.getCode(), user.getId(), Role.VIEWER);
 
 		// when
 		userService.changeUserRole(HOST_ID, userRoleChangeForm);
 
 		// then
 		Room savedRoom = roomStorage.findById(room.getCode()).get();
-		User changedUser = savedRoom.findParticipantBy(user.getUserId());
+		User changedUser = savedRoom.findParticipantBy(user.getId());
 
-		assertThat(changedUser.getUserId()).isEqualTo(user.getUserId());
+		assertThat(changedUser.getId()).isEqualTo(user.getId());
 		assertThat(changedUser.getRole()).isEqualTo(Role.VIEWER);
 	}
 
 	private Room createRoom(LocalDateTime createTime, String title, String hostNickname) {
 		User user = User.builder()
 			.nickname(hostNickname)
-			.userId(HOST_ID)
+			.id(HOST_ID)
 			.role(Role.HOST)
 			.build();
 

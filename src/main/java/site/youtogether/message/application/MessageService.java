@@ -5,8 +5,6 @@ import java.util.List;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import lombok.RequiredArgsConstructor;
 import site.youtogether.exception.room.RoomNoExistenceException;
 import site.youtogether.message.ChatMessage;
@@ -21,7 +19,6 @@ import site.youtogether.user.dto.UserInfo;
 public class MessageService {
 
 	private final RoomStorage roomStorage;
-	private final ObjectMapper objectMapper;
 	private final SimpMessageSendingOperations messagingTemplate;
 
 	public void sendChat(ChatMessage chatMessage) {

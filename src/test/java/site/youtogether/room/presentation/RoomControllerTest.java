@@ -12,9 +12,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static site.youtogether.exception.ErrorType.*;
 import static site.youtogether.util.AppConstants.*;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.DisplayName;
@@ -22,11 +22,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.SliceImpl;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
 
+import jakarta.servlet.http.Cookie;
 import site.youtogether.RestDocsSupport;
 import site.youtogether.exception.room.PasswordNotMatchException;
 import site.youtogether.exception.room.RoomCapacityExceededException;
@@ -42,6 +42,7 @@ import site.youtogether.room.dto.UpdatedRoomTitle;
 import site.youtogether.user.Role;
 import site.youtogether.user.User;
 import site.youtogether.user.dto.UserInfo;
+import site.youtogether.util.RandomUtil;
 import site.youtogether.util.api.ResponseResult;
 
 class RoomControllerTest extends RestDocsSupport {
@@ -54,21 +55,25 @@ class RoomControllerTest extends RestDocsSupport {
 		String roomCode = "1e7050f7d7";
 		String roomTitle = "재밌는 쇼츠 같이 보기";
 		int capacity = 10;
+		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 
 		RoomSettings roomSettings = RoomSettings.builder()
 			.capacity(capacity)
 			.title(roomTitle)
 			.password(null)
 			.build();
+		Optional<User> user = Optional.of(User.builder()
+			.currentRoomCode(null)
+			.build());
+		UserInfo userInfo = new UserInfo(10L, "황똥땡", Role.HOST);
 
-		UserInfo user = new UserInfo(10L, "황똥땡", Role.HOST);
-
-		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 		given(jwtService.issue(anyLong(), any()))
 			.willReturn(token);
+		given(userStorage.findById(anyLong()))
+			.willReturn(user);
 
 		// Setting up response data for the created room
-		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, user, capacity, 1, false);
+		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, userInfo, capacity, 1, false);
 		given(roomService.create(anyLong(), any(RoomSettings.class), any(LocalDateTime.class)))
 			.willReturn(createdRoomDetail);
 
@@ -78,13 +83,13 @@ class RoomControllerTest extends RestDocsSupport {
 				.contentType(MediaType.APPLICATION_JSON))
 			.andDo(print())
 			.andExpect(status().isCreated())
-			.andExpect(header().exists(HttpHeaders.AUTHORIZATION))
+			.andExpect(cookie().exists(cookieProperties.getName()))
 			.andExpect(jsonPath("$.code").value(HttpStatus.CREATED.value()))
 			.andExpect(jsonPath("$.status").value(HttpStatus.CREATED.getReasonPhrase()))
 			.andExpect(jsonPath("$.result").value(ResponseResult.ROOM_CREATION_SUCCESS.getDescription()))
 			.andExpect(jsonPath("$.data.roomCode").value(roomCode))
 			.andExpect(jsonPath("$.data.roomTitle").value(roomTitle))
-			.andExpect(jsonPath("$.data.user.userId").value(user.getUserId()))
+			.andExpect(jsonPath("$.data.user.userId").value(userInfo.getUserId()))
 			.andExpect(jsonPath("$.data.capacity").value(capacity))
 			.andExpect(jsonPath("$.data.currentParticipant").value(1))
 			.andExpect(jsonPath("$.data.passwordExist").value(false))
@@ -122,23 +127,27 @@ class RoomControllerTest extends RestDocsSupport {
 		String roomTitle = "재밌는 쇼츠 같이 보기";
 		String password = "mySecretRoom";
 		int capacity = 10;
+		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 
 		RoomSettings roomSettings = RoomSettings.builder()
 			.capacity(capacity)
 			.title(roomTitle)
 			.password(password)
 			.build();
+		Optional<User> user = Optional.of(User.builder()
+			.currentRoomCode(null)
+			.build());
+		UserInfo userInfo = new UserInfo(10L, "황똥땡", Role.HOST);
 
-		UserInfo user = new UserInfo(10L, "황똥땡", Role.HOST);
+		given(jwtService.issue(anyLong(), any()))
+			.willReturn(token);
+		given(userStorage.findById(anyLong()))
+			.willReturn(user);
 
 		// Setting up response data for the created room
-		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, user, capacity, 1, true);
+		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, userInfo, capacity, 1, true);
 		given(roomService.create(anyLong(), any(RoomSettings.class), any(LocalDateTime.class)))
 			.willReturn(createdRoomDetail);
-
-		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
-		given(jwtService.issue(anyLong(), any(Duration.class)))
-			.willReturn(token);
 
 		// when / then
 		mockMvc.perform(post("/rooms")
@@ -146,13 +155,13 @@ class RoomControllerTest extends RestDocsSupport {
 				.contentType(MediaType.APPLICATION_JSON))
 			.andDo(print())
 			.andExpect(status().isCreated())
-			.andExpect(header().exists(HttpHeaders.AUTHORIZATION))
+			.andExpect(cookie().exists(cookieProperties.getName()))
 			.andExpect(jsonPath("$.code").value(HttpStatus.CREATED.value()))
 			.andExpect(jsonPath("$.status").value(HttpStatus.CREATED.getReasonPhrase()))
 			.andExpect(jsonPath("$.result").value(ResponseResult.ROOM_CREATION_SUCCESS.getDescription()))
 			.andExpect(jsonPath("$.data.roomCode").value(roomCode))
 			.andExpect(jsonPath("$.data.roomTitle").value(roomTitle))
-			.andExpect(jsonPath("$.data.user.userId").value(user.getUserId()))
+			.andExpect(jsonPath("$.data.user.userId").value(userInfo.getUserId()))
 			.andExpect(jsonPath("$.data.capacity").value(capacity))
 			.andExpect(jsonPath("$.data.currentParticipant").value(1))
 			.andExpect(jsonPath("$.data.passwordExist").value(true))
@@ -186,6 +195,11 @@ class RoomControllerTest extends RestDocsSupport {
 	void createRoomFail_RoomSettingError() throws Exception {
 		// given
 		// Setting up request data for creating a room
+		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
+
+		Optional<User> user = Optional.of(User.builder()
+			.currentRoomCode(null)
+			.build());
 		RoomSettings roomSettings = RoomSettings
 			.builder()
 			.capacity(11)
@@ -193,13 +207,17 @@ class RoomControllerTest extends RestDocsSupport {
 			.password("a1b2")
 			.build();
 
+		given(jwtService.issue(anyLong(), any()))
+			.willReturn(token);
+		given(userStorage.findById(anyLong()))
+			.willReturn(user);
+
 		// when / then
 		mockMvc.perform(post("/rooms")
 				.content(objectMapper.writeValueAsString(roomSettings))
 				.contentType(MediaType.APPLICATION_JSON))
 			.andDo(print())
 			.andExpect(status().isBadRequest())
-			.andExpect(header().doesNotExist(HttpHeaders.AUTHORIZATION))
 			.andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
 			.andExpect(jsonPath("$.status").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
 			.andExpect(jsonPath("$.result").value(ResponseResult.EXCEPTION_OCCURRED.getDescription()))
@@ -226,18 +244,26 @@ class RoomControllerTest extends RestDocsSupport {
 	@DisplayName("방 생성 실패: 다수의 방에 참가할 수 없습니다")
 	void createRoomFail_SingleRoomParticipantViolation() throws Exception {
 		// given
-		RoomSettings roomSettings = RoomSettings.builder().capacity(10).title("재밌는 쇼츠 같이 보기").password(null).build();
 		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 
-		given(jwtService.parse(anyString()))
-			.willReturn(1L);
+		Optional<User> user = Optional.of(User.builder()
+			.currentRoomCode("1e7050f7d7")
+			.build());
+		RoomSettings roomSettings = RoomSettings.builder()
+			.capacity(10)
+			.title("재밌는 쇼츠 같이 보기")
+			.password(null)
+			.build();
 
-		given(userTrackingStorage.exists(anyLong())).willReturn(true);
+		given(jwtService.parse(token))
+			.willReturn(1L);
+		given(userStorage.findById(anyLong()))
+			.willReturn(user);
 
 		// when / then
 		mockMvc.perform(post("/rooms")
 				.content(objectMapper.writeValueAsString(roomSettings))
-				.header(HttpHeaders.AUTHORIZATION, BEARER + token))
+				.cookie(new Cookie(cookieProperties.getName(), token)))
 			.andDo(print())
 			.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.code").value(SINGLE_ROOM_PARTICIPATION_VIOLATION.getStatus().value()))
@@ -269,8 +295,23 @@ class RoomControllerTest extends RestDocsSupport {
 	void fetchRoomListSuccess() throws Exception {
 		// given
 		// Setting up response data for the fetched room list
+		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
+
+		Optional<User> user = Optional.of(User.builder()
+			.currentRoomCode("1e7050f7d7")
+			.build());
+		RoomSettings roomSettings = RoomSettings.builder()
+			.capacity(10)
+			.title("재밌는 쇼츠 같이 보기")
+			.password(null)
+			.build();
 		SliceImpl<Room> roomSlice = new SliceImpl<>(generateRooms(3), PageRequest.of(0, 10), false);
 		RoomList roomList = new RoomList(roomSlice);
+
+		given(jwtService.parse(token))
+			.willReturn(1L);
+		given(userStorage.findById(anyLong()))
+			.willReturn(user);
 		given(roomService.fetchAll(any(Pageable.class), anyString())).willReturn(roomList);
 
 		// when / then
@@ -280,7 +321,7 @@ class RoomControllerTest extends RestDocsSupport {
 				.param("keyword", "침착"))
 			.andDo(print())
 			.andExpect(status().isOk())
-			.andExpect(header().doesNotExist(HttpHeaders.AUTHORIZATION))
+			.andExpect(cookie().exists(cookieProperties.getName()))
 			.andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
 			.andExpect(jsonPath("$.status").value(HttpStatus.OK.getReasonPhrase()))
 			.andExpect(jsonPath("$.result").value(ResponseResult.ROOM_LIST_FETCH_SUCCESS.getDescription()))
@@ -322,17 +363,21 @@ class RoomControllerTest extends RestDocsSupport {
 	@DisplayName("방 입장 성공")
 	void enterRoom() throws Exception {
 		// given
+		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 		String roomCode = "1e7050f7d7";
 		String roomTitle = "재밌는 쇼츠 같이 보기";
 		int capacity = 10;
 
-		UserInfo user = new UserInfo(10L, "황똥땡", Role.HOST);
+		UserInfo userInfo = new UserInfo(10L, "황똥땡", Role.HOST);
+		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, userInfo, capacity, 2, false);
+		Optional<User> user = Optional.of(User.builder()
+			.currentRoomCode(null)
+			.build());
 
-		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 		given(jwtService.issue(anyLong(), any()))
 			.willReturn(token);
-
-		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, user, capacity, 2, false);
+		given(userStorage.findById(anyLong()))
+			.willReturn(user);
 		given(roomService.enter(anyLong(), eq(roomCode), eq(null)))
 			.willReturn(createdRoomDetail);
 
@@ -340,13 +385,13 @@ class RoomControllerTest extends RestDocsSupport {
 		mockMvc.perform(post("/rooms/{roomCode}", roomCode))
 			.andDo(print())
 			.andExpect(status().isOk())
-			.andExpect(header().exists(HttpHeaders.AUTHORIZATION))
+			.andExpect(cookie().exists(cookieProperties.getName()))
 			.andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
 			.andExpect(jsonPath("$.status").value(HttpStatus.OK.getReasonPhrase()))
 			.andExpect(jsonPath("$.result").value(ResponseResult.ROOM_ENTER_SUCCESS.getDescription()))
 			.andExpect(jsonPath("$.data.roomCode").value(roomCode))
 			.andExpect(jsonPath("$.data.roomTitle").value(roomTitle))
-			.andExpect(jsonPath("$.data.user.userId").value(user.getUserId()))
+			.andExpect(jsonPath("$.data.user.userId").value(userInfo.getUserId()))
 			.andExpect(jsonPath("$.data.capacity").value(capacity))
 			.andExpect(jsonPath("$.data.currentParticipant").value(2))
 			.andExpect(jsonPath("$.data.passwordExist").value(false))
@@ -375,18 +420,26 @@ class RoomControllerTest extends RestDocsSupport {
 	@DisplayName("방 입장 실패: 다수의 방에 참가할 수 없습니다")
 	void enterRoomFail() throws Exception {
 		// given
-		String roomCode = "1e7050f7d7";
 		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
+		String roomCode = "1e7050f7d7";
+		String roomTitle = "재밌는 쇼츠 같이 보기";
+		int capacity = 10;
 
-		given(jwtService.parse(anyString()))
-			.willReturn(1L);
+		UserInfo userInfo = new UserInfo(10L, "황똥땡", Role.HOST);
+		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, userInfo, capacity, 2, false);
+		Optional<User> user = Optional.of(User.builder()
+			.currentRoomCode("1e7050f7d7")
+			.build());
 
-		given(userTrackingStorage.exists(anyLong()))
-			.willReturn(true);
+		given(jwtService.issue(anyLong(), any()))
+			.willReturn(token);
+		given(userStorage.findById(anyLong()))
+			.willReturn(user);
+		given(roomService.enter(anyLong(), eq(roomCode), eq(null)))
+			.willReturn(createdRoomDetail);
 
 		// when // then
-		mockMvc.perform(post("/rooms/{roomCode}", roomCode)
-				.header(HttpHeaders.AUTHORIZATION, BEARER + token))
+		mockMvc.perform(post("/rooms/{roomCode}", roomCode))
 			.andDo(print())
 			.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.code").value(SINGLE_ROOM_PARTICIPATION_VIOLATION.getStatus().value()))
@@ -413,23 +466,24 @@ class RoomControllerTest extends RestDocsSupport {
 	@DisplayName("방 입장 성공: 비밀번호가 있는 방")
 	void enterPasswordRoom() throws Exception {
 		// given
+		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 		String roomCode = "1e7050f7d7";
 		String roomTitle = "재밌는 쇼츠 같이 보기";
 		String password = "mySecretRoom";
 		int capacity = 10;
-		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 
-		UserInfo user = new UserInfo(10L, "황똥땡", Role.HOST);
+		UserInfo userInfo = new UserInfo(10L, "황똥땡", Role.HOST);
+		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, userInfo, capacity, 2, true);
+		Optional<User> user = Optional.of(User.builder()
+			.currentRoomCode(null)
+			.build());
 
-		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, user, capacity, 2, true);
+		given(jwtService.issue(anyLong(), any()))
+			.willReturn(token);
+		given(userStorage.findById(anyLong()))
+			.willReturn(user);
 		given(roomService.enter(anyLong(), eq(roomCode), eq(password)))
 			.willReturn(createdRoomDetail);
-
-		given(jwtService.issue(anyLong(), any(Duration.class)))
-			.willReturn(token);
-
-		given(userTrackingStorage.exists(anyLong()))
-			.willReturn(true);
 
 		// when // then
 		mockMvc.perform(post("/rooms/{roomCode}", roomCode)
@@ -437,13 +491,13 @@ class RoomControllerTest extends RestDocsSupport {
 				.contentType(MediaType.APPLICATION_JSON))
 			.andDo(print())
 			.andExpect(status().isOk())
-			.andExpect(header().exists(HttpHeaders.AUTHORIZATION))
+			.andExpect(cookie().exists(cookieProperties.getName()))
 			.andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
 			.andExpect(jsonPath("$.status").value(HttpStatus.OK.getReasonPhrase()))
 			.andExpect(jsonPath("$.result").value(ResponseResult.ROOM_ENTER_SUCCESS.getDescription()))
 			.andExpect(jsonPath("$.data.roomCode").value(roomCode))
 			.andExpect(jsonPath("$.data.roomTitle").value(roomTitle))
-			.andExpect(jsonPath("$.data.user.userId").value(user.getUserId()))
+			.andExpect(jsonPath("$.data.user.userId").value(userInfo.getUserId()))
 			.andExpect(jsonPath("$.data.capacity").value(capacity))
 			.andExpect(jsonPath("$.data.currentParticipant").value(2))
 			.andExpect(jsonPath("$.data.passwordExist").value(true))
@@ -475,9 +529,18 @@ class RoomControllerTest extends RestDocsSupport {
 	@DisplayName("방 입장 실패: 비밀번호가 틀립니다")
 	void enterPasswordRoomFail() throws Exception {
 		// given
+		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 		String roomCode = "1e7050f7d7";
 		String password = "notMatchPassword";
 
+		Optional<User> user = Optional.of(User.builder()
+			.currentRoomCode(null)
+			.build());
+
+		given(jwtService.issue(anyLong(), any()))
+			.willReturn(token);
+		given(userStorage.findById(anyLong()))
+			.willReturn(user);
 		given(roomService.enter(anyLong(), eq(roomCode), eq(password)))
 			.willThrow(new PasswordNotMatchException());
 
@@ -487,7 +550,6 @@ class RoomControllerTest extends RestDocsSupport {
 				.contentType(MediaType.APPLICATION_JSON))
 			.andDo(print())
 			.andExpect(status().isForbidden())
-			.andExpect(header().doesNotExist(HttpHeaders.AUTHORIZATION))
 			.andExpect(jsonPath("$.code").value(ROOM_PASSWORD_NOT_MATCH.getStatus().value()))
 			.andExpect(jsonPath("$.status").value(ROOM_PASSWORD_NOT_MATCH.getStatus().getReasonPhrase()))
 			.andExpect(jsonPath("$.result").value(ResponseResult.EXCEPTION_OCCURRED.getDescription()))
@@ -515,8 +577,18 @@ class RoomControllerTest extends RestDocsSupport {
 	@DisplayName("방 입장 실패: 비밀번호 형식 오류")
 	void enterPasswordRoomFormFail() throws Exception {
 		// given
+		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 		String roomCode = "1e7050f7d7";
 		String password = " a ";
+
+		Optional<User> user = Optional.of(User.builder()
+			.currentRoomCode(null)
+			.build());
+
+		given(jwtService.issue(anyLong(), any()))
+			.willReturn(token);
+		given(userStorage.findById(anyLong()))
+			.willReturn(user);
 
 		// when // then
 		mockMvc.perform(post("/rooms/{roomCode}", roomCode)
@@ -524,7 +596,6 @@ class RoomControllerTest extends RestDocsSupport {
 				.contentType(MediaType.APPLICATION_JSON))
 			.andDo(print())
 			.andExpect(status().isBadRequest())
-			.andExpect(header().doesNotExist(HttpHeaders.AUTHORIZATION))
 			.andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
 			.andExpect(jsonPath("$.status").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
 			.andExpect(jsonPath("$.result").value(ResponseResult.EXCEPTION_OCCURRED.getDescription()))
@@ -553,8 +624,14 @@ class RoomControllerTest extends RestDocsSupport {
 		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 		String roomCode = "1e7050f7d7";
 
+		Optional<User> user = Optional.of(User.builder()
+			.currentRoomCode(null)
+			.build());
+
 		given(jwtService.issue(anyLong(), any()))
 			.willReturn(token);
+		given(userStorage.findById(anyLong()))
+			.willReturn(user);
 		given(roomService.enter(anyLong(), eq(roomCode), eq(null)))
 			.willThrow(new RoomCapacityExceededException());
 
@@ -562,7 +639,6 @@ class RoomControllerTest extends RestDocsSupport {
 		mockMvc.perform(post("/rooms/{roomCode}", roomCode))
 			.andDo(print())
 			.andExpect(status().isForbidden())
-			.andExpect(header().doesNotExist(HttpHeaders.AUTHORIZATION))
 			.andExpect(jsonPath("$.code").value(ROOM_CAPACITY_EXCEEDED.getStatus().value()))
 			.andExpect(jsonPath("$.status").value(ROOM_CAPACITY_EXCEEDED.getStatus().getReasonPhrase()))
 			.andExpect(jsonPath("$.result").value(ResponseResult.EXCEPTION_OCCURRED.getDescription()))
@@ -587,26 +663,23 @@ class RoomControllerTest extends RestDocsSupport {
 	@DisplayName("방 제목 변경 성공")
 	void updateRoomTitle() throws Exception {
 		// given
+		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 		String roomCode = "1e7050f7d7";
 		Long userId = 10L;
 		String updateTitle = "연똥땡의 방";
-		RoomTitleChangeForm form = new RoomTitleChangeForm(roomCode, updateTitle);
 
-		given(roomService.changeRoomTitle(eq(userId), eq(roomCode), eq(updateTitle)))
-			.willReturn(new UpdatedRoomTitle(roomCode, updateTitle));
+		RoomTitleChangeForm form = new RoomTitleChangeForm(roomCode, updateTitle);
 
 		given(jwtService.parse(anyString()))
 			.willReturn(userId);
-
-		given(userTrackingStorage.exists(anyLong()))
-			.willReturn(true);
+		given(roomService.changeRoomTitle(anyLong(), anyString(), anyString()))
+			.willReturn(new UpdatedRoomTitle(roomCode, updateTitle));
 
 		// when // then
-		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 		mockMvc.perform(patch("/rooms/title")
 				.content(objectMapper.writeValueAsString(form))
 				.contentType(MediaType.APPLICATION_JSON)
-				.header(HttpHeaders.AUTHORIZATION, BEARER + token))
+				.cookie(new Cookie(cookieProperties.getName(), token)))
 			.andDo(print())
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
@@ -636,23 +709,23 @@ class RoomControllerTest extends RestDocsSupport {
 	@DisplayName("방 제목 변경 실패: 요청한 데이터 형식 오류")
 	void updateRoomTitleFailForm() throws Exception {
 		// given
+		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 		String roomCode = "1e7050f7d7";
 		Long userId = 10L;
 		String updateTitle = "  ";
+
 		RoomTitleChangeForm form = new RoomTitleChangeForm(roomCode, updateTitle);
 
 		given(jwtService.parse(anyString()))
-			.willReturn(1L);
-
-		given(userTrackingStorage.exists(anyLong()))
-			.willReturn(true);
+			.willReturn(userId);
+		given(roomService.changeRoomTitle(anyLong(), anyString(), anyString()))
+			.willReturn(new UpdatedRoomTitle(roomCode, updateTitle));
 
 		// when // then
-		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 		mockMvc.perform(patch("/rooms/title")
 				.content(objectMapper.writeValueAsString(form))
 				.contentType(MediaType.APPLICATION_JSON)
-				.header(HttpHeaders.AUTHORIZATION, BEARER + token))
+				.cookie(new Cookie(cookieProperties.getName(), token)))
 			.andDo(print())
 			.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
@@ -681,27 +754,23 @@ class RoomControllerTest extends RestDocsSupport {
 	@DisplayName("방 제목 변경 실패: 호스트가 아닌 유저는 방 제목 변경 불가")
 	void updateRoomTitleFailNotHost() throws Exception {
 		// given
+		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 		String roomCode = "1e7050f7d7";
 		Long userId = 10L;
 		String updateTitle = "연똥땡의 방";
+
 		RoomTitleChangeForm form = new RoomTitleChangeForm(roomCode, updateTitle);
 
-		given(userTrackingStorage.exists(eq(userId)))
-			.willReturn(true);
-		given(roomService.changeRoomTitle(eq(userId), eq(roomCode), eq(updateTitle)))
-			.willThrow(new ChangeRoomTitleDeniedException());
-
-		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 		given(jwtService.parse(anyString()))
 			.willReturn(userId);
-		given(userTrackingStorage.exists(anyLong()))
-			.willReturn(true);
+		given(roomService.changeRoomTitle(anyLong(), anyString(), anyString()))
+			.willThrow(new ChangeRoomTitleDeniedException());
 
 		// when // then
 		mockMvc.perform(patch("/rooms/title")
 				.content(objectMapper.writeValueAsString(form))
 				.contentType(MediaType.APPLICATION_JSON)
-				.header(HttpHeaders.AUTHORIZATION, BEARER + token))
+				.cookie(new Cookie(cookieProperties.getName(), token)))
 			.andDo(print())
 			.andExpect(status().isForbidden())
 			.andExpect(jsonPath("$.code").value(HttpStatus.FORBIDDEN.value()))
@@ -729,10 +798,11 @@ class RoomControllerTest extends RestDocsSupport {
 	}
 
 	private List<Room> generateRooms(int count) {
-		User host = User.builder().userId(1L).role(Role.HOST).nickname("연츠비").build();
+		User host = User.builder().id(1L).role(Role.HOST).nickname("연츠비").build();
 
 		return IntStream.rangeClosed(1, count)
 			.mapToObj(number -> Room.builder()
+				.code(RandomUtil.generateRandomCode(ROOM_CODE_LENGTH))
 				.title("2023년 침착맨 정주행 " + number)
 				.capacity(10)
 				.host(host)

@@ -31,7 +31,7 @@ class RoomTest {
 		room.enterParticipant(user, null);
 
 		// when
-		User changedUser = room.changeParticipantRole(HOST_ID, user.getUserId(), Role.VIEWER);
+		User changedUser = room.changeParticipantRole(HOST_ID, user.getId(), Role.VIEWER);
 
 		// then
 		assertThat(changedUser.getRole()).isEqualTo(Role.VIEWER);
@@ -49,7 +49,7 @@ class RoomTest {
 		room.enterParticipant(user2, null);
 
 		// when
-		assertThatThrownBy(() -> room.changeParticipantRole(user1.getUserId(), user2.getUserId(), Role.VIEWER))
+		assertThatThrownBy(() -> room.changeParticipantRole(user1.getId(), user2.getId(), Role.VIEWER))
 			.isInstanceOf(NotManageableUserException.class);
 	}
 
@@ -63,7 +63,7 @@ class RoomTest {
 		room.enterParticipant(user, null);
 
 		// when // then
-		assertThatThrownBy(() -> room.changeParticipantRole(user.getUserId(), HOST_ID, Role.VIEWER))
+		assertThatThrownBy(() -> room.changeParticipantRole(user.getId(), HOST_ID, Role.VIEWER))
 			.isInstanceOf(HigherOrEqualRoleUserChangeException.class);
 	}
 
@@ -76,7 +76,7 @@ class RoomTest {
 		room.enterParticipant(user, null);
 
 		// when // then
-		assertThatThrownBy(() -> room.changeParticipantRole(HOST_ID, user.getUserId(), Role.HOST))
+		assertThatThrownBy(() -> room.changeParticipantRole(HOST_ID, user.getId(), Role.HOST))
 			.isInstanceOf(HigherOrEqualRoleChangeException.class);
 	}
 
@@ -118,7 +118,7 @@ class RoomTest {
 		String updateTitle = "연츠비의 방";
 
 		// when // then
-		assertThatThrownBy(() -> room.changeRoomTitle(user.getUserId(), updateTitle))
+		assertThatThrownBy(() -> room.changeRoomTitle(user.getId(), updateTitle))
 			.isInstanceOf(ChangeRoomTitleDeniedException.class);
 	}
 
@@ -148,7 +148,7 @@ class RoomTest {
 	private Room createRoom(LocalDateTime createTime) {
 		User user = User.builder()
 			.nickname("황똥땡")
-			.userId(HOST_ID)
+			.id(HOST_ID)
 			.role(Role.HOST)
 			.build();
 
@@ -162,7 +162,7 @@ class RoomTest {
 
 	private User createUser(Long userId, String nickname, Role role) {
 		return User.builder()
-			.userId(userId)
+			.id(userId)
 			.nickname(nickname)
 			.role(role)
 			.build();

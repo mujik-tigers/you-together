@@ -47,7 +47,6 @@ public class MessageEventListener {
 		String roomCode = (String)headerAccessor.getSessionAttributes().get(ROOM_CODE);
 		Long userId = (Long)headerAccessor.getSessionAttributes().get(USER_ID);
 		User user = roomService.findParticipant(roomCode, userId);
-		String cookieValue = (String)headerAccessor.getSessionAttributes().get(SESSION_COOKIE);
 
 		roomService.leave(roomCode, userId);
 		messageService.sendParticipantsInfo(roomCode);

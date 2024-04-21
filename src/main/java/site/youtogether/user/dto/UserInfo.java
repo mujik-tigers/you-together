@@ -14,7 +14,7 @@ public class UserInfo {
 	private final Role role;
 
 	public UserInfo(User user) {
-		this.userId = user.getUserId();
+		this.userId = user.getId();
 		this.nickname = user.getNickname();
 		this.role = user.getRole();
 	}

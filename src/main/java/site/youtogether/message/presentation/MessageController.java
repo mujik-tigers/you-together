@@ -30,7 +30,7 @@ public class MessageController {
 			throw new ChatMessageSendDeniedException();
 		}
 
-		chatMessage.setUserId(user.getUserId());
+		chatMessage.setUserId(user.getId());
 		chatMessage.setNickname(user.getNickname());
 
 		messageService.sendChat(chatMessage);
