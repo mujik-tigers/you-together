@@ -10,16 +10,19 @@ import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import site.youtogether.exception.user.UserNoExistenceException;
 import site.youtogether.message.ChatMessage;
 import site.youtogether.message.application.MessageService;
 import site.youtogether.room.application.RoomService;
 import site.youtogether.user.User;
+import site.youtogether.user.infrastructure.UserStorage;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class MessageEventListener {
 
+	private final UserStorage userStorage;
 	private final RoomService roomService;
 	private final MessageService messageService;
 
@@ -33,9 +36,10 @@ public class MessageEventListener {
 		headerAccessor.getSessionAttributes().put(ROOM_CODE, roomCode);
 
 		Long userId = (Long)headerAccessor.getSessionAttributes().get(USER_ID);
-		User user = roomService.findParticipant(roomCode, userId);
+		User user = userStorage.findById(userId)
+			.orElseThrow(UserNoExistenceException::new);
 
-		messageService.sendParticipantsInfo(roomCode);
+		messageService.sendParticipants(roomCode);
 		messageService.sendChat(new ChatMessage(roomCode, null, "[알림]", user.getNickname() + "님이 입장하셨습니다."));
 	}
 
@@ -46,11 +50,11 @@ public class MessageEventListener {
 
 		String roomCode = (String)headerAccessor.getSessionAttributes().get(ROOM_CODE);
 		Long userId = (Long)headerAccessor.getSessionAttributes().get(USER_ID);
-		User user = roomService.findParticipant(roomCode, userId);
-		String cookieValue = (String)headerAccessor.getSessionAttributes().get(SESSION_COOKIE);
+		User user = userStorage.findById(userId)
+			.orElseThrow(UserNoExistenceException::new);
 
 		roomService.leave(roomCode, userId);
-		messageService.sendParticipantsInfo(roomCode);
+		messageService.sendParticipants(roomCode);
 		messageService.sendChat(new ChatMessage(roomCode, null, "[알림]", user.getNickname() + "님이 퇴장하셨습니다."));
 	}
 

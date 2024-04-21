@@ -1,4 +1,4 @@
-package site.youtogether.user.dto;
+package site.youtogether.room;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -7,16 +7,17 @@ import site.youtogether.user.User;
 
 @AllArgsConstructor
 @Getter
-public class UserInfo {
+public class Participant {
 
-	private final Long userId;
+	private final Long id;
+
 	private final String nickname;
 	private final Role role;
 
-	public UserInfo(User user) {
-		this.userId = user.getUserId();
+	public Participant(User user) {
+		this.id = user.getId();
 		this.nickname = user.getNickname();
-		this.role = user.getRole();
+		this.role = user.getRoleInCurrentRoom();
 	}
 
 }

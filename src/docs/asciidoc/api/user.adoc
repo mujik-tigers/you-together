@@ -1,107 +1,107 @@
 [[User-API]]
 == User API
 
-[[update-nickname-success]]
+[[change-nickname-success]]
 === 닉네임 변경 성공
 
 ==== HTTP Request
 
-include::{snippets}/update-nickname-success/http-request.adoc[]
-include::{snippets}/update-nickname-success/request-fields.adoc[]
+include::{snippets}/change-nickname-success/http-request.adoc[]
+include::{snippets}/change-nickname-success/request-fields.adoc[]
 
 ==== HTTP Response
 
-include::{snippets}/update-nickname-success/http-response.adoc[]
-include::{snippets}/update-nickname-success/response-fields.adoc[]
+include::{snippets}/change-nickname-success/http-response.adoc[]
+include::{snippets}/change-nickname-success/response-fields.adoc[]
 
 {nbsp}
 
-[[update-nickname-fail]]
+[[change-nickname-fail]]
 === 닉네임 변경 실패: 요청 데이터 오류가 발생했습니다
 
 ==== HTTP Request
 
-include::{snippets}/update-nickname-fail/http-request.adoc[]
-include::{snippets}/update-nickname-fail/request-fields.adoc[]
+include::{snippets}/change-nickname-fail/http-request.adoc[]
+include::{snippets}/change-nickname-fail/request-fields.adoc[]
 
 ==== HTTP Response
 
-include::{snippets}/update-nickname-fail/http-response.adoc[]
-include::{snippets}/update-nickname-fail/response-fields.adoc[]
+include::{snippets}/change-nickname-fail/http-response.adoc[]
+include::{snippets}/change-nickname-fail/response-fields.adoc[]
 
 {nbsp}
 
-[[change-participant-role-success]]
+[[change-role-success]]
 === 다른 유저의 역할 변경 성공
 
 ==== HTTP Request
 
-include::{snippets}/change-participant-role-success/http-request.adoc[]
-include::{snippets}/change-participant-role-success/request-fields.adoc[]
+include::{snippets}/change-role-success/http-request.adoc[]
+include::{snippets}/change-role-success/request-fields.adoc[]
 
 ==== HTTP Response
 
-include::{snippets}/change-participant-role-success/http-response.adoc[]
-include::{snippets}/change-participant-role-success/response-fields.adoc[]
+include::{snippets}/change-role-success/http-response.adoc[]
+include::{snippets}/change-role-success/response-fields.adoc[]
 
 {nbsp}
 
-[[change-self-role-fail]]
-=== 다른 유저의 역할 변경 실패: 자신의 역할을 변경할 수 없다
+[[change-role-fail-self]]
+=== 다른 유저의 역할 변경 실패: 자신의 역할은 변경할 수 없습니다
 
 ==== HTTP Request
 
-include::{snippets}/change-self-role-fail/http-request.adoc[]
-include::{snippets}/change-self-role-fail/request-fields.adoc[]
+include::{snippets}/change-role-fail-self/http-request.adoc[]
+include::{snippets}/change-role-fail-self/request-fields.adoc[]
 
 ==== HTTP Response
 
-include::{snippets}/change-self-role-fail/http-response.adoc[]
-include::{snippets}/change-self-role-fail/response-fields.adoc[]
+include::{snippets}/change-role-fail-self/http-response.adoc[]
+include::{snippets}/change-role-fail-self/response-fields.adoc[]
 
 {nbsp}
 
-[[change-higher-or-equal-user-role-fail]]
-=== 다른 유저의 역할 변경 실패: 자신보다 낮은 역할을 가진 유저의 역할만 변경할 수 있다
+[[change-role-fail-equal-or-higher-user]]
+=== 다른 유저의 역할 변경 실패: 자신과 동등하거나 높은 단계의 유저에 대한 역할을 변경할 수 없습니다
 
 ==== HTTP Request
 
-include::{snippets}/change-higher-or-equal-user-role-fail/http-request.adoc[]
-include::{snippets}/change-higher-or-equal-user-role-fail/request-fields.adoc[]
+include::{snippets}/change-role-fail-equal-or-higher-user/http-request.adoc[]
+include::{snippets}/change-role-fail-equal-or-higher-user/request-fields.adoc[]
 
 ==== HTTP Response
 
-include::{snippets}/change-higher-or-equal-user-role-fail/http-response.adoc[]
-include::{snippets}/change-higher-or-equal-user-role-fail/response-fields.adoc[]
+include::{snippets}/change-role-fail-equal-or-higher-user/http-response.adoc[]
+include::{snippets}/change-role-fail-equal-or-higher-user/response-fields.adoc[]
 
 {nbsp}
 
-[[change-higher-or-equal-role-fail]]
-=== 다른 유저의 역할 변경 실패: 자신보다 낮은 역할로의 변경만 가능하다
+[[change-role-fail-higher-role]]
+=== 다른 유저의 역할 변경 실패: 자신의 역할보다 높은 단계의 역할로 변경할 수 없습니다
 
 ==== HTTP Request
 
-include::{snippets}/change-higher-or-equal-role-fail/http-request.adoc[]
-include::{snippets}/change-higher-or-equal-role-fail/request-fields.adoc[]
+include::{snippets}/change-role-fail-higher-role/http-request.adoc[]
+include::{snippets}/change-role-fail-higher-role/request-fields.adoc[]
 
 ==== HTTP Response
 
-include::{snippets}/change-higher-or-equal-role-fail/http-response.adoc[]
-include::{snippets}/change-higher-or-equal-role-fail/response-fields.adoc[]
+include::{snippets}/change-role-fail-higher-role/http-response.adoc[]
+include::{snippets}/change-role-fail-higher-role/response-fields.adoc[]
 
 {nbsp}
 
-[[not-manageable-change-role-fail]]
-=== 다른 유저의 역할 변경 실패: 매니저 등급보다 낮은 역할의 유저는 다른 유저의 역할을 변경할 수 없다
+[[change-role-fail-not-manageable-user]]
+=== 다른 유저의 역할 변경 실패: MANAGER보다 낮은 단계의 유저는 다른 유저의 역할을 변경할 수 없습니다
 
 ==== HTTP Request
 
-include::{snippets}/not-manageable-role-fail/http-request.adoc[]
-include::{snippets}/not-manageable-role-fail/request-fields.adoc[]
+include::{snippets}/change-role-fail-not-manageable-user/http-request.adoc[]
+include::{snippets}/change-role-fail-not-manageable-user/request-fields.adoc[]
 
 ==== HTTP Response
 
-include::{snippets}/not-manageable-role-fail/http-response.adoc[]
-include::{snippets}/not-manageable-role-fail/response-fields.adoc[]
+include::{snippets}/change-role-fail-not-manageable-user/http-response.adoc[]
+include::{snippets}/change-role-fail-not-manageable-user/response-fields.adoc[]
 
 {nbsp}

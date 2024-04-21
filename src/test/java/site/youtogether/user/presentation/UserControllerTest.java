@@ -7,24 +7,23 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static site.youtogether.util.AppConstants.*;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
 
+import jakarta.servlet.http.Cookie;
 import site.youtogether.RestDocsSupport;
 import site.youtogether.exception.ErrorType;
 import site.youtogether.exception.user.HigherOrEqualRoleChangeException;
 import site.youtogether.exception.user.HigherOrEqualRoleUserChangeException;
 import site.youtogether.exception.user.NotManageableUserException;
 import site.youtogether.exception.user.SelfRoleChangeException;
+import site.youtogether.room.Participant;
 import site.youtogether.user.Role;
-import site.youtogether.user.dto.UpdateUserForm;
-import site.youtogether.user.dto.UserInfo;
+import site.youtogether.user.dto.UserNicknameChangeForm;
 import site.youtogether.user.dto.UserRoleChangeForm;
 import site.youtogether.util.api.ResponseResult;
 
@@ -32,50 +31,54 @@ class UserControllerTest extends RestDocsSupport {
 
 	@Test
 	@DisplayName("닉네임 변경 성공")
-	void updateNickname() throws Exception {
+	void changeNickname() throws Exception {
 		// given
-		String updateNickname = "내가 바로 진짜 황똥땡";
+		// Setting session cookie for request
+		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
+		Cookie sessionCookie = new Cookie(cookieProperties.getName(), token);
+
+		// Setting new user nickname for request
 		String roomCode = "c98780fe33";
-		Long userId = 1L;
-		UpdateUserForm form = new UpdateUserForm(roomCode, updateNickname);
-		UserInfo userInfo = new UserInfo(userId, updateNickname, Role.GUEST);
+		String newNickname = "new nickname";
+		UserNicknameChangeForm form = new UserNicknameChangeForm(roomCode, newNickname);
 
-		given(userService.updateUserNickname(eq(userId), eq(updateNickname), eq(roomCode)))
-			.willReturn(userInfo);
+		// Setting up response data
+		Participant participant = new Participant(1L, newNickname, Role.GUEST);
 
-		given(jwtService.parse(anyString()))
-			.willReturn(1L);
-		given(userTrackingStorage.exists(anyLong()))
+		given(jwtService.isValidToken(eq(token)))
 			.willReturn(true);
+		given(jwtService.parse(eq(token)))
+			.willReturn(participant.getId());
+		given(userService.changeUserNickname(eq(participant.getId()), eq(newNickname), eq(roomCode)))
+			.willReturn(participant);
 
 		// when // then
-		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 		mockMvc.perform(patch("/users")
 				.content(objectMapper.writeValueAsString(form))
 				.contentType(MediaType.APPLICATION_JSON)
-				.header(HttpHeaders.AUTHORIZATION, BEARER + token))
+				.cookie(sessionCookie))
 			.andDo(print())
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
 			.andExpect(jsonPath("$.status").value(HttpStatus.OK.getReasonPhrase()))
-			.andExpect(jsonPath("$.result").value(ResponseResult.USER_NICKNAME_UPDATE_SUCCESS.getDescription()))
-			.andExpect(jsonPath("$.data.userId").value(userId))
-			.andExpect(jsonPath("$.data.nickname").value(updateNickname))
-			.andExpect(jsonPath("$.data.role").value(userInfo.getRole().name()))
-			.andDo(document("update-nickname-success",
+			.andExpect(jsonPath("$.result").value(ResponseResult.USER_NICKNAME_CHANGE_SUCCESS.getDescription()))
+			.andExpect(jsonPath("$.data.id").value(participant.getId()))
+			.andExpect(jsonPath("$.data.nickname").value(newNickname))
+			.andExpect(jsonPath("$.data.role").value(participant.getRole().name()))
+			.andDo(document("change-nickname-success",
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
 				requestFields(
 					fieldWithPath("roomCode").type(JsonFieldType.STRING).description("방 코드"),
-					fieldWithPath("updateNickname").type(JsonFieldType.STRING).description("변경할 닉네임")
+					fieldWithPath("newNickname").type(JsonFieldType.STRING).description("새로운 닉네임")
 				),
 				responseFields(
 					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
 					fieldWithPath("status").type(JsonFieldType.STRING).description("상태"),
 					fieldWithPath("result").type(JsonFieldType.STRING).description("결과"),
 					fieldWithPath("data").type(JsonFieldType.OBJECT).description("응답 데이터"),
-					fieldWithPath("data.userId").type(JsonFieldType.NUMBER).description("유저 아이디"),
-					fieldWithPath("data.nickname").type(JsonFieldType.STRING).description("변경된 닉네임"),
+					fieldWithPath("data.id").type(JsonFieldType.NUMBER).description("유저 아이디"),
+					fieldWithPath("data.nickname").type(JsonFieldType.STRING).description("새로운 닉네임"),
 					fieldWithPath("data.role").type(JsonFieldType.STRING).description("역할")
 				)
 			));
@@ -83,40 +86,44 @@ class UserControllerTest extends RestDocsSupport {
 
 	@Test
 	@DisplayName("닉네임 변경 실패: 요청 데이터 오류가 발생했습니다")
-	void updateNicknameFail() throws Exception {
+	void changeNicknameFail() throws Exception {
 		// given
-		String updateNickname = "";
+		// Setting session cookie for request
+		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
+		Cookie sessionCookie = new Cookie(cookieProperties.getName(), token);
+
+		// Setting new user nickname for request
 		String roomCode = "c98780fe33";
-		Long userId = 1L;
-		UpdateUserForm form = new UpdateUserForm(roomCode, updateNickname);
-		UserInfo userInfo = new UserInfo(userId, updateNickname, Role.GUEST);
+		String newNickname = " ";
+		UserNicknameChangeForm form = new UserNicknameChangeForm(roomCode, newNickname);
 
-		given(userService.updateUserNickname(eq(userId), eq(updateNickname), eq(roomCode)))
-			.willReturn(userInfo);
+		// Setting up response data
+		Participant participant = new Participant(1L, newNickname, Role.GUEST);
 
-		given(jwtService.parse(anyString()))
-			.willReturn(1L);
-		given(userTrackingStorage.exists(anyLong()))
+		given(jwtService.isValidToken(eq(token)))
 			.willReturn(true);
+		given(jwtService.parse(eq(token)))
+			.willReturn(participant.getId());
+		given(userService.changeUserNickname(eq(participant.getId()), eq(newNickname), eq(roomCode)))
+			.willReturn(participant);
 
 		// when // then
-		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 		mockMvc.perform(patch("/users")
 				.content(objectMapper.writeValueAsString(form))
 				.contentType(MediaType.APPLICATION_JSON)
-				.header(HttpHeaders.AUTHORIZATION, BEARER + token))
+				.cookie(sessionCookie))
 			.andDo(print())
 			.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
 			.andExpect(jsonPath("$.status").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
 			.andExpect(jsonPath("$.result").value(ResponseResult.EXCEPTION_OCCURRED.getDescription()))
 			.andExpect(jsonPath("$.data").isArray())
-			.andDo(document("update-nickname-fail",
+			.andDo(document("change-nickname-fail",
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
 				requestFields(
 					fieldWithPath("roomCode").type(JsonFieldType.STRING).description("방 코드"),
-					fieldWithPath("updateNickname").type(JsonFieldType.STRING).description("변경할 닉네임")
+					fieldWithPath("newNickname").type(JsonFieldType.STRING).description("새로운 닉네임")
 				),
 				responseFields(
 					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
@@ -133,75 +140,84 @@ class UserControllerTest extends RestDocsSupport {
 	@DisplayName("다른 유저의 역할 변경 성공")
 	void changeRole() throws Exception {
 		// given
-		Long hostId = 1L;
-		Long changedUserId = 2L;
-		String roomCode = "fad14a7434";
-		UserRoleChangeForm userRoleChangeForm = new UserRoleChangeForm(roomCode, changedUserId, Role.VIEWER);
-		UserInfo userInfo = new UserInfo(changedUserId, "연츠비", userRoleChangeForm.getChangeUserRole());
+		// Setting session cookie for request
+		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
+		Cookie sessionCookie = new Cookie(cookieProperties.getName(), token);
 
-		given(userService.changeUserRole(eq(hostId), any(UserRoleChangeForm.class)))
-			.willReturn(userInfo);
+		// Setting new user role for request
+		String roomCode = "c98780fe33";
+		Long targetUserId = 2L;
+		Role newUserRole = Role.VIEWER;
+		UserRoleChangeForm form = new UserRoleChangeForm(roomCode, targetUserId, newUserRole);
 
-		given(jwtService.parse(anyString()))
-			.willReturn(1L);
-		given(userTrackingStorage.exists(anyLong()))
+		// Setting up response data
+		Participant participant = new Participant(form.getTargetUserId(), "hyun", form.getNewUserRole());
+
+		given(jwtService.isValidToken(eq(token)))
 			.willReturn(true);
+		given(jwtService.parse(eq(token)))
+			.willReturn(1L);
+		given(userService.changeUserRole(eq(1L), any(UserRoleChangeForm.class)))
+			.willReturn(participant);
 
 		// when // then
-		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 		mockMvc.perform(patch("/users/role")
-				.content(objectMapper.writeValueAsString(userRoleChangeForm))
+				.content(objectMapper.writeValueAsString(form))
 				.contentType(MediaType.APPLICATION_JSON)
-				.header(HttpHeaders.AUTHORIZATION, BEARER + token))
+				.cookie(sessionCookie))
 			.andDo(print())
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
 			.andExpect(jsonPath("$.status").value(HttpStatus.OK.getReasonPhrase()))
 			.andExpect(jsonPath("$.result").value(ResponseResult.USER_ROLE_CHANGE_SUCCESS.getDescription()))
-			.andExpect(jsonPath("$.data.userId").value(changedUserId))
+			.andExpect(jsonPath("$.data.id").value(targetUserId))
 			.andExpect(jsonPath("$.data.role").value(Role.VIEWER.name()))
-			.andDo(document("change-participant-role-success",
+			.andDo(document("change-role-success",
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
 				requestFields(
 					fieldWithPath("roomCode").type(JsonFieldType.STRING).description("방 코드"),
-					fieldWithPath("changedUserId").type(JsonFieldType.NUMBER).description("변경할 유저의 아이디"),
-					fieldWithPath("changeUserRole").type(JsonFieldType.STRING).description("변경할 역할")
+					fieldWithPath("targetUserId").type(JsonFieldType.NUMBER).description("변경할 유저의 아이디"),
+					fieldWithPath("newUserRole").type(JsonFieldType.STRING).description("새로운 역할")
 				),
 				responseFields(
 					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
 					fieldWithPath("status").type(JsonFieldType.STRING).description("상태"),
 					fieldWithPath("result").type(JsonFieldType.STRING).description("결과"),
 					fieldWithPath("data").type(JsonFieldType.OBJECT).description("응답 데이터"),
-					fieldWithPath("data.userId").type(JsonFieldType.NUMBER).description("유저 아이디"),
+					fieldWithPath("data.id").type(JsonFieldType.NUMBER).description("유저 아이디"),
 					fieldWithPath("data.nickname").type(JsonFieldType.STRING).description("닉네임"),
-					fieldWithPath("data.role").type(JsonFieldType.STRING).description("변경된 역할")
+					fieldWithPath("data.role").type(JsonFieldType.STRING).description("새로운 역할")
 				)
 			));
 	}
 
 	@Test
-	@DisplayName("다른 유저의 역할 변경 실패: 자신의 역할을 변경할 수 없다")
-	void selfRoleChangeFail() throws Exception {
+	@DisplayName("다른 유저의 역할 변경 실패: 자신의 역할은 변경할 수 없습니다")
+	void changeRoleFail_Self() throws Exception {
 		// given
-		Long hostId = 1L;
-		String roomCode = "fad14a7434";
-		UserRoleChangeForm userRoleChangeForm = new UserRoleChangeForm(roomCode, hostId, Role.VIEWER);
+		// Setting session cookie for request
+		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
+		Cookie sessionCookie = new Cookie(cookieProperties.getName(), token);
 
-		given(userService.changeUserRole(eq(hostId), any(UserRoleChangeForm.class)))
+		// Setting new user role for request
+		String roomCode = "c98780fe33";
+		Long targetUserId = 2L;
+		Role newUserRole = Role.VIEWER;
+		UserRoleChangeForm form = new UserRoleChangeForm(roomCode, targetUserId, newUserRole);
+
+		given(jwtService.isValidToken(eq(token)))
+			.willReturn(true);
+		given(jwtService.parse(eq(token)))
+			.willReturn(targetUserId);
+		given(userService.changeUserRole(eq(targetUserId), any(UserRoleChangeForm.class)))
 			.willThrow(new SelfRoleChangeException());
 
-		given(jwtService.parse(anyString()))
-			.willReturn(1L);
-		given(userTrackingStorage.exists(anyLong()))
-			.willReturn(true);
-
 		// when // then
-		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 		mockMvc.perform(patch("/users/role")
-				.content(objectMapper.writeValueAsString(userRoleChangeForm))
+				.content(objectMapper.writeValueAsString(form))
 				.contentType(MediaType.APPLICATION_JSON)
-				.header(HttpHeaders.AUTHORIZATION, BEARER + token))
+				.cookie(sessionCookie))
 			.andDo(print())
 			.andExpect(status().isForbidden())
 			.andExpect(jsonPath("$.code").value(HttpStatus.FORBIDDEN.value()))
@@ -210,13 +226,13 @@ class UserControllerTest extends RestDocsSupport {
 			.andExpect(jsonPath("$.data").isArray())
 			.andExpect(jsonPath("$.data[0].type").value(SelfRoleChangeException.class.getSimpleName()))
 			.andExpect(jsonPath("$.data[0].message").value(ErrorType.SELF_ROLE_CHANGE.getMessage()))
-			.andDo(document("change-self-role-fail",
+			.andDo(document("change-role-fail-self",
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
 				requestFields(
 					fieldWithPath("roomCode").type(JsonFieldType.STRING).description("방 코드"),
-					fieldWithPath("changedUserId").type(JsonFieldType.NUMBER).description("변경할 유저의 아이디"),
-					fieldWithPath("changeUserRole").type(JsonFieldType.STRING).description("변경할 역할")
+					fieldWithPath("targetUserId").type(JsonFieldType.NUMBER).description("변경할 유저의 아이디"),
+					fieldWithPath("newUserRole").type(JsonFieldType.STRING).description("새로운 역할")
 				),
 				responseFields(
 					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
@@ -230,28 +246,31 @@ class UserControllerTest extends RestDocsSupport {
 	}
 
 	@Test
-	@DisplayName("다른 유저의 역할 변경 실패: 자신보다 낮은 역할을 가진 유저의 역할만 변경할 수 있다")
-	void HigherOrEqualUserRoleChangeFail() throws Exception {
+	@DisplayName("다른 유저의 역할 변경 실패: 자신과 동등하거나 높은 단계의 유저에 대한 역할을 변경할 수 없습니다")
+	void changeRoleFail_EqualOrHigherUser() throws Exception {
 		// given
-		Long userId = 1L;
-		Long changedUserId = 2L;
-		String roomCode = "fad14a7434";
-		UserRoleChangeForm userRoleChangeForm = new UserRoleChangeForm(roomCode, changedUserId, Role.VIEWER);
+		// Setting session cookie for request
+		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
+		Cookie sessionCookie = new Cookie(cookieProperties.getName(), token);
 
-		given(userService.changeUserRole(eq(userId), any(UserRoleChangeForm.class)))
+		// Setting new user role for request
+		String roomCode = "c98780fe33";
+		Long targetUserId = 2L;
+		Role newUserRole = Role.VIEWER;
+		UserRoleChangeForm form = new UserRoleChangeForm(roomCode, targetUserId, newUserRole);
+
+		given(jwtService.isValidToken(eq(token)))
+			.willReturn(true);
+		given(jwtService.parse(eq(token)))
+			.willReturn(1L);
+		given(userService.changeUserRole(eq(1L), any(UserRoleChangeForm.class)))
 			.willThrow(new HigherOrEqualRoleUserChangeException());
 
-		given(jwtService.parse(anyString()))
-			.willReturn(1L);
-		given(userTrackingStorage.exists(anyLong()))
-			.willReturn(true);
-
 		// when // then
-		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 		mockMvc.perform(patch("/users/role")
-				.content(objectMapper.writeValueAsString(userRoleChangeForm))
+				.content(objectMapper.writeValueAsString(form))
 				.contentType(MediaType.APPLICATION_JSON)
-				.header(HttpHeaders.AUTHORIZATION, BEARER + token))
+				.cookie(sessionCookie))
 			.andDo(print())
 			.andExpect(status().isForbidden())
 			.andExpect(jsonPath("$.code").value(HttpStatus.FORBIDDEN.value()))
@@ -260,13 +279,13 @@ class UserControllerTest extends RestDocsSupport {
 			.andExpect(jsonPath("$.data").isArray())
 			.andExpect(jsonPath("$.data[0].type").value(HigherOrEqualRoleUserChangeException.class.getSimpleName()))
 			.andExpect(jsonPath("$.data[0].message").value(ErrorType.HIGHER_OR_EQUAL_USER_ROLE_CHANGE.getMessage()))
-			.andDo(document("change-higher-or-equal-user-role-fail",
+			.andDo(document("change-role-fail-equal-or-higher-user",
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
 				requestFields(
 					fieldWithPath("roomCode").type(JsonFieldType.STRING).description("방 코드"),
-					fieldWithPath("changedUserId").type(JsonFieldType.NUMBER).description("변경할 유저의 아이디"),
-					fieldWithPath("changeUserRole").type(JsonFieldType.STRING).description("변경할 역할")
+					fieldWithPath("targetUserId").type(JsonFieldType.NUMBER).description("변경할 유저의 아이디"),
+					fieldWithPath("newUserRole").type(JsonFieldType.STRING).description("새로운 역할")
 				),
 				responseFields(
 					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
@@ -280,28 +299,31 @@ class UserControllerTest extends RestDocsSupport {
 	}
 
 	@Test
-	@DisplayName("다른 유저의 역할 변경 실패: 자신보다 낮은 역할로의 변경만 가능하다")
-	void HigherOrEqualRoleChangeFail() throws Exception {
+	@DisplayName("다른 유저의 역할 변경 실패: 자신의 역할보다 높은 단계의 역할로 변경할 수 없습니다")
+	void changeRoleFail_HigherRole() throws Exception {
 		// given
-		Long userId = 1L;
-		Long changedUserId = 2L;
-		String roomCode = "fad14a7434";
-		UserRoleChangeForm userRoleChangeForm = new UserRoleChangeForm(roomCode, changedUserId, Role.VIEWER);
+		// Setting session cookie for request
+		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
+		Cookie sessionCookie = new Cookie(cookieProperties.getName(), token);
 
-		given(userService.changeUserRole(eq(userId), any(UserRoleChangeForm.class)))
+		// Setting new user role for request
+		String roomCode = "c98780fe33";
+		Long targetUserId = 2L;
+		Role newUserRole = Role.HOST;
+		UserRoleChangeForm form = new UserRoleChangeForm(roomCode, targetUserId, newUserRole);
+
+		given(jwtService.isValidToken(eq(token)))
+			.willReturn(true);
+		given(jwtService.parse(eq(token)))
+			.willReturn(1L);
+		given(userService.changeUserRole(eq(1L), any(UserRoleChangeForm.class)))
 			.willThrow(new HigherOrEqualRoleChangeException());
 
-		given(jwtService.parse(anyString()))
-			.willReturn(1L);
-		given(userTrackingStorage.exists(anyLong()))
-			.willReturn(true);
-
 		// when // then
-		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 		mockMvc.perform(patch("/users/role")
-				.content(objectMapper.writeValueAsString(userRoleChangeForm))
+				.content(objectMapper.writeValueAsString(form))
 				.contentType(MediaType.APPLICATION_JSON)
-				.header(HttpHeaders.AUTHORIZATION, BEARER + token))
+				.cookie(sessionCookie))
 			.andDo(print())
 			.andExpect(status().isForbidden())
 			.andExpect(jsonPath("$.code").value(HttpStatus.FORBIDDEN.value()))
@@ -310,13 +332,13 @@ class UserControllerTest extends RestDocsSupport {
 			.andExpect(jsonPath("$.data").isArray())
 			.andExpect(jsonPath("$.data[0].type").value(HigherOrEqualRoleChangeException.class.getSimpleName()))
 			.andExpect(jsonPath("$.data[0].message").value(ErrorType.HIGHER_OR_EQUAL_ROLE_CHANGE.getMessage()))
-			.andDo(document("change-higher-or-equal-role-fail",
+			.andDo(document("change-role-fail-higher-role",
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
 				requestFields(
 					fieldWithPath("roomCode").type(JsonFieldType.STRING).description("방 코드"),
-					fieldWithPath("changedUserId").type(JsonFieldType.NUMBER).description("변경할 유저의 아이디"),
-					fieldWithPath("changeUserRole").type(JsonFieldType.STRING).description("변경할 역할")
+					fieldWithPath("targetUserId").type(JsonFieldType.NUMBER).description("변경할 유저의 아이디"),
+					fieldWithPath("newUserRole").type(JsonFieldType.STRING).description("새로운 역할")
 				),
 				responseFields(
 					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
@@ -330,28 +352,32 @@ class UserControllerTest extends RestDocsSupport {
 	}
 
 	@Test
-	@DisplayName("다른 유저의 역할 변경 실패: 매니저 등급보다 낮은 역할의 유저는 다른 유저의 역할을 변경할 수 없다")
-	void notManageableUserRoleChangeFail() throws Exception {
+	@DisplayName("다른 유저의 역할 변경 실패: MANAGER보다 낮은 단계의 유저는 다른 유저의 역할을 변경할 수 없습니다")
+	void changeRoleFail_NotManageableUser() throws Exception {
 		// given
-		Long userId = 1L;
-		Long changedUserId = 2L;
-		String roomCode = "fad14a7434";
-		UserRoleChangeForm userRoleChangeForm = new UserRoleChangeForm(roomCode, changedUserId, Role.VIEWER);
+		// given
+		// Setting session cookie for request
+		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
+		Cookie sessionCookie = new Cookie(cookieProperties.getName(), token);
 
-		given(userService.changeUserRole(eq(userId), any(UserRoleChangeForm.class)))
+		// Setting new user role for request
+		String roomCode = "c98780fe33";
+		Long targetUserId = 2L;
+		Role newUserRole = Role.GUEST;
+		UserRoleChangeForm form = new UserRoleChangeForm(roomCode, targetUserId, newUserRole);
+
+		given(jwtService.isValidToken(eq(token)))
+			.willReturn(true);
+		given(jwtService.parse(eq(token)))
+			.willReturn(1L);
+		given(userService.changeUserRole(eq(1L), any(UserRoleChangeForm.class)))
 			.willThrow(new NotManageableUserException());
 
-		given(jwtService.parse(anyString()))
-			.willReturn(1L);
-		given(userTrackingStorage.exists(anyLong()))
-			.willReturn(true);
-
 		// when // then
-		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 		mockMvc.perform(patch("/users/role")
-				.content(objectMapper.writeValueAsString(userRoleChangeForm))
+				.content(objectMapper.writeValueAsString(form))
 				.contentType(MediaType.APPLICATION_JSON)
-				.header(HttpHeaders.AUTHORIZATION, BEARER + token))
+				.cookie(sessionCookie))
 			.andDo(print())
 			.andExpect(status().isForbidden())
 			.andExpect(jsonPath("$.code").value(HttpStatus.FORBIDDEN.value()))
@@ -360,13 +386,13 @@ class UserControllerTest extends RestDocsSupport {
 			.andExpect(jsonPath("$.data").isArray())
 			.andExpect(jsonPath("$.data[0].type").value(NotManageableUserException.class.getSimpleName()))
 			.andExpect(jsonPath("$.data[0].message").value(ErrorType.NOT_MANAGEABLE.getMessage()))
-			.andDo(document("not-manageable-role-fail",
+			.andDo(document("change-role-fail-not-manageable-user",
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
 				requestFields(
 					fieldWithPath("roomCode").type(JsonFieldType.STRING).description("방 코드"),
-					fieldWithPath("changedUserId").type(JsonFieldType.NUMBER).description("변경할 유저의 아이디"),
-					fieldWithPath("changeUserRole").type(JsonFieldType.STRING).description("변경할 역할")
+					fieldWithPath("targetUserId").type(JsonFieldType.NUMBER).description("변경할 유저의 아이디"),
+					fieldWithPath("newUserRole").type(JsonFieldType.STRING).description("새로운 역할")
 				),
 				responseFields(
 					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),

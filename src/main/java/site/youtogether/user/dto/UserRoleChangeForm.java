@@ -16,7 +16,7 @@ public class UserRoleChangeForm {
 	private String roomCode;
 
 	@NotNull
-	private Long changedUserId;
-	private Role changeUserRole;
+	private Long targetUserId;
+	private Role newUserRole;
 
 }
