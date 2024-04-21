@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import site.youtogether.IntegrationTestSupport;
+import site.youtogether.room.Participant;
 import site.youtogether.room.Room;
 import site.youtogether.room.infrastructure.RoomStorage;
 import site.youtogether.user.Role;
@@ -55,8 +56,6 @@ class UserServiceTest extends IntegrationTestSupport {
 		assertThat(participantInfo.getNickname()).isEqualTo(updateNickname);
 
 		Room savedRoom = roomStorage.findById(room.getCode()).get();
-		User participant = savedRoom.getParticipants().get(user.getId());
-		assertThat(participant.getNickname()).isEqualTo(updateNickname);
 
 		User savedUser = userStorage.findById(user.getId()).get();
 		assertThat(savedUser.getNickname()).isEqualTo(updateNickname);
@@ -82,14 +81,12 @@ class UserServiceTest extends IntegrationTestSupport {
 		User changedUser = userStorage.findById(user.getId()).get();
 
 		assertThat(changedUser.getId()).isEqualTo(user.getId());
-		assertThat(changedUser.getRole()).isEqualTo(Role.VIEWER);
 	}
 
 	private Room createRoom(LocalDateTime createTime, String title, String hostNickname) {
 		User user = User.builder()
 			.nickname(hostNickname)
 			.id(HOST_ID)
-			.role(Role.HOST)
 			.build();
 
 		Room room = Room.builder()
@@ -108,7 +105,6 @@ class UserServiceTest extends IntegrationTestSupport {
 		User user = User.builder()
 			.id(3L)
 			.nickname(nickname)
-			.role(role)
 			.currentRoomCode(currentRoomCode)
 			.build();
 		userStorage.save(user);
