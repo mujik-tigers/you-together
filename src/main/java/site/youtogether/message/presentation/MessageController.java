@@ -8,23 +8,24 @@ import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
 import site.youtogether.exception.user.ChatMessageSendDeniedException;
+import site.youtogether.exception.user.UserNoExistenceException;
 import site.youtogether.message.ChatMessage;
 import site.youtogether.message.application.MessageService;
-import site.youtogether.room.application.RoomService;
 import site.youtogether.user.User;
+import site.youtogether.user.infrastructure.UserStorage;
 
 @RestController
 @RequiredArgsConstructor
 public class MessageController {
 
-	private final RoomService roomService;
+	private final UserStorage userStorage;
 	private final MessageService messageService;
 
 	@MessageMapping("/messages")
 	public void handleMessage(ChatMessage chatMessage, SimpMessageHeaderAccessor headerAccessor) {
-		String roomCode = (String)headerAccessor.getSessionAttributes().get(ROOM_CODE);
 		Long userId = (Long)headerAccessor.getSessionAttributes().get(USER_ID);
-		User user = roomService.findParticipant(roomCode, userId);
+		User user = userStorage.findById(userId)
+			.orElseThrow(UserNoExistenceException::new);
 
 		if (user.isViewer()) {
 			throw new ChatMessageSendDeniedException();

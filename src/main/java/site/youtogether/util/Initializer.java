@@ -1,5 +1,7 @@
 package site.youtogether.util;
 
+import static site.youtogether.util.AppConstants.*;
+
 import java.time.LocalDateTime;
 
 import org.springframework.boot.ApplicationArguments;
@@ -10,7 +12,6 @@ import org.springframework.stereotype.Component;
 import lombok.RequiredArgsConstructor;
 import site.youtogether.room.Room;
 import site.youtogether.room.infrastructure.RoomStorage;
-import site.youtogether.user.Role;
 import site.youtogether.user.User;
 import site.youtogether.user.infrastructure.UserStorage;
 
@@ -34,11 +35,11 @@ public class Initializer implements ApplicationRunner {
 			User host = User.builder()
 				.id(i)
 				.nickname("황똥땡" + i)
-				.role(Role.HOST)
 				.build();
 
 			LocalDateTime createTime = LocalDateTime.of(2024, 4, 6, 12, 0, (int)i);
 			Room room = Room.builder()
+				.code(RandomUtil.generateRandomCode(ROOM_CODE_LENGTH))
 				.host(host)
 				.capacity(5)
 				.title("황똥땡의 공개방... no." + i)
@@ -51,11 +52,11 @@ public class Initializer implements ApplicationRunner {
 			User host = User.builder()
 				.id(NO_PASSWORD_ROOM_COUNT + i)
 				.nickname("연똥땡" + i)
-				.role(Role.HOST)
 				.build();
 
 			LocalDateTime createTime = LocalDateTime.of(2024, 4, 6, 11, 0, (int)i);
 			Room room = Room.builder()
+				.code(RandomUtil.generateRandomCode(ROOM_CODE_LENGTH))
 				.host(host)
 				.capacity(5)
 				.title("연똥땡의 은밀한 방... no." + i)

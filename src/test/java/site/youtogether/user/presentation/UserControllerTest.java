@@ -22,8 +22,7 @@ import site.youtogether.exception.user.HigherOrEqualRoleUserChangeException;
 import site.youtogether.exception.user.NotManageableUserException;
 import site.youtogether.exception.user.SelfRoleChangeException;
 import site.youtogether.user.Role;
-import site.youtogether.user.dto.UpdateUserForm;
-import site.youtogether.user.dto.UserInfo;
+import site.youtogether.user.dto.UserNicknameChangeForm;
 import site.youtogether.user.dto.UserRoleChangeForm;
 import site.youtogether.util.api.ResponseResult;
 
@@ -39,8 +38,8 @@ class UserControllerTest extends RestDocsSupport {
 		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 
 		Cookie sessionCookie = new Cookie(cookieProperties.getName(), token);
-		UpdateUserForm form = new UpdateUserForm(roomCode, updateNickname);
-		UserInfo userInfo = new UserInfo(userId, updateNickname, Role.GUEST);
+		UserNicknameChangeForm form = new UserNicknameChangeForm(roomCode, updateNickname);
+		Participant participantInfo = new Participant(userId, updateNickname, Role.GUEST);
 
 		given(jwtService.isValidToken(eq(token)))
 			.willReturn(true);
@@ -48,8 +47,8 @@ class UserControllerTest extends RestDocsSupport {
 		given(jwtService.parse(eq(token)))
 			.willReturn(userId);
 
-		given(userService.updateUserNickname(eq(userId), eq(updateNickname), eq(roomCode)))
-			.willReturn(userInfo);
+		given(userService.changeUserNickname(eq(userId), eq(updateNickname), eq(roomCode)))
+			.willReturn(participantInfo);
 
 		// when // then
 		mockMvc.perform(patch("/users")
@@ -60,10 +59,10 @@ class UserControllerTest extends RestDocsSupport {
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
 			.andExpect(jsonPath("$.status").value(HttpStatus.OK.getReasonPhrase()))
-			.andExpect(jsonPath("$.result").value(ResponseResult.USER_NICKNAME_UPDATE_SUCCESS.getDescription()))
+			.andExpect(jsonPath("$.result").value(ResponseResult.USER_NICKNAME_CHANGE_SUCCESS.getDescription()))
 			.andExpect(jsonPath("$.data.userId").value(userId))
 			.andExpect(jsonPath("$.data.nickname").value(updateNickname))
-			.andExpect(jsonPath("$.data.role").value(userInfo.getRole().name()))
+			.andExpect(jsonPath("$.data.role").value(participantInfo.getRole().name()))
 			.andDo(document("update-nickname-success",
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
@@ -93,8 +92,8 @@ class UserControllerTest extends RestDocsSupport {
 		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 
 		Cookie sessionCookie = new Cookie(cookieProperties.getName(), token);
-		UpdateUserForm form = new UpdateUserForm(roomCode, updateNickname);
-		UserInfo userInfo = new UserInfo(userId, updateNickname, Role.GUEST);
+		UserNicknameChangeForm form = new UserNicknameChangeForm(roomCode, updateNickname);
+		Participant participantInfo = new Participant(userId, updateNickname, Role.GUEST);
 
 		given(jwtService.isValidToken(eq(token)))
 			.willReturn(true);
@@ -102,8 +101,8 @@ class UserControllerTest extends RestDocsSupport {
 		given(jwtService.parse(eq(token)))
 			.willReturn(userId);
 
-		given(userService.updateUserNickname(eq(userId), eq(updateNickname), eq(roomCode)))
-			.willReturn(userInfo);
+		given(userService.changeUserNickname(eq(userId), eq(updateNickname), eq(roomCode)))
+			.willReturn(participantInfo);
 
 		// when // then
 		mockMvc.perform(patch("/users")
@@ -145,7 +144,7 @@ class UserControllerTest extends RestDocsSupport {
 
 		Cookie sessionCookie = new Cookie(cookieProperties.getName(), token);
 		UserRoleChangeForm userRoleChangeForm = new UserRoleChangeForm(roomCode, changedUserId, Role.VIEWER);
-		UserInfo userInfo = new UserInfo(changedUserId, "연츠비", userRoleChangeForm.getChangeUserRole());
+		Participant participantInfo = new Participant(changedUserId, "연츠비", userRoleChangeForm.getNewUserRole());
 
 		given(jwtService.isValidToken(eq(token)))
 			.willReturn(true);
@@ -154,7 +153,7 @@ class UserControllerTest extends RestDocsSupport {
 			.willReturn(hostId);
 
 		given(userService.changeUserRole(eq(hostId), any(UserRoleChangeForm.class)))
-			.willReturn(userInfo);
+			.willReturn(participantInfo);
 
 		// when // then
 		mockMvc.perform(patch("/users/role")
@@ -173,8 +172,8 @@ class UserControllerTest extends RestDocsSupport {
 				preprocessResponse(prettyPrint()),
 				requestFields(
 					fieldWithPath("roomCode").type(JsonFieldType.STRING).description("방 코드"),
-					fieldWithPath("changedUserId").type(JsonFieldType.NUMBER).description("변경할 유저의 아이디"),
-					fieldWithPath("changeUserRole").type(JsonFieldType.STRING).description("변경할 역할")
+					fieldWithPath("targetUserId").type(JsonFieldType.NUMBER).description("변경할 유저의 아이디"),
+					fieldWithPath("newUserRole").type(JsonFieldType.STRING).description("변경할 역할")
 				),
 				responseFields(
 					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
@@ -226,8 +225,8 @@ class UserControllerTest extends RestDocsSupport {
 				preprocessResponse(prettyPrint()),
 				requestFields(
 					fieldWithPath("roomCode").type(JsonFieldType.STRING).description("방 코드"),
-					fieldWithPath("changedUserId").type(JsonFieldType.NUMBER).description("변경할 유저의 아이디"),
-					fieldWithPath("changeUserRole").type(JsonFieldType.STRING).description("변경할 역할")
+					fieldWithPath("targetUserId").type(JsonFieldType.NUMBER).description("변경할 유저의 아이디"),
+					fieldWithPath("newUserRole").type(JsonFieldType.STRING).description("변경할 역할")
 				),
 				responseFields(
 					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
@@ -279,8 +278,8 @@ class UserControllerTest extends RestDocsSupport {
 				preprocessResponse(prettyPrint()),
 				requestFields(
 					fieldWithPath("roomCode").type(JsonFieldType.STRING).description("방 코드"),
-					fieldWithPath("changedUserId").type(JsonFieldType.NUMBER).description("변경할 유저의 아이디"),
-					fieldWithPath("changeUserRole").type(JsonFieldType.STRING).description("변경할 역할")
+					fieldWithPath("targetUserId").type(JsonFieldType.NUMBER).description("변경할 유저의 아이디"),
+					fieldWithPath("newUserRole").type(JsonFieldType.STRING).description("변경할 역할")
 				),
 				responseFields(
 					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
@@ -332,8 +331,8 @@ class UserControllerTest extends RestDocsSupport {
 				preprocessResponse(prettyPrint()),
 				requestFields(
 					fieldWithPath("roomCode").type(JsonFieldType.STRING).description("방 코드"),
-					fieldWithPath("changedUserId").type(JsonFieldType.NUMBER).description("변경할 유저의 아이디"),
-					fieldWithPath("changeUserRole").type(JsonFieldType.STRING).description("변경할 역할")
+					fieldWithPath("targetUserId").type(JsonFieldType.NUMBER).description("변경할 유저의 아이디"),
+					fieldWithPath("newUserRole").type(JsonFieldType.STRING).description("변경할 역할")
 				),
 				responseFields(
 					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
@@ -385,8 +384,8 @@ class UserControllerTest extends RestDocsSupport {
 				preprocessResponse(prettyPrint()),
 				requestFields(
 					fieldWithPath("roomCode").type(JsonFieldType.STRING).description("방 코드"),
-					fieldWithPath("changedUserId").type(JsonFieldType.NUMBER).description("변경할 유저의 아이디"),
-					fieldWithPath("changeUserRole").type(JsonFieldType.STRING).description("변경할 역할")
+					fieldWithPath("targetUserId").type(JsonFieldType.NUMBER).description("변경할 유저의 아이디"),
+					fieldWithPath("newUserRole").type(JsonFieldType.STRING).description("변경할 역할")
 				),
 				responseFields(
 					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),

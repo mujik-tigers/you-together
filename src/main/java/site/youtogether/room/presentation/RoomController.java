@@ -17,12 +17,12 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import site.youtogether.room.application.RoomService;
+import site.youtogether.room.dto.ChangedRoomTitle;
 import site.youtogether.room.dto.PasswordInput;
 import site.youtogether.room.dto.RoomDetail;
 import site.youtogether.room.dto.RoomList;
 import site.youtogether.room.dto.RoomSettings;
 import site.youtogether.room.dto.RoomTitleChangeForm;
-import site.youtogether.room.dto.UpdatedRoomTitle;
 import site.youtogether.util.api.ApiResponse;
 import site.youtogether.util.api.ResponseResult;
 import site.youtogether.util.resolver.UserTracking;
@@ -61,11 +61,11 @@ public class RoomController {
 	}
 
 	@PatchMapping("/rooms/title")
-	public ResponseEntity<ApiResponse<UpdatedRoomTitle>> changeRoomTitle(@UserTracking Long userId, @Valid @RequestBody RoomTitleChangeForm form) {
-		UpdatedRoomTitle updatedRoomTitle = roomService.changeRoomTitle(userId, form.getRoomCode(), form.getUpdateTitle());
+	public ResponseEntity<ApiResponse<ChangedRoomTitle>> changeRoomTitle(@UserTracking Long userId, @Valid @RequestBody RoomTitleChangeForm form) {
+		ChangedRoomTitle changedRoomTitle = roomService.changeRoomTitle(userId, form.getRoomCode(), form.getNewTitle());
 
 		return ResponseEntity.ok(
-			ApiResponse.ok(ResponseResult.ROOM_TITLE_CHANGE_SUCCESS, updatedRoomTitle));
+			ApiResponse.ok(ResponseResult.ROOM_TITLE_CHANGE_SUCCESS, changedRoomTitle));
 	}
 
 }

@@ -13,12 +13,11 @@ import site.youtogether.exception.room.RoomNoExistenceException;
 import site.youtogether.exception.user.UserNoExistenceException;
 import site.youtogether.message.application.MessageService;
 import site.youtogether.room.Room;
+import site.youtogether.room.dto.ChangedRoomTitle;
 import site.youtogether.room.dto.RoomDetail;
 import site.youtogether.room.dto.RoomList;
 import site.youtogether.room.dto.RoomSettings;
-import site.youtogether.room.dto.UpdatedRoomTitle;
 import site.youtogether.room.infrastructure.RoomStorage;
-import site.youtogether.user.Role;
 import site.youtogether.user.User;
 import site.youtogether.user.infrastructure.UserStorage;
 import site.youtogether.util.RandomUtil;
@@ -36,8 +35,7 @@ public class RoomService {
 
 		User host = userStorage.findById(userId)
 			.orElseThrow(UserNoExistenceException::new);
-		host.changeRole(Role.HOST);
-		host.enterRoom(roomCode);
+		host.createRoom(roomCode);
 		userStorage.save(host);
 
 		Room room = Room.builder()
@@ -61,17 +59,11 @@ public class RoomService {
 	public RoomDetail enter(Long userId, String roomCode, String passwordInput) {
 		User user = userStorage.findById(userId)
 			.orElseThrow(UserNoExistenceException::new);
-
-		if (user.isFirstTimeEntering(roomCode)) {
-			user.changeRole(Role.GUEST);
-		}
-
 		user.enterRoom(roomCode);
 		userStorage.save(user);
 
 		Room room = roomStorage.findById(roomCode)
 			.orElseThrow(RoomNoExistenceException::new);
-
 		room.enterParticipant(user, passwordInput);
 		roomStorage.save(room);
 
@@ -90,21 +82,18 @@ public class RoomService {
 		roomStorage.save(room);
 	}
 
-	public User findParticipant(String roomCode, Long userId) {
+	public ChangedRoomTitle changeRoomTitle(Long userId, String roomCode, String updateTitle) {
+		User user = userStorage.findById(userId)
+			.orElseThrow(UserNoExistenceException::new);
+
 		Room room = roomStorage.findById(roomCode)
 			.orElseThrow(RoomNoExistenceException::new);
-
-		return room.findParticipantBy(userId);
-	}
-
-	public UpdatedRoomTitle changeRoomTitle(Long userId, String roomCode, String updateTitle) {
-		Room room = roomStorage.findById(roomCode)
-			.orElseThrow(RoomNoExistenceException::new);
-		room.changeRoomTitle(userId, updateTitle);
+		room.changeRoomTitle(user, updateTitle);
 		roomStorage.save(room);
 
 		messageService.sendRoomTitle(roomCode);
-		return new UpdatedRoomTitle(room);
+
+		return new ChangedRoomTitle(room);
 	}
 
 }

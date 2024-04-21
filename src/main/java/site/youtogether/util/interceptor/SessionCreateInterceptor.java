@@ -16,6 +16,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import site.youtogether.config.property.CookieProperties;
 import site.youtogether.jwt.JwtService;
 import site.youtogether.user.User;
@@ -24,6 +25,7 @@ import site.youtogether.util.RandomUtil;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class SessionCreateInterceptor implements HandlerInterceptor {
 
 	private final CookieProperties cookieProperties;
@@ -52,7 +54,6 @@ public class SessionCreateInterceptor implements HandlerInterceptor {
 			User user = User.builder()
 				.id(userId)
 				.nickname(RandomUtil.generateUserNickname())
-				.role(null)
 				.currentRoomCode(null)
 				.build();
 			userStorage.save(user);

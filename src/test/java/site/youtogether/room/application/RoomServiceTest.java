@@ -25,6 +25,7 @@ import site.youtogether.room.infrastructure.RoomStorage;
 import site.youtogether.user.Role;
 import site.youtogether.user.User;
 import site.youtogether.user.infrastructure.UserStorage;
+import site.youtogether.util.RandomUtil;
 
 class RoomServiceTest extends IntegrationTestSupport {
 
@@ -70,7 +71,7 @@ class RoomServiceTest extends IntegrationTestSupport {
 		assertThat(room.getPassword()).isNull();
 		assertThat(room.getParticipants()).hasSize(1);
 		assertThat(savedUser.getId()).isEqualTo(user.getId());
-		assertThat(savedUser.getRole()).isEqualTo(Role.HOST);
+		assertThat(savedUser.getRoleInCurrentRoom()).isEqualTo(Role.HOST);
 	}
 
 	@Test
@@ -125,7 +126,7 @@ class RoomServiceTest extends IntegrationTestSupport {
 		User savedUser = userStorage.findById(user.getId()).get();
 
 		assertThat(savedUser.getId()).isEqualTo(user.getId());
-		assertThat(savedUser.getRole()).isEqualTo(Role.GUEST);
+		assertThat(savedUser.getRoleInCurrentRoom()).isEqualTo(Role.GUEST);
 		assertThat(savedRoom.getParticipants()).containsKey(savedUser.getId());
 	}
 
@@ -145,7 +146,7 @@ class RoomServiceTest extends IntegrationTestSupport {
 		User savedUser = userStorage.findById(user.getId()).get();
 
 		assertThat(savedUser.getId()).isEqualTo(user.getId());
-		assertThat(savedUser.getRole()).isEqualTo(Role.GUEST);
+		assertThat(savedUser.getRoleInCurrentRoom()).isEqualTo(Role.GUEST);
 		assertThat(savedRoom.getParticipants()).containsKey(savedUser.getId());
 	}
 
@@ -195,7 +196,7 @@ class RoomServiceTest extends IntegrationTestSupport {
 		assertThat(savedRoom.getParticipants()).doesNotContainKey(user.getId());
 		assertThat(savedUser.getCurrentRoomCode()).isNull();
 		assertThat(savedUser.isParticipant()).isFalse();
-		assertThat(savedUser.getPreviousRoomCode()).isEqualTo(savedRoom.getCode());
+		assertThat(savedUser.getHistory()).containsKey(savedRoom.getCode());
 	}
 
 	@Test
@@ -203,7 +204,6 @@ class RoomServiceTest extends IntegrationTestSupport {
 	void changeRoom() throws Exception {
 		// given
 		Room room = createRoom(LocalDateTime.of(2024, 4, 10, 11, 37, 0), "황똥땡의 방");
-		roomStorage.save(room);
 
 		String updateTitle = "연똥땡의 방";
 
@@ -213,6 +213,59 @@ class RoomServiceTest extends IntegrationTestSupport {
 		// then
 		Room savedRoom = roomStorage.findById(room.getCode()).get();
 		assertThat(savedRoom.getTitle()).isEqualTo(updateTitle);
+	}
+
+	@Test
+	@DisplayName("나갔던 방에 재입장해도, 방에서의 권한이 유지된다")
+	void leaveAndReEnterRoom() throws Exception {
+		// given
+		Room room = createRoom(LocalDateTime.of(2024, 4, 10, 11, 37, 0), "황똥땡의 방");
+		User user = createUser();
+
+		// when
+		roomService.enter(user.getId(), room.getCode(), null);
+		userRoleChange(room.getCode(), user.getId(), Role.MANAGER);
+		roomService.leave(room.getCode(), user.getId());
+		roomService.enter(user.getId(), room.getCode(), null);
+
+		// then
+		Room savedRoom = roomStorage.findById(room.getCode()).get();
+		assertThat(savedRoom.getParticipants().get(user.getId()).getRole()).isEqualTo(Role.MANAGER);
+
+		User savedUser = userStorage.findById(user.getId()).get();
+		assertThat(savedUser.getRoleInCurrentRoom()).isEqualTo(Role.MANAGER);
+	}
+
+	@Test
+	@DisplayName("이전 방에서의 권한과 상관없이, 새로운 방에 들어가면 GUEST 역할을 받는다")
+	void enterNewRoomRefreshRole() throws Exception {
+		// given
+		Room room1 = createRoom(LocalDateTime.of(2024, 4, 10, 11, 37, 0), "황똥땡의 방");
+		User user = createUser();
+
+		Room room2 = createRoom(LocalDateTime.of(2024, 4, 10, 12, 37, 0), "연츠비의 방");
+
+		// when
+		roomService.enter(user.getId(), room1.getCode(), null);
+		userRoleChange(room1.getCode(), user.getId(), Role.MANAGER);
+		roomService.leave(room1.getCode(), user.getId());
+		roomService.enter(user.getId(), room2.getCode(), null);
+
+		// then
+		Room savedRoom = roomStorage.findById(room2.getCode()).get();
+		assertThat(savedRoom.getParticipants().get(user.getId()).getRole()).isEqualTo(Role.GUEST);
+
+		User savedUser = userStorage.findById(user.getId()).get();
+		assertThat(savedUser.getRoleInCurrentRoom()).isEqualTo(Role.GUEST);
+	}
+
+	private void userRoleChange(String roomCode, User user, Role newUserRole) {
+		Room room = roomStorage.findById(roomCode).get();
+		room.updateParticipant();
+		User enterUser = room.getParticipants().get(userId);
+		enterUser.changeRole(roomCode, newUserRole);
+		userStorage.save(enterUser);
+		roomStorage.save(room);
 	}
 
 	private User createUser() {
@@ -231,6 +284,7 @@ class RoomServiceTest extends IntegrationTestSupport {
 			.build();
 
 		Room room = Room.builder()
+			.code(RandomUtil.generateRandomCode(ROOM_CODE_LENGTH))
 			.title(title)
 			.host(user)
 			.createdAt(createTime)
@@ -249,6 +303,7 @@ class RoomServiceTest extends IntegrationTestSupport {
 			.build();
 
 		Room room = Room.builder()
+			.code("roomCode")
 			.title(title)
 			.host(user)
 			.createdAt(createTime)
@@ -267,6 +322,7 @@ class RoomServiceTest extends IntegrationTestSupport {
 			.build();
 
 		Room room = Room.builder()
+			.code("roomCode")
 			.title(title)
 			.password(password)
 			.host(user)

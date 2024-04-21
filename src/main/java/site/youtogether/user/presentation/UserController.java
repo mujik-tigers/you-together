@@ -7,9 +7,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import site.youtogether.room.Participant;
 import site.youtogether.user.application.UserService;
-import site.youtogether.user.dto.UpdateUserForm;
-import site.youtogether.user.dto.UserInfo;
+import site.youtogether.user.dto.UserNicknameChangeForm;
 import site.youtogether.user.dto.UserRoleChangeForm;
 import site.youtogether.util.api.ApiResponse;
 import site.youtogether.util.api.ResponseResult;
@@ -22,17 +22,17 @@ public class UserController {
 	private final UserService userService;
 
 	@PatchMapping("/users")
-	public ResponseEntity<ApiResponse<UserInfo>> updateUserNickname(@UserTracking Long userId, @RequestBody @Valid UpdateUserForm form) {
-		UserInfo userInfo = userService.updateUserNickname(userId, form.getUpdateNickname(), form.getRoomCode());
+	public ResponseEntity<ApiResponse<Participant>> changeUserNickname(@UserTracking Long userId, @RequestBody @Valid UserNicknameChangeForm form) {
+		Participant participantInfo = userService.changeUserNickname(userId, form.getNewNickname(), form.getRoomCode());
 
-		return ResponseEntity.ok(ApiResponse.ok(ResponseResult.USER_NICKNAME_UPDATE_SUCCESS, userInfo));
+		return ResponseEntity.ok(ApiResponse.ok(ResponseResult.USER_NICKNAME_CHANGE_SUCCESS, participantInfo));
 	}
 
 	@PatchMapping("/users/role")
-	public ResponseEntity<ApiResponse<UserInfo>> changeUserRole(@UserTracking Long userId, @Valid @RequestBody UserRoleChangeForm form) {
-		UserInfo changedUserInfo = userService.changeUserRole(userId, form);
+	public ResponseEntity<ApiResponse<Participant>> changeUserRole(@UserTracking Long userId, @Valid @RequestBody UserRoleChangeForm form) {
+		Participant changedParticipantInfo = userService.changeUserRole(userId, form);
 
-		return ResponseEntity.ok(ApiResponse.ok(ResponseResult.USER_ROLE_CHANGE_SUCCESS, changedUserInfo));
+		return ResponseEntity.ok(ApiResponse.ok(ResponseResult.USER_ROLE_CHANGE_SUCCESS, changedParticipantInfo));
 	}
 
 }

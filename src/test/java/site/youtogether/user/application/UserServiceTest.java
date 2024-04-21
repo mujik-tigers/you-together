@@ -14,8 +14,8 @@ import site.youtogether.room.Room;
 import site.youtogether.room.infrastructure.RoomStorage;
 import site.youtogether.user.Role;
 import site.youtogether.user.User;
-import site.youtogether.user.dto.UserInfo;
 import site.youtogether.user.dto.UserRoleChangeForm;
+import site.youtogether.user.infrastructure.UserStorage;
 
 class UserServiceTest extends IntegrationTestSupport {
 
@@ -25,10 +25,14 @@ class UserServiceTest extends IntegrationTestSupport {
 	private UserService userService;
 
 	@Autowired
+	private UserStorage userStorage;
+
+	@Autowired
 	private RoomStorage roomStorage;
 
 	@AfterEach
 	void clean() {
+		userStorage.deleteAll();
 		roomStorage.deleteAll();
 	}
 
@@ -38,46 +42,23 @@ class UserServiceTest extends IntegrationTestSupport {
 		// given
 		Room room = createRoom(LocalDateTime.of(2024, 4, 11, 4, 8, 0), "황똥땡의 방", "호스트 황똥땡");
 
-		User user = User.builder()
-			.id(1L)
-			.nickname("연츠비")
-			.role(Role.GUEST)
-			.build();
+		User user = createUser("연츠비", room.getCode(), Role.GUEST);
 		room.enterParticipant(user, null);
 		roomStorage.save(room);
 
 		String updateNickname = "연똥땡";
 
 		// when
-		UserInfo userInfo = userService.updateUserNickname(user.getId(), updateNickname, room.getCode());
+		Participant participantInfo = userService.changeUserNickname(user.getId(), updateNickname, room.getCode());
 
 		// then
-		assertThat(userInfo.getNickname()).isEqualTo(updateNickname);
+		assertThat(participantInfo.getNickname()).isEqualTo(updateNickname);
 
 		Room savedRoom = roomStorage.findById(room.getCode()).get();
 		User participant = savedRoom.getParticipants().get(user.getId());
 		assertThat(participant.getNickname()).isEqualTo(updateNickname);
 
-		User savedUser = savedRoom.findParticipantBy(user.getId());
-		assertThat(savedUser.getNickname()).isEqualTo(updateNickname);
-	}
-
-	@Test
-	@DisplayName("호스트 닉네임을 변경한다")
-	void updateHostNickname() throws Exception {
-		// given
-		String hostNickname = "호스트 황똥땡";
-		String updateNickname = "내가 바로 진짜 황똥땡";
-		Room room = createRoom(LocalDateTime.of(2024, 4, 11, 4, 8, 0), "황똥땡의 방", hostNickname);
-
-		// when
-		UserInfo userInfo = userService.updateUserNickname(HOST_ID, updateNickname, room.getCode());
-
-		// then
-		assertThat(userInfo.getNickname()).isEqualTo(updateNickname);
-
-		Room savedRoom = roomStorage.findById(room.getCode()).get();
-		User savedUser = savedRoom.findParticipantBy(HOST_ID);
+		User savedUser = userStorage.findById(user.getId()).get();
 		assertThat(savedUser.getNickname()).isEqualTo(updateNickname);
 	}
 
@@ -85,12 +66,9 @@ class UserServiceTest extends IntegrationTestSupport {
 	@DisplayName("특정 유저의 역할을 변경한다")
 	void changeUserRole() throws Exception {
 		// given
-		User user = User.builder()
-			.id(2L)
-			.role(Role.GUEST)
-			.build();
-
 		Room room = createRoom(LocalDateTime.of(2024, 4, 11, 4, 8, 0), "황똥땡의 방", "황똥땡");
+
+		User user = createUser("연츠비", room.getCode(), Role.GUEST);
 		room.enterParticipant(user, null);
 		roomStorage.save(room);
 
@@ -101,7 +79,7 @@ class UserServiceTest extends IntegrationTestSupport {
 
 		// then
 		Room savedRoom = roomStorage.findById(room.getCode()).get();
-		User changedUser = savedRoom.findParticipantBy(user.getId());
+		User changedUser = userStorage.findById(user.getId()).get();
 
 		assertThat(changedUser.getId()).isEqualTo(user.getId());
 		assertThat(changedUser.getRole()).isEqualTo(Role.VIEWER);
@@ -124,6 +102,17 @@ class UserServiceTest extends IntegrationTestSupport {
 		roomStorage.save(room);
 
 		return room;
+	}
+
+	private User createUser(String nickname, String currentRoomCode, Role role) {
+		User user = User.builder()
+			.id(3L)
+			.nickname(nickname)
+			.role(role)
+			.currentRoomCode(currentRoomCode)
+			.build();
+		userStorage.save(user);
+		return user;
 	}
 
 }

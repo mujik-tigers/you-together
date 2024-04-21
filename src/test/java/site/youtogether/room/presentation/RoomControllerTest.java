@@ -33,15 +33,14 @@ import site.youtogether.exception.room.RoomCapacityExceededException;
 import site.youtogether.exception.room.SingleRoomParticipationViolationException;
 import site.youtogether.exception.user.ChangeRoomTitleDeniedException;
 import site.youtogether.room.Room;
+import site.youtogether.room.dto.ChangedRoomTitle;
 import site.youtogether.room.dto.PasswordInput;
 import site.youtogether.room.dto.RoomDetail;
 import site.youtogether.room.dto.RoomList;
 import site.youtogether.room.dto.RoomSettings;
 import site.youtogether.room.dto.RoomTitleChangeForm;
-import site.youtogether.room.dto.UpdatedRoomTitle;
 import site.youtogether.user.Role;
 import site.youtogether.user.User;
-import site.youtogether.user.dto.UserInfo;
 import site.youtogether.util.RandomUtil;
 import site.youtogether.util.api.ResponseResult;
 
@@ -65,7 +64,7 @@ class RoomControllerTest extends RestDocsSupport {
 		Optional<User> user = Optional.of(User.builder()
 			.currentRoomCode(null)
 			.build());
-		UserInfo userInfo = new UserInfo(10L, "황똥땡", Role.HOST);
+		Participant participantInfo = new Participant(10L, "황똥땡", Role.HOST);
 
 		given(jwtService.issue(anyLong(), any()))
 			.willReturn(token);
@@ -73,7 +72,7 @@ class RoomControllerTest extends RestDocsSupport {
 			.willReturn(user);
 
 		// Setting up response data for the created room
-		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, userInfo, capacity, 1, false);
+		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, participantInfo, capacity, 1, false);
 		given(roomService.create(anyLong(), any(RoomSettings.class), any(LocalDateTime.class)))
 			.willReturn(createdRoomDetail);
 
@@ -89,7 +88,7 @@ class RoomControllerTest extends RestDocsSupport {
 			.andExpect(jsonPath("$.result").value(ResponseResult.ROOM_CREATION_SUCCESS.getDescription()))
 			.andExpect(jsonPath("$.data.roomCode").value(roomCode))
 			.andExpect(jsonPath("$.data.roomTitle").value(roomTitle))
-			.andExpect(jsonPath("$.data.user.userId").value(userInfo.getUserId()))
+			.andExpect(jsonPath("$.data.user.userId").value(participantInfo.getUserId()))
 			.andExpect(jsonPath("$.data.capacity").value(capacity))
 			.andExpect(jsonPath("$.data.currentParticipant").value(1))
 			.andExpect(jsonPath("$.data.passwordExist").value(false))
@@ -137,7 +136,7 @@ class RoomControllerTest extends RestDocsSupport {
 		Optional<User> user = Optional.of(User.builder()
 			.currentRoomCode(null)
 			.build());
-		UserInfo userInfo = new UserInfo(10L, "황똥땡", Role.HOST);
+		Participant participantInfo = new Participant(10L, "황똥땡", Role.HOST);
 
 		given(jwtService.issue(anyLong(), any()))
 			.willReturn(token);
@@ -145,7 +144,7 @@ class RoomControllerTest extends RestDocsSupport {
 			.willReturn(user);
 
 		// Setting up response data for the created room
-		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, userInfo, capacity, 1, true);
+		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, participantInfo, capacity, 1, true);
 		given(roomService.create(anyLong(), any(RoomSettings.class), any(LocalDateTime.class)))
 			.willReturn(createdRoomDetail);
 
@@ -161,7 +160,7 @@ class RoomControllerTest extends RestDocsSupport {
 			.andExpect(jsonPath("$.result").value(ResponseResult.ROOM_CREATION_SUCCESS.getDescription()))
 			.andExpect(jsonPath("$.data.roomCode").value(roomCode))
 			.andExpect(jsonPath("$.data.roomTitle").value(roomTitle))
-			.andExpect(jsonPath("$.data.user.userId").value(userInfo.getUserId()))
+			.andExpect(jsonPath("$.data.user.userId").value(participantInfo.getUserId()))
 			.andExpect(jsonPath("$.data.capacity").value(capacity))
 			.andExpect(jsonPath("$.data.currentParticipant").value(1))
 			.andExpect(jsonPath("$.data.passwordExist").value(true))
@@ -368,8 +367,8 @@ class RoomControllerTest extends RestDocsSupport {
 		String roomTitle = "재밌는 쇼츠 같이 보기";
 		int capacity = 10;
 
-		UserInfo userInfo = new UserInfo(10L, "황똥땡", Role.HOST);
-		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, userInfo, capacity, 2, false);
+		Participant participantInfo = new Participant(10L, "황똥땡", Role.HOST);
+		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, participantInfo, capacity, 2, false);
 		Optional<User> user = Optional.of(User.builder()
 			.currentRoomCode(null)
 			.build());
@@ -391,7 +390,7 @@ class RoomControllerTest extends RestDocsSupport {
 			.andExpect(jsonPath("$.result").value(ResponseResult.ROOM_ENTER_SUCCESS.getDescription()))
 			.andExpect(jsonPath("$.data.roomCode").value(roomCode))
 			.andExpect(jsonPath("$.data.roomTitle").value(roomTitle))
-			.andExpect(jsonPath("$.data.user.userId").value(userInfo.getUserId()))
+			.andExpect(jsonPath("$.data.user.userId").value(participantInfo.getUserId()))
 			.andExpect(jsonPath("$.data.capacity").value(capacity))
 			.andExpect(jsonPath("$.data.currentParticipant").value(2))
 			.andExpect(jsonPath("$.data.passwordExist").value(false))
@@ -425,8 +424,8 @@ class RoomControllerTest extends RestDocsSupport {
 		String roomTitle = "재밌는 쇼츠 같이 보기";
 		int capacity = 10;
 
-		UserInfo userInfo = new UserInfo(10L, "황똥땡", Role.HOST);
-		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, userInfo, capacity, 2, false);
+		Participant participantInfo = new Participant(10L, "황똥땡", Role.HOST);
+		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, participantInfo, capacity, 2, false);
 		Optional<User> user = Optional.of(User.builder()
 			.currentRoomCode("1e7050f7d7")
 			.build());
@@ -472,8 +471,8 @@ class RoomControllerTest extends RestDocsSupport {
 		String password = "mySecretRoom";
 		int capacity = 10;
 
-		UserInfo userInfo = new UserInfo(10L, "황똥땡", Role.HOST);
-		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, userInfo, capacity, 2, true);
+		Participant participantInfo = new Participant(10L, "황똥땡", Role.HOST);
+		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, participantInfo, capacity, 2, true);
 		Optional<User> user = Optional.of(User.builder()
 			.currentRoomCode(null)
 			.build());
@@ -497,7 +496,7 @@ class RoomControllerTest extends RestDocsSupport {
 			.andExpect(jsonPath("$.result").value(ResponseResult.ROOM_ENTER_SUCCESS.getDescription()))
 			.andExpect(jsonPath("$.data.roomCode").value(roomCode))
 			.andExpect(jsonPath("$.data.roomTitle").value(roomTitle))
-			.andExpect(jsonPath("$.data.user.userId").value(userInfo.getUserId()))
+			.andExpect(jsonPath("$.data.user.userId").value(participantInfo.getUserId()))
 			.andExpect(jsonPath("$.data.capacity").value(capacity))
 			.andExpect(jsonPath("$.data.currentParticipant").value(2))
 			.andExpect(jsonPath("$.data.passwordExist").value(true))
@@ -673,7 +672,7 @@ class RoomControllerTest extends RestDocsSupport {
 		given(jwtService.parse(anyString()))
 			.willReturn(userId);
 		given(roomService.changeRoomTitle(anyLong(), anyString(), anyString()))
-			.willReturn(new UpdatedRoomTitle(roomCode, updateTitle));
+			.willReturn(new ChangedRoomTitle(roomCode, updateTitle));
 
 		// when // then
 		mockMvc.perform(patch("/rooms/title")
@@ -719,7 +718,7 @@ class RoomControllerTest extends RestDocsSupport {
 		given(jwtService.parse(anyString()))
 			.willReturn(userId);
 		given(roomService.changeRoomTitle(anyLong(), anyString(), anyString()))
-			.willReturn(new UpdatedRoomTitle(roomCode, updateTitle));
+			.willReturn(new ChangedRoomTitle(roomCode, updateTitle));
 
 		// when // then
 		mockMvc.perform(patch("/rooms/title")

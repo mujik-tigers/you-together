@@ -6,10 +6,10 @@ import lombok.RequiredArgsConstructor;
 import site.youtogether.exception.room.RoomNoExistenceException;
 import site.youtogether.exception.user.UserNoExistenceException;
 import site.youtogether.message.application.MessageService;
+import site.youtogether.room.Participant;
 import site.youtogether.room.Room;
 import site.youtogether.room.infrastructure.RoomStorage;
 import site.youtogether.user.User;
-import site.youtogether.user.dto.UserInfo;
 import site.youtogether.user.dto.UserRoleChangeForm;
 import site.youtogether.user.infrastructure.UserStorage;
 
@@ -21,36 +21,38 @@ public class UserService {
 	private final UserStorage userStorage;
 	private final MessageService messageService;
 
-	public UserInfo updateUserNickname(Long userId, String updateNickname, String roomCode) {
+	public Participant changeUserNickname(Long userId, String newNickname, String roomCode) {
+		User user = userStorage.findById(userId)
+			.orElseThrow(UserNoExistenceException::new);
+		user.changeNickname(newNickname);
+		userStorage.save(user);
+
 		Room room = roomStorage.findById(roomCode)
 			.orElseThrow(RoomNoExistenceException::new);
-		room.changeParticipantName(userId, updateNickname);
+		room.updateParticipant(user);
 		roomStorage.save(room);
 
-		User user = userStorage.findById(userId)
-			.orElseThrow(UserNoExistenceException::new);
-		user.changeNickname(updateNickname);
-		userStorage.save(user);
+		messageService.sendParticipants(roomCode);
 
-		messageService.sendParticipantsInfo(roomCode);
-
-		return new UserInfo(user);
+		return new Participant(user);
 	}
 
-	public UserInfo changeUserRole(Long userId, UserRoleChangeForm form) {
-		Room room = roomStorage.findById(form.getRoomCode())
-			.orElseThrow(RoomNoExistenceException::new);
-		User changedUser = room.changeParticipantRole(userId, form.getChangedUserId(), form.getChangeUserRole());
-		roomStorage.save(room);
-
+	public Participant changeUserRole(Long userId, UserRoleChangeForm form) {
 		User user = userStorage.findById(userId)
 			.orElseThrow(UserNoExistenceException::new);
-		user.changeRole(form.getChangeUserRole());
-		userStorage.save(user);
+		User targetUser = userStorage.findById(form.getTargetUserId())
+			.orElseThrow(UserNoExistenceException::new);
+		user.changeOtherUserRole(form.getRoomCode(), targetUser, form.getNewUserRole());
+		userStorage.save(targetUser);
 
-		messageService.sendParticipantsInfo(room.getCode());
+		Room room = roomStorage.findById(form.getRoomCode())
+			.orElseThrow(RoomNoExistenceException::new);
+		room.updateParticipant(targetUser);
+		roomStorage.save(room);
 
-		return new UserInfo(changedUser);
+		messageService.sendParticipants(room.getCode());
+
+		return new Participant(targetUser);
 	}
 
 }

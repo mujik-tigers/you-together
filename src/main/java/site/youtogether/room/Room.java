@@ -1,10 +1,8 @@
 package site.youtogether.room;
 
 import java.time.LocalDateTime;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 import org.springframework.data.annotation.Id;
 
@@ -18,10 +16,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import site.youtogether.exception.room.PasswordNotMatchException;
 import site.youtogether.exception.room.RoomCapacityExceededException;
-import site.youtogether.exception.room.RoomEmptyException;
+import site.youtogether.exception.room.UserAbsentException;
 import site.youtogether.exception.user.ChangeRoomTitleDeniedException;
-import site.youtogether.exception.user.UserNoExistenceException;
-import site.youtogether.user.Role;
 import site.youtogether.user.User;
 
 @Document(value = "room")
@@ -40,7 +36,7 @@ public class Room {
 
 	private int capacity;
 	private String password;
-	private Map<Long, User> participants = new HashMap<>(10);
+	private Map<Long, Participant> participants = new HashMap<>(10);
 
 	@Builder
 	private Room(String code, String title, int capacity, String password, LocalDateTime createdAt, User host) {
@@ -50,15 +46,15 @@ public class Room {
 		this.createdAt = createdAt;
 		this.password = password;
 
-		participants.put(host.getId(), host);
+		participants.put(host.getId(), new Participant(host));
 	}
 
 	public boolean hasPassword() {
 		return password != null;
 	}
 
-	public void changeRoomTitle(Long userId, String updateTitle) {
-		User user = findParticipantBy(userId);
+	public void changeRoomTitle(User user, String updateTitle) {
+		validateParticipantExist(user.getId());
 		if (!user.isHost()) {
 			throw new ChangeRoomTitleDeniedException();
 		}
@@ -66,50 +62,30 @@ public class Room {
 	}
 
 	public void enterParticipant(User user, String passwordInput) {
-		if (password != null) {
-			if (!password.equals(passwordInput))
-				throw new PasswordNotMatchException();
-		}
+		if (password != null && !password.equals(passwordInput))
+			throw new PasswordNotMatchException();
 
 		if (participants.size() >= capacity) {
 			throw new RoomCapacityExceededException();
 		}
 
-		participants.put(user.getId(), user);
+		participants.put(user.getId(), new Participant(user));
 	}
 
 	public void leaveParticipant(Long userId) {
-		User user = findParticipantBy(userId);
-		if (user.isHost()) {
-			User delegatedUser = participants.values().stream()
-				.filter(u -> !u.isHost())
-				.sorted(Comparator.comparing(User::getPriority)
-					.thenComparing(User::getId))
-				.findFirst()
-				.orElseThrow(RoomEmptyException::new);
-
-			delegatedUser.changeRole(Role.HOST);
-		}
-
+		validateParticipantExist(userId);
 		participants.remove(userId);
 	}
 
-	public User findParticipantBy(Long userId) {
-		return Optional.ofNullable(participants.get(userId))
-			.orElseThrow(UserNoExistenceException::new);
+	public void updateParticipant(User user) {
+		validateParticipantExist(user.getId());
+		participants.put(user.getId(), new Participant(user));
 	}
 
-	public void changeParticipantName(Long userId, String updateNickname) {
-		User user = findParticipantBy(userId);
-		user.changeNickname(updateNickname);
-	}
-
-	public User changeParticipantRole(Long userId, Long changedUserId, Role changeRole) {
-		User user = findParticipantBy(userId);
-		User changedUser = findParticipantBy(changedUserId);
-		user.changeOtherUserRole(changedUser, changeRole);
-
-		return changedUser;
+	private void validateParticipantExist(Long userId) {
+		if (!participants.containsKey(userId)) {
+			throw new UserAbsentException();
+		}
 	}
 
 }
