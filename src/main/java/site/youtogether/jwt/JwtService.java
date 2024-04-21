@@ -17,7 +17,6 @@ import io.jsonwebtoken.SignatureException;
 import io.jsonwebtoken.UnsupportedJwtException;
 import lombok.RequiredArgsConstructor;
 import site.youtogether.config.property.JwtProperties;
-import site.youtogether.exception.jwt.AuthorizationHeaderNoExistenceException;
 import site.youtogether.exception.jwt.InvalidTokenException;
 
 @Service
@@ -40,15 +39,12 @@ public class JwtService {
 			.compact();
 	}
 
-	public Long parse(String authorizationHeader) {
-		validationAuthorizationHeader(authorizationHeader);
-		String token = extract(authorizationHeader);
+	public Long parse(String token) {
 		try {
 			Claims claims = Jwts.parser()
 				.setSigningKey(jwtProperties.getSecretKey())
 				.parseClaimsJws(token)
 				.getBody();
-
 			return claims.get(USER_ID, Long.class);
 		} catch (ExpiredJwtException e) {
 			throw new IllegalArgumentException("토큰 시간 만료");
@@ -59,14 +55,16 @@ public class JwtService {
 		}
 	}
 
-	private void validationAuthorizationHeader(String header) {
-		if (header == null || !header.startsWith(BEARER)) {
-			throw new AuthorizationHeaderNoExistenceException();
+	public boolean isValidToken(String token) {
+		try {
+			Jwts.parser()
+				.setSigningKey(jwtProperties.getSecretKey())
+				.parseClaimsJws(token)
+				.getBody();
+			return true;
+		} catch (ExpiredJwtException | UnsupportedJwtException | MalformedJwtException | SignatureException e) {
+			return false;
 		}
-	}
-
-	private String extract(String authorizationHeader) {
-		return authorizationHeader.substring(BEARER.length());
 	}
 
 }

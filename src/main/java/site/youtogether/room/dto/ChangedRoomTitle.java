@@ -6,14 +6,14 @@ import site.youtogether.room.Room;
 
 @RequiredArgsConstructor
 @Getter
-public class UpdatedRoomTitle {
+public class ChangedRoomTitle {
 
 	private final String roomCode;
-	private final String updatedRoomTitle;
+	private final String changedRoomTitle;
 
-	public UpdatedRoomTitle(Room room) {
+	public ChangedRoomTitle(Room room) {
 		this.roomCode = room.getCode();
-		this.updatedRoomTitle = room.getTitle();
+		this.changedRoomTitle = room.getTitle();
 	}
 
 }

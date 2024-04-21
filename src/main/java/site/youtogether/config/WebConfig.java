@@ -3,12 +3,14 @@ package site.youtogether.config;
 import java.util.List;
 
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import lombok.RequiredArgsConstructor;
+import site.youtogether.util.interceptor.SessionCreateInterceptor;
 import site.youtogether.util.interceptor.SingleRoomCheckInterceptor;
 import site.youtogether.util.resolver.UserTrackingArgumentResolver;
 
@@ -17,6 +19,7 @@ import site.youtogether.util.resolver.UserTrackingArgumentResolver;
 public class WebConfig implements WebMvcConfigurer {
 
 	private final SingleRoomCheckInterceptor singleRoomCheckInterceptor;
+	private final SessionCreateInterceptor sessionCreateInterceptor;
 	private final UserTrackingArgumentResolver userTrackingArgumentResolver;
 
 	@Override
@@ -30,6 +33,9 @@ public class WebConfig implements WebMvcConfigurer {
 
 	@Override
 	public void addInterceptors(InterceptorRegistry registry) {
+		registry.addInterceptor(sessionCreateInterceptor)
+			.addPathPatterns("/**")
+			.order(Ordered.HIGHEST_PRECEDENCE);
 		registry.addInterceptor(singleRoomCheckInterceptor)
 			.addPathPatterns("/rooms/**");
 	}

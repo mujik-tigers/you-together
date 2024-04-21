@@ -3,8 +3,8 @@ package site.youtogether.util.interceptor;
 import static site.youtogether.util.AppConstants.*;
 
 import java.util.Map;
+import java.util.stream.Stream;
 
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.http.server.ServletServerHttpRequest;
@@ -12,19 +12,20 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import site.youtogether.exception.jwt.InvalidTokenException;
+import site.youtogether.config.property.CookieProperties;
+import site.youtogether.exception.cookie.CookieNoExistenceException;
 import site.youtogether.jwt.JwtService;
-import site.youtogether.user.infrastructure.UserTrackingStorage;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class StompHandshakeInterceptor implements HandshakeInterceptor {
 
-	private final UserTrackingStorage userTrackingStorage;
+	private final CookieProperties cookieProperties;
 	private final JwtService jwtService;
 
 	@Override
@@ -36,10 +37,12 @@ public class StompHandshakeInterceptor implements HandshakeInterceptor {
 		ServletServerHttpRequest req = (ServletServerHttpRequest)request;
 		HttpServletRequest servletRequest = req.getServletRequest();
 
-		Long userId = jwtService.parse(servletRequest.getParameter(HttpHeaders.AUTHORIZATION));
-		if (!userTrackingStorage.exists(userId)) {
-			throw new InvalidTokenException();
-		}
+		Stream<Cookie> cookieStream = servletRequest.getCookies() == null ? Stream.empty() : Stream.of(servletRequest.getCookies());
+		Long userId = cookieStream
+			.filter(cookie -> cookie.getName().equals(cookieProperties.getName()))
+			.map(cookie -> jwtService.parse(cookie.getValue()))
+			.findAny()
+			.orElseThrow(CookieNoExistenceException::new);
 		attributes.put(USER_ID, userId);
 
 		return true;
