@@ -32,6 +32,7 @@ import site.youtogether.exception.room.PasswordNotMatchException;
 import site.youtogether.exception.room.RoomCapacityExceededException;
 import site.youtogether.exception.room.SingleRoomParticipationViolationException;
 import site.youtogether.exception.user.ChangeRoomTitleDeniedException;
+import site.youtogether.room.Participant;
 import site.youtogether.room.Room;
 import site.youtogether.room.dto.ChangedRoomTitle;
 import site.youtogether.room.dto.PasswordInput;
@@ -88,7 +89,7 @@ class RoomControllerTest extends RestDocsSupport {
 			.andExpect(jsonPath("$.result").value(ResponseResult.ROOM_CREATION_SUCCESS.getDescription()))
 			.andExpect(jsonPath("$.data.roomCode").value(roomCode))
 			.andExpect(jsonPath("$.data.roomTitle").value(roomTitle))
-			.andExpect(jsonPath("$.data.user.userId").value(participantInfo.getUserId()))
+			.andExpect(jsonPath("$.data.user.id").value(participantInfo.getId()))
 			.andExpect(jsonPath("$.data.capacity").value(capacity))
 			.andExpect(jsonPath("$.data.currentParticipant").value(1))
 			.andExpect(jsonPath("$.data.passwordExist").value(false))
@@ -107,7 +108,7 @@ class RoomControllerTest extends RestDocsSupport {
 					fieldWithPath("data.roomCode").type(JsonFieldType.STRING).description("방 식별 코드"),
 					fieldWithPath("data.roomTitle").type(JsonFieldType.STRING).description("방 제목"),
 					fieldWithPath("data.user").type(JsonFieldType.OBJECT).description("유저"),
-					fieldWithPath("data.user.userId").type(JsonFieldType.NUMBER).description("유저 아이디"),
+					fieldWithPath("data.user.id").type(JsonFieldType.NUMBER).description("유저 아이디"),
 					fieldWithPath("data.user.nickname").type(JsonFieldType.STRING).description("유저 닉네임"),
 					fieldWithPath("data.user.role").type(JsonFieldType.STRING).description("유저 역할"),
 					fieldWithPath("data.capacity").type(JsonFieldType.NUMBER).description("정원"),
@@ -160,7 +161,7 @@ class RoomControllerTest extends RestDocsSupport {
 			.andExpect(jsonPath("$.result").value(ResponseResult.ROOM_CREATION_SUCCESS.getDescription()))
 			.andExpect(jsonPath("$.data.roomCode").value(roomCode))
 			.andExpect(jsonPath("$.data.roomTitle").value(roomTitle))
-			.andExpect(jsonPath("$.data.user.userId").value(participantInfo.getUserId()))
+			.andExpect(jsonPath("$.data.user.id").value(participantInfo.getId()))
 			.andExpect(jsonPath("$.data.capacity").value(capacity))
 			.andExpect(jsonPath("$.data.currentParticipant").value(1))
 			.andExpect(jsonPath("$.data.passwordExist").value(true))
@@ -179,7 +180,7 @@ class RoomControllerTest extends RestDocsSupport {
 					fieldWithPath("data.roomCode").type(JsonFieldType.STRING).description("방 식별 코드"),
 					fieldWithPath("data.roomTitle").type(JsonFieldType.STRING).description("방 제목"),
 					fieldWithPath("data.user").type(JsonFieldType.OBJECT).description("유저"),
-					fieldWithPath("data.user.userId").type(JsonFieldType.NUMBER).description("유저 아이디"),
+					fieldWithPath("data.user.id").type(JsonFieldType.NUMBER).description("유저 아이디"),
 					fieldWithPath("data.user.nickname").type(JsonFieldType.STRING).description("유저 닉네임"),
 					fieldWithPath("data.user.role").type(JsonFieldType.STRING).description("유저 역할"),
 					fieldWithPath("data.capacity").type(JsonFieldType.NUMBER).description("정원"),
@@ -390,7 +391,7 @@ class RoomControllerTest extends RestDocsSupport {
 			.andExpect(jsonPath("$.result").value(ResponseResult.ROOM_ENTER_SUCCESS.getDescription()))
 			.andExpect(jsonPath("$.data.roomCode").value(roomCode))
 			.andExpect(jsonPath("$.data.roomTitle").value(roomTitle))
-			.andExpect(jsonPath("$.data.user.userId").value(participantInfo.getUserId()))
+			.andExpect(jsonPath("$.data.user.id").value(participantInfo.getId()))
 			.andExpect(jsonPath("$.data.capacity").value(capacity))
 			.andExpect(jsonPath("$.data.currentParticipant").value(2))
 			.andExpect(jsonPath("$.data.passwordExist").value(false))
@@ -405,7 +406,7 @@ class RoomControllerTest extends RestDocsSupport {
 					fieldWithPath("data.roomCode").type(JsonFieldType.STRING).description("방 식별 코드"),
 					fieldWithPath("data.roomTitle").type(JsonFieldType.STRING).description("방 제목"),
 					fieldWithPath("data.user").type(JsonFieldType.OBJECT).description("유저"),
-					fieldWithPath("data.user.userId").type(JsonFieldType.NUMBER).description("유저 아이디"),
+					fieldWithPath("data.user.id").type(JsonFieldType.NUMBER).description("유저 아이디"),
 					fieldWithPath("data.user.nickname").type(JsonFieldType.STRING).description("유저 닉네임"),
 					fieldWithPath("data.user.role").type(JsonFieldType.STRING).description("유저 역할"),
 					fieldWithPath("data.capacity").type(JsonFieldType.NUMBER).description("정원"),
@@ -496,7 +497,7 @@ class RoomControllerTest extends RestDocsSupport {
 			.andExpect(jsonPath("$.result").value(ResponseResult.ROOM_ENTER_SUCCESS.getDescription()))
 			.andExpect(jsonPath("$.data.roomCode").value(roomCode))
 			.andExpect(jsonPath("$.data.roomTitle").value(roomTitle))
-			.andExpect(jsonPath("$.data.user.userId").value(participantInfo.getUserId()))
+			.andExpect(jsonPath("$.data.user.id").value(participantInfo.getId()))
 			.andExpect(jsonPath("$.data.capacity").value(capacity))
 			.andExpect(jsonPath("$.data.currentParticipant").value(2))
 			.andExpect(jsonPath("$.data.passwordExist").value(true))
@@ -514,7 +515,7 @@ class RoomControllerTest extends RestDocsSupport {
 					fieldWithPath("data.roomCode").type(JsonFieldType.STRING).description("방 식별 코드"),
 					fieldWithPath("data.roomTitle").type(JsonFieldType.STRING).description("방 제목"),
 					fieldWithPath("data.user").type(JsonFieldType.OBJECT).description("유저"),
-					fieldWithPath("data.user.userId").type(JsonFieldType.NUMBER).description("유저 아이디"),
+					fieldWithPath("data.user.id").type(JsonFieldType.NUMBER).description("유저 아이디"),
 					fieldWithPath("data.user.nickname").type(JsonFieldType.STRING).description("유저 닉네임"),
 					fieldWithPath("data.user.role").type(JsonFieldType.STRING).description("유저 역할"),
 					fieldWithPath("data.capacity").type(JsonFieldType.NUMBER).description("정원"),
@@ -664,13 +665,13 @@ class RoomControllerTest extends RestDocsSupport {
 		// given
 		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 		String roomCode = "1e7050f7d7";
-		Long userId = 10L;
+		Long id = 10L;
 		String updateTitle = "연똥땡의 방";
 
 		RoomTitleChangeForm form = new RoomTitleChangeForm(roomCode, updateTitle);
 
 		given(jwtService.parse(anyString()))
-			.willReturn(userId);
+			.willReturn(id);
 		given(roomService.changeRoomTitle(anyLong(), anyString(), anyString()))
 			.willReturn(new ChangedRoomTitle(roomCode, updateTitle));
 
@@ -685,13 +686,13 @@ class RoomControllerTest extends RestDocsSupport {
 			.andExpect(jsonPath("$.status").value(HttpStatus.OK.getReasonPhrase()))
 			.andExpect(jsonPath("$.result").value(ResponseResult.ROOM_TITLE_CHANGE_SUCCESS.getDescription()))
 			.andExpect(jsonPath("$.data.roomCode").value(roomCode))
-			.andExpect(jsonPath("$.data.updatedRoomTitle").value(updateTitle))
+			.andExpect(jsonPath("$.data.changedRoomTitle").value(updateTitle))
 			.andDo(document("change-room-title-success",
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
 				requestFields(
 					fieldWithPath("roomCode").type(JsonFieldType.STRING).description("방 코드"),
-					fieldWithPath("updateTitle").type(JsonFieldType.STRING).description("변경할 방 제목")
+					fieldWithPath("newTitle").type(JsonFieldType.STRING).description("변경할 방 제목")
 				),
 				responseFields(
 					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
@@ -699,7 +700,7 @@ class RoomControllerTest extends RestDocsSupport {
 					fieldWithPath("result").type(JsonFieldType.STRING).description("결과"),
 					fieldWithPath("data").type(JsonFieldType.OBJECT).description("응답 데이터"),
 					fieldWithPath("data.roomCode").type(JsonFieldType.STRING).description("방 코드"),
-					fieldWithPath("data.updatedRoomTitle").type(JsonFieldType.STRING).description("변경된 방 제목")
+					fieldWithPath("data.changedRoomTitle").type(JsonFieldType.STRING).description("변경된 방 제목")
 				)
 			));
 	}
@@ -710,13 +711,13 @@ class RoomControllerTest extends RestDocsSupport {
 		// given
 		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 		String roomCode = "1e7050f7d7";
-		Long userId = 10L;
+		Long id = 10L;
 		String updateTitle = "  ";
 
 		RoomTitleChangeForm form = new RoomTitleChangeForm(roomCode, updateTitle);
 
 		given(jwtService.parse(anyString()))
-			.willReturn(userId);
+			.willReturn(id);
 		given(roomService.changeRoomTitle(anyLong(), anyString(), anyString()))
 			.willReturn(new ChangedRoomTitle(roomCode, updateTitle));
 
@@ -736,7 +737,7 @@ class RoomControllerTest extends RestDocsSupport {
 				preprocessResponse(prettyPrint()),
 				requestFields(
 					fieldWithPath("roomCode").type(JsonFieldType.STRING).description("방 코드"),
-					fieldWithPath("updateTitle").type(JsonFieldType.STRING).description("변경할 방 제목")
+					fieldWithPath("newTitle").type(JsonFieldType.STRING).description("변경할 방 제목")
 				),
 				responseFields(
 					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
@@ -755,13 +756,13 @@ class RoomControllerTest extends RestDocsSupport {
 		// given
 		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 		String roomCode = "1e7050f7d7";
-		Long userId = 10L;
+		Long id = 10L;
 		String updateTitle = "연똥땡의 방";
 
 		RoomTitleChangeForm form = new RoomTitleChangeForm(roomCode, updateTitle);
 
 		given(jwtService.parse(anyString()))
-			.willReturn(userId);
+			.willReturn(id);
 		given(roomService.changeRoomTitle(anyLong(), anyString(), anyString()))
 			.willThrow(new ChangeRoomTitleDeniedException());
 
@@ -783,7 +784,7 @@ class RoomControllerTest extends RestDocsSupport {
 				preprocessResponse(prettyPrint()),
 				requestFields(
 					fieldWithPath("roomCode").type(JsonFieldType.STRING).description("방 코드"),
-					fieldWithPath("updateTitle").type(JsonFieldType.STRING).description("변경할 방 제목")
+					fieldWithPath("newTitle").type(JsonFieldType.STRING).description("변경할 방 제목")
 				),
 				responseFields(
 					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
@@ -797,7 +798,10 @@ class RoomControllerTest extends RestDocsSupport {
 	}
 
 	private List<Room> generateRooms(int count) {
-		User host = User.builder().id(1L).role(Role.HOST).nickname("연츠비").build();
+		User host = User.builder()
+			.id(1L)
+			.nickname("연츠비")
+			.build();
 
 		return IntStream.rangeClosed(1, count)
 			.mapToObj(number -> Room.builder()

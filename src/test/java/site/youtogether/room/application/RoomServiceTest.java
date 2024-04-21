@@ -55,7 +55,7 @@ class RoomServiceTest extends IntegrationTestSupport {
 			.title("재밌는 쇼츠 같이 보기")
 			.password(null)
 			.build();
-		User user = createUser();
+		User user = createUser(HOST_ID);
 
 		// when
 		RoomDetail createdRoomDetail = roomService.create(user.getId(), roomSettings, LocalDateTime.now());
@@ -116,7 +116,7 @@ class RoomServiceTest extends IntegrationTestSupport {
 	void enterRoom() throws Exception {
 		// given
 		Room room = createRoom(LocalDateTime.of(2024, 4, 10, 11, 37, 0), "연똥땡의 방");
-		User user = createUser();
+		User user = createUser(3L);
 
 		// when
 		roomService.enter(user.getId(), room.getCode(), null);
@@ -136,7 +136,7 @@ class RoomServiceTest extends IntegrationTestSupport {
 		// given
 		String password = "myLittleCat";
 		Room room = createPasswordRoom(LocalDateTime.of(2024, 4, 10, 11, 37, 0), "황똥땡의 방", password);
-		User user = createUser();
+		User user = createUser(3L);
 
 		// when
 		roomService.enter(user.getId(), room.getCode(), password);
@@ -158,7 +158,7 @@ class RoomServiceTest extends IntegrationTestSupport {
 		// given
 		String password = "myLittleCat";
 		Room room = createPasswordRoom(LocalDateTime.of(2024, 4, 10, 11, 37, 0), "황똥땡의 방", password);
-		User user = createUser();
+		User user = createUser(3L);
 
 		// when // then
 		assertThatThrownBy(() -> roomService.enter(user.getId(), room.getCode(), passwordInput))
@@ -170,8 +170,9 @@ class RoomServiceTest extends IntegrationTestSupport {
 	void enterFullRoomFail() throws Exception {
 		// given
 		int capacity = 1;
-		Room room = createRoom(LocalDateTime.of(2024, 4, 10, 11, 37, 0), "황똥땡의 방", capacity);
-		User user = createUser();
+		User host = createUser(HOST_ID);
+		Room room = createRoom(LocalDateTime.of(2024, 4, 10, 11, 37, 0), "황똥땡의 방", capacity, host);
+		User user = createUser(3L);
 
 		// when // then
 		assertThatThrownBy(() -> roomService.enter(user.getId(), room.getCode(), null))
@@ -183,7 +184,7 @@ class RoomServiceTest extends IntegrationTestSupport {
 	void leaveRoom() throws Exception {
 		// given
 		Room room = createRoom(LocalDateTime.of(2024, 4, 10, 11, 37, 0), "연똥땡의 방");
-		User user = createUser();
+		User user = createUser(2L);
 		roomService.enter(user.getId(), room.getCode(), null);
 
 		// when
@@ -203,7 +204,8 @@ class RoomServiceTest extends IntegrationTestSupport {
 	@DisplayName("방 제목을 바꾼다")
 	void changeRoom() throws Exception {
 		// given
-		Room room = createRoom(LocalDateTime.of(2024, 4, 10, 11, 37, 0), "황똥땡의 방");
+		User host = createUser(HOST_ID);
+		Room room = createRoom(LocalDateTime.of(2024, 4, 10, 11, 37, 0), "황똥땡의 방", 5, host);
 
 		String updateTitle = "연똥땡의 방";
 
@@ -220,11 +222,11 @@ class RoomServiceTest extends IntegrationTestSupport {
 	void leaveAndReEnterRoom() throws Exception {
 		// given
 		Room room = createRoom(LocalDateTime.of(2024, 4, 10, 11, 37, 0), "황똥땡의 방");
-		User user = createUser();
+		User user = createUser(3L);
 
 		// when
 		roomService.enter(user.getId(), room.getCode(), null);
-		userRoleChange(room.getCode(), user.getId(), Role.MANAGER);
+		userRoleChange(room.getCode(), user, Role.MANAGER);
 		roomService.leave(room.getCode(), user.getId());
 		roomService.enter(user.getId(), room.getCode(), null);
 
@@ -241,13 +243,13 @@ class RoomServiceTest extends IntegrationTestSupport {
 	void enterNewRoomRefreshRole() throws Exception {
 		// given
 		Room room1 = createRoom(LocalDateTime.of(2024, 4, 10, 11, 37, 0), "황똥땡의 방");
-		User user = createUser();
+		User user = createUser(3L);
 
 		Room room2 = createRoom(LocalDateTime.of(2024, 4, 10, 12, 37, 0), "연츠비의 방");
 
 		// when
 		roomService.enter(user.getId(), room1.getCode(), null);
-		userRoleChange(room1.getCode(), user.getId(), Role.MANAGER);
+		userRoleChange(room1.getCode(), user, Role.MANAGER);
 		roomService.leave(room1.getCode(), user.getId());
 		roomService.enter(user.getId(), room2.getCode(), null);
 
@@ -260,17 +262,17 @@ class RoomServiceTest extends IntegrationTestSupport {
 	}
 
 	private void userRoleChange(String roomCode, User user, Role newUserRole) {
+		user.getHistory().put(roomCode, newUserRole);
+		userStorage.save(user);
+
 		Room room = roomStorage.findById(roomCode).get();
-		room.updateParticipant();
-		User enterUser = room.getParticipants().get(userId);
-		enterUser.changeRole(roomCode, newUserRole);
-		userStorage.save(enterUser);
+		room.updateParticipant(user);
 		roomStorage.save(room);
 	}
 
-	private User createUser() {
+	private User createUser(Long userId) {
 		User user = User.builder()
-			.id(3L)
+			.id(userId)
 			.nickname("황츠비")
 			.build();
 		userStorage.save(user);
@@ -278,38 +280,35 @@ class RoomServiceTest extends IntegrationTestSupport {
 	}
 
 	private Room createRoom(LocalDateTime createTime, String title) {
-		User user = User.builder()
+		User host = User.builder()
 			.id(HOST_ID)
-			.role(Role.HOST)
 			.build();
 
 		Room room = Room.builder()
 			.code(RandomUtil.generateRandomCode(ROOM_CODE_LENGTH))
 			.title(title)
-			.host(user)
+			.host(host)
 			.createdAt(createTime)
 			.capacity(10)
 			.build();
-
 		roomStorage.save(room);
 
 		return room;
 	}
 
-	private Room createRoom(LocalDateTime createTime, String title, int capacity) {
-		User user = User.builder()
-			.id(HOST_ID)
-			.role(Role.HOST)
-			.build();
+	private Room createRoom(LocalDateTime createTime, String title, int capacity, User host) {
+		String roomCode = RandomUtil.generateRandomCode(ROOM_CODE_LENGTH);
+
+		host.createRoom(roomCode);
+		userStorage.save(host);
 
 		Room room = Room.builder()
-			.code("roomCode")
+			.code(roomCode)
 			.title(title)
-			.host(user)
+			.host(host)
 			.createdAt(createTime)
 			.capacity(capacity)
 			.build();
-
 		roomStorage.save(room);
 
 		return room;
@@ -317,7 +316,6 @@ class RoomServiceTest extends IntegrationTestSupport {
 
 	private Room createPasswordRoom(LocalDateTime createTime, String title, String password) {
 		User user = User.builder()
-			.role(Role.HOST)
 			.id(HOST_ID)
 			.build();
 
