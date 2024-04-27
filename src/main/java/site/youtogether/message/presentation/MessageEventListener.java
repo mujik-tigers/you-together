@@ -40,6 +40,7 @@ public class MessageEventListener {
 			.orElseThrow(UserNoExistenceException::new);
 
 		messageService.sendParticipants(roomCode);
+		messageService.sendPlaylist(roomCode);
 		messageService.sendChat(new ChatMessage(roomCode, null, "[알림]", user.getNickname() + "님이 입장하셨습니다."));
 	}
 

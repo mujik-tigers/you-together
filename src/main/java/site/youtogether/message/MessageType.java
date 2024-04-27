@@ -2,6 +2,6 @@ package site.youtogether.message;
 
 public enum MessageType {
 
-	CHAT, PARTICIPANTS, ROOM_TITLE
+	CHAT, PARTICIPANTS, ROOM_TITLE, PLAYLIST
 
 }

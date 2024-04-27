@@ -64,7 +64,7 @@ public class User {
 		return role.isLowerOrEqualThan(compareRole);
 	}
 
-	private boolean hasLowerRoleThan(Role compareRole) {
+	public boolean hasLowerRoleThan(Role compareRole) {
 		Role role = getRoleInCurrentRoom();
 		return role.isLowerThan(compareRole);
 	}

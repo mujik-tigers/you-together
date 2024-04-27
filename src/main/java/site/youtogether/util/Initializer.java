@@ -10,6 +10,8 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
+import site.youtogether.playlist.Playlist;
+import site.youtogether.playlist.infrastructure.PlaylistStorage;
 import site.youtogether.room.Room;
 import site.youtogether.room.infrastructure.RoomStorage;
 import site.youtogether.user.User;
@@ -25,11 +27,13 @@ public class Initializer implements ApplicationRunner {
 
 	private final RoomStorage roomStorage;
 	private final UserStorage userStorage;
+	private final PlaylistStorage playlistStorage;
 
 	@Override
 	public void run(ApplicationArguments args) throws Exception {
 		roomStorage.deleteAll();
 		userStorage.deleteAll();
+		playlistStorage.deleteAll();
 
 		for (long i = 0; i < NO_PASSWORD_ROOM_COUNT; i++) {
 			User host = User.builder()
@@ -46,6 +50,9 @@ public class Initializer implements ApplicationRunner {
 				.createdAt(createTime)
 				.build();
 			roomStorage.save(room);
+
+			Playlist playlist = new Playlist(room.getCode());
+			playlistStorage.save(playlist);
 		}
 
 		for (long i = 0; i < PASSWORD_ROOM_COUNT; i++) {
@@ -64,6 +71,9 @@ public class Initializer implements ApplicationRunner {
 				.password("1234")
 				.build();
 			roomStorage.save(room);
+
+			Playlist playlist = new Playlist(room.getCode());
+			playlistStorage.save(playlist);
 		}
 	}
 

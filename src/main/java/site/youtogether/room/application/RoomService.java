@@ -12,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import site.youtogether.exception.room.RoomNoExistenceException;
 import site.youtogether.exception.user.UserNoExistenceException;
 import site.youtogether.message.application.MessageService;
+import site.youtogether.playlist.Playlist;
+import site.youtogether.playlist.infrastructure.PlaylistStorage;
 import site.youtogether.room.Room;
 import site.youtogether.room.dto.ChangedRoomTitle;
 import site.youtogether.room.dto.RoomDetail;
@@ -27,6 +29,7 @@ import site.youtogether.util.RandomUtil;
 public class RoomService {
 
 	private final RoomStorage roomStorage;
+	private final PlaylistStorage playlistStorage;
 	private final UserStorage userStorage;
 	private final MessageService messageService;
 
@@ -47,6 +50,9 @@ public class RoomService {
 			.host(host)
 			.build();
 		roomStorage.save(room);
+
+		Playlist playlist = new Playlist(roomCode);
+		playlistStorage.save(playlist);
 
 		return new RoomDetail(room, host);
 	}

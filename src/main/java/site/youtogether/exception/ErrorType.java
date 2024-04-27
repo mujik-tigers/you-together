@@ -20,6 +20,7 @@ public enum ErrorType {
 	CHAT_MESSAGE_SEND_DENIED(HttpStatus.FORBIDDEN, "채팅 메시지를 보낼 권한이 없습니다"),
 	ROOM_TITLE_CHANGE_DENIED(HttpStatus.FORBIDDEN, "방 제목을 변경할 권한이 없습니다"),
 	USERS_IN_DIFFERENT_ROOM(HttpStatus.BAD_REQUEST, "해당 방에 두 유저가 존재하지 않습니다"),
+	VIDEO_EDIT_DENIED(HttpStatus.FORBIDDEN, "영상 관련 작업을 할 권한이 없습니다"),
 
 	// Room
 	ROOM_NO_EXISTENCE(HttpStatus.NOT_FOUND, "방이 없습니다"),
@@ -29,7 +30,10 @@ public enum ErrorType {
 	USER_ABSENT(HttpStatus.BAD_REQUEST, "방 안에 사용자가 존재하지 않습니다"),
 
 	// Cookie
-	COOKIE_NO_EXISTENCE(HttpStatus.UNAUTHORIZED, "쿠키가 없습니다");
+	COOKIE_NO_EXISTENCE(HttpStatus.UNAUTHORIZED, "쿠키가 없습니다"),
+
+	// Playlist
+	PLAYLIST_NO_EXISTENCE(HttpStatus.NOT_FOUND, "플레이리스트가 없습니다");
 
 	private final HttpStatus status;
 	private final String message;
