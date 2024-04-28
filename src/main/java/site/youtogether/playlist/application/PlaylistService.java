@@ -64,6 +64,21 @@ public class PlaylistService {
 		messageService.sendPlaylist(roomCode);
 	}
 
+	public void deleteVideo(Long userId, int videoIndex) {
+		User user = userStorage.findById(userId)
+			.orElseThrow(UserNoExistenceException::new);
+		if (user.isNotEditable()) {
+			throw new VideoEditDeniedException();
+		}
+
+		Playlist playlist = playlistStorage.findById(user.getCurrentRoomCode())
+			.orElseThrow(PlaylistNoExistenceException::new);
+		playlist.delete(videoIndex);
+
+		playlistStorage.save(playlist);
+		messageService.sendPlaylist(user.getCurrentRoomCode());
+	}
+
 	private Video createVideo(PlaylistAddForm form) {
 		return Video.builder()
 			.videoId(form.getVideoId())
