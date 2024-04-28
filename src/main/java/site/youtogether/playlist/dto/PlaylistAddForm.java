@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 @Getter
 public class PlaylistAddForm {
 
-	private final String roomCode;
 	private final String videoId;
 	private final String videoTitle;
 	private final String channelTitle;

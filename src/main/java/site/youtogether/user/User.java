@@ -64,11 +64,6 @@ public class User {
 		return role.isLowerOrEqualThan(compareRole);
 	}
 
-	public boolean hasLowerRoleThan(Role compareRole) {
-		Role role = getRoleInCurrentRoom();
-		return role.isLowerThan(compareRole);
-	}
-
 	public void changeNickname(String updateNickname) {
 		nickname = updateNickname;
 	}
@@ -109,12 +104,21 @@ public class User {
 		currentRoomCode = createRoomCode;
 	}
 
+	public boolean isNotEditable() {
+		return getRoleInCurrentRoom().isLowerThan(Role.EDITOR);
+	}
+
 	public void leaveRoom() {
 		currentRoomCode = null;
 	}
 
 	public Role getRoleInCurrentRoom() {
 		return history.get(currentRoomCode);
+	}
+
+	private boolean hasLowerRoleThan(Role compareRole) {
+		Role role = getRoleInCurrentRoom();
+		return role.isLowerThan(compareRole);
 	}
 
 	private boolean isFirstTimeEntering(String roomCode) {

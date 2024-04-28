@@ -13,6 +13,7 @@ import site.youtogether.message.ChatMessage;
 import site.youtogether.message.ParticipantsMessage;
 import site.youtogether.message.PlaylistMessage;
 import site.youtogether.message.RoomTitleMessage;
+import site.youtogether.message.VideoSyncInfoMessage;
 import site.youtogether.playlist.Playlist;
 import site.youtogether.playlist.dto.VideoInfo;
 import site.youtogether.playlist.infrastructure.PlaylistStorage;
@@ -61,6 +62,10 @@ public class MessageService {
 
 		PlaylistMessage playlistMessage = new PlaylistMessage(videos);
 		messagingTemplate.convertAndSend("/sub/messages/rooms/" + roomCode, playlistMessage);
+	}
+
+	public void sendVideoSyncInfo(VideoSyncInfoMessage message) {
+		messagingTemplate.convertAndSend("/sub/messages/rooms/" + message.getRoomCode(), message);
 	}
 
 }

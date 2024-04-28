@@ -33,7 +33,8 @@ public enum ErrorType {
 	COOKIE_NO_EXISTENCE(HttpStatus.UNAUTHORIZED, "쿠키가 없습니다"),
 
 	// Playlist
-	PLAYLIST_NO_EXISTENCE(HttpStatus.NOT_FOUND, "플레이리스트가 없습니다");
+	PLAYLIST_NO_EXISTENCE(HttpStatus.NOT_FOUND, "플레이리스트가 없습니다"),
+	PLAYLIST_EMPTY(HttpStatus.NOT_FOUND, "플레이리스트에 재생할 영상이 없습니다");
 
 	private final HttpStatus status;
 	private final String message;
