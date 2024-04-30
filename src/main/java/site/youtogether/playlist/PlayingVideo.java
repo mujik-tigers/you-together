@@ -51,6 +51,11 @@ public class PlayingVideo {
 		);
 	}
 
+	public void stop() {
+		timer.cancel();
+		timer.purge();
+	}
+
 	public void changeRate(double playerRate) {
 		if (playerRate < 0.25 || playerRate > 2 || (int)(playerRate * 100) % 5 != 0) {
 			throw new InvalidVideoRateException();
@@ -63,6 +68,10 @@ public class PlayingVideo {
 		createTimer(playerRate);
 	}
 
+	public void changeCurrentTime(double time) {
+		this.currentTime = time;
+	}
+
 	private void createTimer(double playerRate) {
 		timer = new Timer();
 		timer.scheduleAtFixedRate(new TimerTask() {
@@ -73,7 +82,7 @@ public class PlayingVideo {
 						new VideoSyncInfoMessage(roomCode, PlayerState.END, totalTime, playerRate)
 					);
 					try {
-						playlistService.playNextVideo(roomCode);
+						playlistService.callNextVideoByTimer(roomCode);
 					} catch (PlaylistEmptyException ignored) {
 					}
 					timer.cancel();

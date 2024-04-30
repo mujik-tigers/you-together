@@ -1,5 +1,6 @@
 package site.youtogether.playlist.presentation;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -26,8 +27,16 @@ public class PlaylistController {
 	public ResponseEntity<ApiResponse<Void>> addVideo(@UserTracking Long userId, @RequestBody PlaylistAddForm form) {
 		playlistService.addVideo(userId, form);
 
+		return ResponseEntity.status(HttpStatus.CREATED)
+			.body(ApiResponse.created(ResponseResult.PLAYLIST_ADD_SUCCESS, null));
+	}
+
+	@PostMapping("/playlists/next")
+	public ResponseEntity<ApiResponse<Void>> playNextVideo(@UserTracking Long userId) {
+		playlistService.playNextVideo(userId);
+
 		return ResponseEntity.ok(
-			ApiResponse.ok(ResponseResult.PLAYLIST_ADD_SUCCESS, null));
+			ApiResponse.ok(ResponseResult.PLAY_NEXT_VIDEO_SUCCESS, null));
 	}
 
 	@PatchMapping("/playlists")

@@ -48,12 +48,12 @@ public class PlaylistService {
 		messageService.sendPlaylist(user.getCurrentRoomCode());
 	}
 
-	public void playNextVideo(String roomCode) {        // PlayingVideo 타이머에 의해 수동적으로 호출되는 메서드
+	public void callNextVideoByTimer(String roomCode) {        // PlayingVideo 타이머에 의해 수동적으로 호출되는 메서드
 		Playlist playlist = playlistStorage.findById(roomCode)
 			.orElseThrow(PlaylistNoExistenceException::new);
 		Video nextVideo = playlist.playNext()
 			.orElseThrow(() -> {
-				playingVideoStorage.delete(roomCode);
+				playingVideoStorage.deleteIfPresent(roomCode);
 				playlistStorage.save(playlist);
 				return new PlaylistEmptyException();
 			});
@@ -62,6 +62,25 @@ public class PlaylistService {
 
 		playlistStorage.save(playlist);
 		messageService.sendPlaylist(roomCode);
+	}
+
+	public void playNextVideo(Long userId) {
+		User user = userStorage.findById(userId)
+			.orElseThrow(UserNoExistenceException::new);
+		Playlist playlist = playlistStorage.findById(user.getCurrentRoomCode())
+			.orElseThrow(PlaylistNoExistenceException::new);
+
+		Video nextVideo = playlist.playNext()
+			.orElseThrow(() -> {
+				playingVideoStorage.deleteIfPresent(user.getCurrentRoomCode());
+				playlistStorage.save(playlist);
+				return new PlaylistEmptyException();
+			});
+
+		playingVideoStorage.saveAndPlay(new PlayingVideo(user.getCurrentRoomCode(), nextVideo, messageService, this));
+
+		playlistStorage.save(playlist);
+		messageService.sendPlaylist(user.getCurrentRoomCode());
 	}
 
 	public void reorderVideo(Long userId, VideoOrder videoOrder) {
