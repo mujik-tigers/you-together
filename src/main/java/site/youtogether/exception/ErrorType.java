@@ -36,7 +36,8 @@ public enum ErrorType {
 	PLAYLIST_NO_EXISTENCE(HttpStatus.NOT_FOUND, "플레이리스트가 없습니다"),
 	PLAYLIST_EMPTY(HttpStatus.NOT_FOUND, "플레이리스트에 재생할 영상이 없습니다"),
 	INVALID_VIDEO_ORDER(HttpStatus.BAD_REQUEST, "변경하고자 하는 순서가 유효하지 않습니다"),
-	PLAYLIST_INDEX_OUT_OF_BOUNDS(HttpStatus.BAD_REQUEST, "플레이리스트를 초과하는 인덱스입니다");
+	PLAYLIST_INDEX_OUT_OF_BOUNDS(HttpStatus.BAD_REQUEST, "플레이리스트를 초과하는 인덱스입니다"),
+	PLAYING_VIDEO_NO_EXISTENCE(HttpStatus.NOT_FOUND, "현재 재생중인 영상이 없습니다");
 
 	private final HttpStatus status;
 	private final String message;

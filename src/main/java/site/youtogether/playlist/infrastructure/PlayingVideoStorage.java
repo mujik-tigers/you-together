@@ -2,6 +2,7 @@ package site.youtogether.playlist.infrastructure;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
@@ -14,6 +15,10 @@ public class PlayingVideoStorage {
 
 	public boolean existsById(String roomCode) {
 		return storage.containsKey(roomCode);
+	}
+
+	public Optional<PlayingVideo> findById(String roomCode) {
+		return Optional.ofNullable(storage.get(roomCode));
 	}
 
 	public void saveAndPlay(PlayingVideo playingVideo) {

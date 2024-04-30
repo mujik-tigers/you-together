@@ -15,10 +15,12 @@ public class PlayingVideo {
 	private final String roomCode;
 	private final String videoId;
 	private final long totalTime;
-	private double currentTime;
-	private Timer timer;
 	private final MessageService messageService;
 	private final PlaylistService playlistService;
+
+	private double currentTime;
+	private Timer timer;
+	private double playerRate;
 
 	public PlayingVideo(String roomCode, Video video, MessageService messageService, PlaylistService playlistService) {
 		this.roomCode = roomCode;
@@ -28,6 +30,7 @@ public class PlayingVideo {
 
 		this.messageService = messageService;
 		this.playlistService = playlistService;
+		this.playerRate = 1.0;
 	}
 
 	public void start(double time) {
@@ -38,7 +41,7 @@ public class PlayingVideo {
 			public void run() {
 				if (currentTime >= totalTime) {
 					messageService.sendVideoSyncInfo(
-						new VideoSyncInfoMessage(roomCode, PlayerState.END, totalTime, 1.0)
+						new VideoSyncInfoMessage(roomCode, PlayerState.END, totalTime, playerRate)
 					);
 					try {
 						playlistService.playNextVideo(roomCode);
@@ -49,11 +52,21 @@ public class PlayingVideo {
 					return;
 				}
 				messageService.sendVideoSyncInfo(
-					new VideoSyncInfoMessage(roomCode, PlayerState.PLAY, currentTime, 1.0)
+					new VideoSyncInfoMessage(roomCode, PlayerState.PLAY, currentTime, playerRate)
 				);
 				currentTime += 1;
 			}
 		}, 0, 1000);
+	}
+
+	public void pause(double time) {
+		currentTime = Math.round(time * 100) / 100.0;
+		timer.cancel();
+		timer.purge();
+
+		messageService.sendVideoSyncInfo(
+			new VideoSyncInfoMessage(roomCode, PlayerState.PAUSE, currentTime, playerRate)
+		);
 	}
 
 }

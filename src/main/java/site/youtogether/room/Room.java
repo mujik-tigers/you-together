@@ -20,6 +20,7 @@ import lombok.NoArgsConstructor;
 import site.youtogether.exception.room.PasswordNotMatchException;
 import site.youtogether.exception.room.RoomCapacityExceededException;
 import site.youtogether.exception.room.UserAbsentException;
+import site.youtogether.exception.user.ChangeRoomTitleDeniedException;
 import site.youtogether.user.User;
 
 @Document(value = "room")
@@ -60,9 +61,9 @@ public class Room {
 
 	public void changeRoomTitle(User user, String updateTitle) {
 		validateParticipantExist(user.getId());
-		// if (!user.isHost()) {
-		// 	throw new ChangeRoomTitleDeniedException();
-		// }
+		if (!user.isHost()) {
+			throw new ChangeRoomTitleDeniedException();
+		}
 		title = updateTitle;
 	}
 

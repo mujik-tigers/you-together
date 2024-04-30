@@ -10,7 +10,9 @@ import lombok.RequiredArgsConstructor;
 import site.youtogether.exception.user.ChatMessageSendDeniedException;
 import site.youtogether.exception.user.UserNoExistenceException;
 import site.youtogether.message.ChatMessage;
+import site.youtogether.message.VideoSyncInfoMessage;
 import site.youtogether.message.application.MessageService;
+import site.youtogether.playlist.application.PlayingVideoService;
 import site.youtogether.user.User;
 import site.youtogether.user.infrastructure.UserStorage;
 
@@ -20,9 +22,10 @@ public class MessageController {
 
 	private final UserStorage userStorage;
 	private final MessageService messageService;
+	private final PlayingVideoService playingVideoService;
 
-	@MessageMapping("/messages")
-	public void handleMessage(ChatMessage chatMessage, SimpMessageHeaderAccessor headerAccessor) {
+	@MessageMapping("/messages/chat")
+	public void handleChatMessage(ChatMessage chatMessage, SimpMessageHeaderAccessor headerAccessor) {
 		Long userId = (Long)headerAccessor.getSessionAttributes().get(USER_ID);
 		User user = userStorage.findById(userId)
 			.orElseThrow(UserNoExistenceException::new);
@@ -35,6 +38,19 @@ public class MessageController {
 		chatMessage.setNickname(user.getNickname());
 
 		messageService.sendChat(chatMessage);
+	}
+
+	@MessageMapping("/messages/video")
+	public void handleVideoSyncMessage(VideoSyncInfoMessage videoSyncInfoMessage, SimpMessageHeaderAccessor headerAccessor) {
+		Long userId = (Long)headerAccessor.getSessionAttributes().get(USER_ID);
+		User user = userStorage.findById(userId)
+			.orElseThrow(UserNoExistenceException::new);
+
+		// if (user.isNotEditable()) {
+		// 	throw new VideoEditDeniedException();				// TODO: 주석풀기
+		// }
+
+		playingVideoService.manageVideo(videoSyncInfoMessage);
 	}
 
 }
