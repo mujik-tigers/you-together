@@ -4,6 +4,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import lombok.Getter;
+import site.youtogether.exception.playlist.InvalidVideoRateException;
 import site.youtogether.exception.playlist.PlaylistEmptyException;
 import site.youtogether.message.VideoSyncInfoMessage;
 import site.youtogether.message.application.MessageService;
@@ -19,8 +20,9 @@ public class PlayingVideo {
 	private final PlaylistService playlistService;
 
 	private double currentTime;
-	private Timer timer;
-	private double playerRate;
+	private Timer timer = new Timer();
+	private double playerRate = 1.0;
+	private long timerPeriod = 1000;
 
 	public PlayingVideo(String roomCode, Video video, MessageService messageService, PlaylistService playlistService) {
 		this.roomCode = roomCode;
@@ -30,11 +32,38 @@ public class PlayingVideo {
 
 		this.messageService = messageService;
 		this.playlistService = playlistService;
-		this.playerRate = 1.0;
 	}
 
 	public void start(double time) {
+		timer.cancel();
+		timer.purge();
 		currentTime = Math.round(time * 100) / 100.0;
+		createTimer(playerRate);
+	}
+
+	public void pause(double time) {
+		timer.cancel();
+		timer.purge();
+		currentTime = Math.round(time * 100) / 100.0;
+
+		messageService.sendVideoSyncInfo(
+			new VideoSyncInfoMessage(roomCode, PlayerState.PAUSE, currentTime, playerRate)
+		);
+	}
+
+	public void changeRate(double playerRate) {
+		if (playerRate < 0.25 || playerRate > 2 || (int)(playerRate * 100) % 5 != 0) {
+			throw new InvalidVideoRateException();
+		}
+		timer.cancel();
+		timer.purge();
+
+		this.playerRate = playerRate;
+		this.timerPeriod = Math.round(1000 / playerRate);
+		createTimer(playerRate);
+	}
+
+	private void createTimer(double playerRate) {
 		timer = new Timer();
 		timer.scheduleAtFixedRate(new TimerTask() {
 			@Override
@@ -56,17 +85,7 @@ public class PlayingVideo {
 				);
 				currentTime += 1;
 			}
-		}, 0, 1000);
-	}
-
-	public void pause(double time) {
-		currentTime = Math.round(time * 100) / 100.0;
-		timer.cancel();
-		timer.purge();
-
-		messageService.sendVideoSyncInfo(
-			new VideoSyncInfoMessage(roomCode, PlayerState.PAUSE, currentTime, playerRate)
-		);
+		}, 0, timerPeriod);
 	}
 
 }

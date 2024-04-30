@@ -2,6 +2,6 @@ package site.youtogether.playlist;
 
 public enum PlayerState {
 
-	PLAY, PAUSE, END
+	PLAY, PAUSE, END, RATE
 
 }
