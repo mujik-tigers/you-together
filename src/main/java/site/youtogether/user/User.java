@@ -16,8 +16,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import site.youtogether.exception.user.HigherOrEqualRoleChangeException;
 import site.youtogether.exception.user.HigherOrEqualRoleUserChangeException;
-import site.youtogether.exception.user.NotManageableUserException;
-import site.youtogether.exception.user.SelfRoleChangeException;
 import site.youtogether.exception.user.UsersInDifferentRoomException;
 
 @Document(value = "user")
@@ -69,17 +67,17 @@ public class User {
 	}
 
 	public void changeOtherUserRole(String roomCode, User targetUser, Role newUserRole) {
-		if (id.equals(targetUser.getId())) {
-			throw new SelfRoleChangeException();
-		}
+		// if (id.equals(targetUser.getId())) {
+		// 	throw new SelfRoleChangeException();
+		// }
 
 		if (!isInSameRoom(this, targetUser, roomCode)) {
 			throw new UsersInDifferentRoomException();
 		}
 
-		if (isNotManageable()) {
-			throw new NotManageableUserException();
-		}
+		// if (isNotManageable()) {
+		// 	throw new NotManageableUserException();
+		// }
 
 		if (hasLowerOrEqualRoleThan(targetUser.getRoleInCurrentRoom())) {
 			throw new HigherOrEqualRoleUserChangeException();

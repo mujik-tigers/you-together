@@ -8,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import site.youtogether.exception.playlist.PlaylistEmptyException;
 import site.youtogether.exception.playlist.PlaylistNoExistenceException;
 import site.youtogether.exception.user.UserNoExistenceException;
-import site.youtogether.exception.user.VideoEditDeniedException;
 import site.youtogether.message.application.MessageService;
 import site.youtogether.playlist.PlayingVideo;
 import site.youtogether.playlist.Playlist;
@@ -32,9 +31,9 @@ public class PlaylistService {
 	public void addVideo(Long userId, PlaylistAddForm form) {
 		User user = userStorage.findById(userId)
 			.orElseThrow(UserNoExistenceException::new);
-		if (user.isNotEditable()) {
-			throw new VideoEditDeniedException();
-		}
+		// if (user.isNotEditable()) {
+		// 	throw new VideoEditDeniedException();
+		// }
 
 		Playlist playlist = playlistStorage.findById(user.getCurrentRoomCode())
 			.orElseThrow(PlaylistNoExistenceException::new);
@@ -68,9 +67,9 @@ public class PlaylistService {
 	public void reorderVideo(Long userId, VideoOrder videoOrder) {
 		User user = userStorage.findById(userId)
 			.orElseThrow(UserNoExistenceException::new);
-		if (user.isNotEditable()) {
-			throw new VideoEditDeniedException();
-		}
+		// if (user.isNotEditable()) {
+		// 	throw new VideoEditDeniedException();
+		// }
 
 		Playlist playlist = playlistStorage.findById(user.getCurrentRoomCode())
 			.orElseThrow(PlaylistNoExistenceException::new);
@@ -83,9 +82,9 @@ public class PlaylistService {
 	public void deleteVideo(Long userId, int videoIndex) {
 		User user = userStorage.findById(userId)
 			.orElseThrow(UserNoExistenceException::new);
-		if (user.isNotEditable()) {
-			throw new VideoEditDeniedException();
-		}
+		// if (user.isNotEditable()) {
+		// 	throw new VideoEditDeniedException();
+		// }
 
 		Playlist playlist = playlistStorage.findById(user.getCurrentRoomCode())
 			.orElseThrow(PlaylistNoExistenceException::new);
