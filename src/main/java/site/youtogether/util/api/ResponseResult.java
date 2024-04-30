@@ -19,7 +19,8 @@ public enum ResponseResult {
 	USER_ROLE_CHANGE_SUCCESS("유저의 역할 변경에 성공했습니다"),
 
 	// Playlist
-	PLAYLIST_ADD_SUCCESS("플레이리스트에 비디오 추가를 성공했습니다");
+	PLAYLIST_ADD_SUCCESS("플레이리스트에 비디오 추가를 성공했습니다"),
+	VIDEO_REORDER_SUCCESS("비디오 순서 변경에 성공했습니다");
 
 	private final String description;
 

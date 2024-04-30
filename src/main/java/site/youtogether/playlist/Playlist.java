@@ -14,6 +14,7 @@ import com.redis.om.spring.annotations.Document;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import site.youtogether.exception.playlist.InvalidVideoOrderException;
 
 @Document(value = "playlist")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -52,6 +53,16 @@ public class Playlist {
 
 	public void stop() {
 		playingVideo = null;
+	}
+
+	public void reorderVideo(int from, int to) {
+		Video video = videos.get(from);
+		try {
+			videos.remove(from);
+			videos.add(to, video);
+		} catch (IndexOutOfBoundsException e) {
+			throw new InvalidVideoOrderException();
+		}
 	}
 
 }

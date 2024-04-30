@@ -14,6 +14,7 @@ import site.youtogether.playlist.PlayingVideo;
 import site.youtogether.playlist.Playlist;
 import site.youtogether.playlist.Video;
 import site.youtogether.playlist.dto.PlaylistAddForm;
+import site.youtogether.playlist.dto.VideoOrder;
 import site.youtogether.playlist.infrastructure.PlayingVideoStorage;
 import site.youtogether.playlist.infrastructure.PlaylistStorage;
 import site.youtogether.user.User;
@@ -62,6 +63,21 @@ public class PlaylistService {
 
 		playlistStorage.save(playlist);
 		messageService.sendPlaylist(roomCode);
+	}
+
+	public void reorderVideo(Long userId, VideoOrder videoOrder) {
+		User user = userStorage.findById(userId)
+			.orElseThrow(UserNoExistenceException::new);
+		if (user.isNotEditable()) {
+			throw new VideoEditDeniedException();
+		}
+
+		Playlist playlist = playlistStorage.findById(user.getCurrentRoomCode())
+			.orElseThrow(PlaylistNoExistenceException::new);
+		playlist.reorderVideo(videoOrder.getFrom(), videoOrder.getTo());
+		playlistStorage.save(playlist);
+
+		messageService.sendPlaylist(user.getCurrentRoomCode());
 	}
 
 	private Video createVideo(PlaylistAddForm form) {
