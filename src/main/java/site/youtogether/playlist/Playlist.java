@@ -15,6 +15,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import site.youtogether.exception.playlist.InvalidVideoOrderException;
+import site.youtogether.exception.playlist.PlaylistIndexOutOfBoundsException;
 
 @Document(value = "playlist")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -51,8 +52,12 @@ public class Playlist {
 		return Optional.of(playingVideo);
 	}
 
-	public void stop() {
-		playingVideo = null;
+	public void delete(int index) {
+		try {
+			videos.remove(index);
+		} catch (IndexOutOfBoundsException e) {
+			throw new PlaylistIndexOutOfBoundsException();
+		}
 	}
 
 	public void reorderVideo(int from, int to) {
