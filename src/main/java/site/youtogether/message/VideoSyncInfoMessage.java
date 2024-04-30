@@ -11,6 +11,7 @@ public class VideoSyncInfoMessage {
 	private final MessageType messageType = MessageType.VIDEO_SYNC_INFO;
 
 	private final String roomCode;
+	private final String videoId;
 	private final PlayerState playerState;
 	private final double playerCurrentTime;
 	private final double playerRate;

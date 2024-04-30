@@ -47,7 +47,7 @@ public class PlayingVideo {
 		currentTime = Math.round(time * 100) / 100.0;
 
 		messageService.sendVideoSyncInfo(
-			new VideoSyncInfoMessage(roomCode, PlayerState.PAUSE, currentTime, playerRate)
+			new VideoSyncInfoMessage(roomCode, videoId, PlayerState.PAUSE, currentTime, playerRate)
 		);
 	}
 
@@ -79,7 +79,7 @@ public class PlayingVideo {
 			public void run() {
 				if (currentTime >= totalTime) {
 					messageService.sendVideoSyncInfo(
-						new VideoSyncInfoMessage(roomCode, PlayerState.END, totalTime, playerRate)
+						new VideoSyncInfoMessage(roomCode, videoId, PlayerState.END, totalTime, playerRate)
 					);
 					try {
 						playlistService.callNextVideoByTimer(roomCode);
@@ -90,7 +90,7 @@ public class PlayingVideo {
 					return;
 				}
 				messageService.sendVideoSyncInfo(
-					new VideoSyncInfoMessage(roomCode, PlayerState.PLAY, currentTime, playerRate)
+					new VideoSyncInfoMessage(roomCode, videoId, PlayerState.PLAY, currentTime, playerRate)
 				);
 				currentTime += 1;
 			}
