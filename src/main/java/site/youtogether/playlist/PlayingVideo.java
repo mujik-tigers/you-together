@@ -4,6 +4,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import lombok.Getter;
+import site.youtogether.exception.playlist.InvalidVideoRateException;
 import site.youtogether.exception.playlist.PlaylistEmptyException;
 import site.youtogether.message.VideoSyncInfoMessage;
 import site.youtogether.message.application.MessageService;
@@ -15,10 +16,13 @@ public class PlayingVideo {
 	private final String roomCode;
 	private final String videoId;
 	private final long totalTime;
-	private double currentTime;
-	private Timer timer;
 	private final MessageService messageService;
 	private final PlaylistService playlistService;
+
+	private double currentTime;
+	private Timer timer = new Timer();
+	private double playerRate = 1.0;
+	private long timerPeriod = 1000;
 
 	public PlayingVideo(String roomCode, Video video, MessageService messageService, PlaylistService playlistService) {
 		this.roomCode = roomCode;
@@ -31,17 +35,54 @@ public class PlayingVideo {
 	}
 
 	public void start(double time) {
+		timer.cancel();
+		timer.purge();
 		currentTime = Math.round(time * 100) / 100.0;
+		createTimer(playerRate);
+	}
+
+	public void pause(double time) {
+		timer.cancel();
+		timer.purge();
+		currentTime = Math.round(time * 100) / 100.0;
+
+		messageService.sendVideoSyncInfo(
+			new VideoSyncInfoMessage(roomCode, videoId, PlayerState.PAUSE, currentTime, playerRate)
+		);
+	}
+
+	public void stop() {
+		timer.cancel();
+		timer.purge();
+	}
+
+	public void changeRate(double playerRate) {
+		if (playerRate < 0.25 || playerRate > 2 || (int)(playerRate * 100) % 5 != 0) {
+			throw new InvalidVideoRateException();
+		}
+		timer.cancel();
+		timer.purge();
+
+		this.playerRate = playerRate;
+		this.timerPeriod = Math.round(1000 / playerRate);
+		createTimer(playerRate);
+	}
+
+	public void changeCurrentTime(double time) {
+		this.currentTime = time;
+	}
+
+	private void createTimer(double playerRate) {
 		timer = new Timer();
 		timer.scheduleAtFixedRate(new TimerTask() {
 			@Override
 			public void run() {
 				if (currentTime >= totalTime) {
 					messageService.sendVideoSyncInfo(
-						new VideoSyncInfoMessage(roomCode, PlayerState.END, totalTime, 1.0)
+						new VideoSyncInfoMessage(roomCode, videoId, PlayerState.END, totalTime, playerRate)
 					);
 					try {
-						playlistService.playNextVideo(roomCode);
+						playlistService.callNextVideoByTimer(roomCode);
 					} catch (PlaylistEmptyException ignored) {
 					}
 					timer.cancel();
@@ -49,11 +90,11 @@ public class PlayingVideo {
 					return;
 				}
 				messageService.sendVideoSyncInfo(
-					new VideoSyncInfoMessage(roomCode, PlayerState.PLAY, currentTime, 1.0)
+					new VideoSyncInfoMessage(roomCode, videoId, PlayerState.PLAY, currentTime, playerRate)
 				);
 				currentTime += 1;
 			}
-		}, 0, 1000);
+		}, 0, timerPeriod);
 	}
 
 }
