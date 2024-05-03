@@ -52,7 +52,7 @@ class UserServiceTest extends IntegrationTestSupport {
 		String newNickname = "new nickname";
 
 		// when
-		Participant participant = userService.changeUserNickname(user.getId(), newNickname, room.getCode());
+		Participant participant = userService.changeUserNickname(user.getId(), newNickname);
 
 		// then
 		User savedUser = userStorage.findById(user.getId()).get();
@@ -72,7 +72,7 @@ class UserServiceTest extends IntegrationTestSupport {
 		room.enter(null);
 		roomStorage.save(room);
 
-		UserRoleChangeForm userRoleChangeForm = new UserRoleChangeForm(room.getCode(), user.getId(), Role.VIEWER);
+		UserRoleChangeForm userRoleChangeForm = new UserRoleChangeForm(user.getId(), Role.VIEWER);
 
 		// when
 		userService.changeUserRole(HOST_ID, userRoleChangeForm);

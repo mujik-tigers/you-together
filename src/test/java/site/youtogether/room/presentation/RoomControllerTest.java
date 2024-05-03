@@ -2,11 +2,9 @@ package site.youtogether.room.presentation;
 
 import static org.mockito.BDDMockito.*;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.*;
-import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
-import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static site.youtogether.exception.ErrorType.*;
@@ -35,6 +33,7 @@ import site.youtogether.exception.user.ChangeRoomTitleDeniedException;
 import site.youtogether.room.Participant;
 import site.youtogether.room.Room;
 import site.youtogether.room.dto.ChangedRoomTitle;
+import site.youtogether.room.dto.NewRoom;
 import site.youtogether.room.dto.PasswordInput;
 import site.youtogether.room.dto.RoomDetail;
 import site.youtogether.room.dto.RoomList;
@@ -65,7 +64,6 @@ class RoomControllerTest extends RestDocsSupport {
 		Optional<User> user = Optional.of(User.builder()
 			.currentRoomCode(null)
 			.build());
-		Participant participantInfo = new Participant(10L, "황똥땡", Role.HOST);
 
 		given(jwtService.issue(anyLong(), any()))
 			.willReturn(token);
@@ -73,9 +71,9 @@ class RoomControllerTest extends RestDocsSupport {
 			.willReturn(user);
 
 		// Setting up response data for the created room
-		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, participantInfo, capacity, 1, false);
+		NewRoom newRoom = new NewRoom(roomCode, null);
 		given(roomService.create(anyLong(), any(RoomSettings.class), any(LocalDateTime.class)))
-			.willReturn(createdRoomDetail);
+			.willReturn(newRoom);
 
 		// when / then
 		mockMvc.perform(post("/rooms")
@@ -88,11 +86,6 @@ class RoomControllerTest extends RestDocsSupport {
 			.andExpect(jsonPath("$.status").value(HttpStatus.CREATED.getReasonPhrase()))
 			.andExpect(jsonPath("$.result").value(ResponseResult.ROOM_CREATION_SUCCESS.getDescription()))
 			.andExpect(jsonPath("$.data.roomCode").value(roomCode))
-			.andExpect(jsonPath("$.data.roomTitle").value(roomTitle))
-			.andExpect(jsonPath("$.data.user.id").value(participantInfo.getId()))
-			.andExpect(jsonPath("$.data.capacity").value(capacity))
-			.andExpect(jsonPath("$.data.currentParticipant").value(1))
-			.andExpect(jsonPath("$.data.passwordExist").value(false))
 			.andDo(document("create-room-success",
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
@@ -106,14 +99,7 @@ class RoomControllerTest extends RestDocsSupport {
 					fieldWithPath("result").type(JsonFieldType.STRING).description("결과"),
 					fieldWithPath("data").type(JsonFieldType.OBJECT).description("응답 데이터"),
 					fieldWithPath("data.roomCode").type(JsonFieldType.STRING).description("방 식별 코드"),
-					fieldWithPath("data.roomTitle").type(JsonFieldType.STRING).description("방 제목"),
-					fieldWithPath("data.user").type(JsonFieldType.OBJECT).description("유저"),
-					fieldWithPath("data.user.id").type(JsonFieldType.NUMBER).description("유저 아이디"),
-					fieldWithPath("data.user.nickname").type(JsonFieldType.STRING).description("유저 닉네임"),
-					fieldWithPath("data.user.role").type(JsonFieldType.STRING).description("유저 역할"),
-					fieldWithPath("data.capacity").type(JsonFieldType.NUMBER).description("정원"),
-					fieldWithPath("data.currentParticipant").type(JsonFieldType.NUMBER).description("현재 참가자 수"),
-					fieldWithPath("data.passwordExist").type(JsonFieldType.BOOLEAN).description("비밀번호 존재 여부")
+					fieldWithPath("data.password").type(JsonFieldType.NULL).description("방 비밀번호")
 				)
 			));
 	}
@@ -137,7 +123,6 @@ class RoomControllerTest extends RestDocsSupport {
 		Optional<User> user = Optional.of(User.builder()
 			.currentRoomCode(null)
 			.build());
-		Participant participantInfo = new Participant(10L, "황똥땡", Role.HOST);
 
 		given(jwtService.issue(anyLong(), any()))
 			.willReturn(token);
@@ -145,9 +130,9 @@ class RoomControllerTest extends RestDocsSupport {
 			.willReturn(user);
 
 		// Setting up response data for the created room
-		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, participantInfo, capacity, 1, true);
+		NewRoom newRoom = new NewRoom(roomCode, password);
 		given(roomService.create(anyLong(), any(RoomSettings.class), any(LocalDateTime.class)))
-			.willReturn(createdRoomDetail);
+			.willReturn(newRoom);
 
 		// when / then
 		mockMvc.perform(post("/rooms")
@@ -160,11 +145,7 @@ class RoomControllerTest extends RestDocsSupport {
 			.andExpect(jsonPath("$.status").value(HttpStatus.CREATED.getReasonPhrase()))
 			.andExpect(jsonPath("$.result").value(ResponseResult.ROOM_CREATION_SUCCESS.getDescription()))
 			.andExpect(jsonPath("$.data.roomCode").value(roomCode))
-			.andExpect(jsonPath("$.data.roomTitle").value(roomTitle))
-			.andExpect(jsonPath("$.data.user.id").value(participantInfo.getId()))
-			.andExpect(jsonPath("$.data.capacity").value(capacity))
-			.andExpect(jsonPath("$.data.currentParticipant").value(1))
-			.andExpect(jsonPath("$.data.passwordExist").value(true))
+			.andExpect(jsonPath("$.data.password").value(password))
 			.andDo(document("create-password-room-success",
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
@@ -178,14 +159,7 @@ class RoomControllerTest extends RestDocsSupport {
 					fieldWithPath("result").type(JsonFieldType.STRING).description("결과"),
 					fieldWithPath("data").type(JsonFieldType.OBJECT).description("응답 데이터"),
 					fieldWithPath("data.roomCode").type(JsonFieldType.STRING).description("방 식별 코드"),
-					fieldWithPath("data.roomTitle").type(JsonFieldType.STRING).description("방 제목"),
-					fieldWithPath("data.user").type(JsonFieldType.OBJECT).description("유저"),
-					fieldWithPath("data.user.id").type(JsonFieldType.NUMBER).description("유저 아이디"),
-					fieldWithPath("data.user.nickname").type(JsonFieldType.STRING).description("유저 닉네임"),
-					fieldWithPath("data.user.role").type(JsonFieldType.STRING).description("유저 역할"),
-					fieldWithPath("data.capacity").type(JsonFieldType.NUMBER).description("정원"),
-					fieldWithPath("data.currentParticipant").type(JsonFieldType.NUMBER).description("현재 참가자 수"),
-					fieldWithPath("data.passwordExist").type(JsonFieldType.BOOLEAN).description("비밀번호 존재 여부")
+					fieldWithPath("data.password").type(JsonFieldType.STRING).description("방 비밀번호")
 				)
 			));
 	}
@@ -300,11 +274,6 @@ class RoomControllerTest extends RestDocsSupport {
 		Optional<User> user = Optional.of(User.builder()
 			.currentRoomCode("1e7050f7d7")
 			.build());
-		RoomSettings roomSettings = RoomSettings.builder()
-			.capacity(10)
-			.title("재밌는 쇼츠 같이 보기")
-			.password(null)
-			.build();
 		SliceImpl<Room> roomSlice = new SliceImpl<>(generateRooms(3), PageRequest.of(0, 10), false);
 		RoomList roomList = new RoomList(roomSlice);
 
@@ -666,14 +635,14 @@ class RoomControllerTest extends RestDocsSupport {
 		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 		String roomCode = "1e7050f7d7";
 		Long id = 10L;
-		String updateTitle = "연똥땡의 방";
+		String newTitle = "연똥땡의 방";
 
-		TitleInput form = new TitleInput(roomCode, updateTitle);
+		TitleInput form = new TitleInput(newTitle);
 
 		given(jwtService.parse(anyString()))
 			.willReturn(id);
-		given(roomService.changeRoomTitle(anyLong(), anyString(), anyString()))
-			.willReturn(new ChangedRoomTitle(roomCode, updateTitle));
+		given(roomService.changeRoomTitle(anyLong(), anyString()))
+			.willReturn(new ChangedRoomTitle(roomCode, newTitle));
 
 		// when // then
 		mockMvc.perform(patch("/rooms/title")
@@ -686,13 +655,12 @@ class RoomControllerTest extends RestDocsSupport {
 			.andExpect(jsonPath("$.status").value(HttpStatus.OK.getReasonPhrase()))
 			.andExpect(jsonPath("$.result").value(ResponseResult.ROOM_TITLE_CHANGE_SUCCESS.getDescription()))
 			.andExpect(jsonPath("$.data.roomCode").value(roomCode))
-			.andExpect(jsonPath("$.data.changedRoomTitle").value(updateTitle))
+			.andExpect(jsonPath("$.data.changedRoomTitle").value(newTitle))
 			.andDo(document("change-room-title-success",
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
 				requestFields(
-					fieldWithPath("roomCode").type(JsonFieldType.STRING).description("방 코드"),
-					fieldWithPath("newTitle").type(JsonFieldType.STRING).description("변경할 방 제목")
+					fieldWithPath("newTitle").type(JsonFieldType.STRING).description("새로운 방 제목")
 				),
 				responseFields(
 					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
@@ -700,7 +668,7 @@ class RoomControllerTest extends RestDocsSupport {
 					fieldWithPath("result").type(JsonFieldType.STRING).description("결과"),
 					fieldWithPath("data").type(JsonFieldType.OBJECT).description("응답 데이터"),
 					fieldWithPath("data.roomCode").type(JsonFieldType.STRING).description("방 코드"),
-					fieldWithPath("data.changedRoomTitle").type(JsonFieldType.STRING).description("변경된 방 제목")
+					fieldWithPath("data.changedRoomTitle").type(JsonFieldType.STRING).description("방 제목")
 				)
 			));
 	}
@@ -712,14 +680,14 @@ class RoomControllerTest extends RestDocsSupport {
 		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 		String roomCode = "1e7050f7d7";
 		Long id = 10L;
-		String updateTitle = "  ";
+		String newTitle = "  ";
 
-		TitleInput form = new TitleInput(roomCode, updateTitle);
+		TitleInput form = new TitleInput(newTitle);
 
 		given(jwtService.parse(anyString()))
 			.willReturn(id);
-		given(roomService.changeRoomTitle(anyLong(), anyString(), anyString()))
-			.willReturn(new ChangedRoomTitle(roomCode, updateTitle));
+		given(roomService.changeRoomTitle(anyLong(), anyString()))
+			.willReturn(new ChangedRoomTitle(roomCode, newTitle));
 
 		// when // then
 		mockMvc.perform(patch("/rooms/title")
@@ -736,8 +704,7 @@ class RoomControllerTest extends RestDocsSupport {
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
 				requestFields(
-					fieldWithPath("roomCode").type(JsonFieldType.STRING).description("방 코드"),
-					fieldWithPath("newTitle").type(JsonFieldType.STRING).description("변경할 방 제목")
+					fieldWithPath("newTitle").type(JsonFieldType.STRING).description("새로운 방 제목")
 				),
 				responseFields(
 					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
@@ -755,15 +722,14 @@ class RoomControllerTest extends RestDocsSupport {
 	void updateRoomTitleFailNotHost() throws Exception {
 		// given
 		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
-		String roomCode = "1e7050f7d7";
 		Long id = 10L;
-		String updateTitle = "연똥땡의 방";
+		String newTitle = "연똥땡의 방";
 
-		TitleInput form = new TitleInput(roomCode, updateTitle);
+		TitleInput form = new TitleInput(newTitle);
 
 		given(jwtService.parse(anyString()))
 			.willReturn(id);
-		given(roomService.changeRoomTitle(anyLong(), anyString(), anyString()))
+		given(roomService.changeRoomTitle(anyLong(), anyString()))
 			.willThrow(new ChangeRoomTitleDeniedException());
 
 		// when // then
@@ -783,8 +749,7 @@ class RoomControllerTest extends RestDocsSupport {
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
 				requestFields(
-					fieldWithPath("roomCode").type(JsonFieldType.STRING).description("방 코드"),
-					fieldWithPath("newTitle").type(JsonFieldType.STRING).description("변경할 방 제목")
+					fieldWithPath("newTitle").type(JsonFieldType.STRING).description("새로운 방 제목")
 				),
 				responseFields(
 					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
@@ -798,11 +763,6 @@ class RoomControllerTest extends RestDocsSupport {
 	}
 
 	private List<Room> generateRooms(int count) {
-		User host = User.builder()
-			.id(1L)
-			.nickname("연츠비")
-			.build();
-
 		return IntStream.rangeClosed(1, count)
 			.mapToObj(number -> Room.builder()
 				.code(RandomUtil.generateRandomCode(ROOM_CODE_LENGTH))

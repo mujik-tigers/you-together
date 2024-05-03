@@ -34,14 +34,6 @@ public class RoomController {
 
 	private final RoomService roomService;
 
-	@PostMapping("/rooms")
-	public ResponseEntity<ApiResponse<NewRoom>> createRoom(@Valid @RequestBody RoomSettings roomSettings, @UserTracking Long userId) {
-		NewRoom newRoom = roomService.create(userId, roomSettings, LocalDateTime.now());
-
-		return ResponseEntity.status(HttpStatus.CREATED)
-			.body(ApiResponse.created(ResponseResult.ROOM_CREATION_SUCCESS, newRoom));
-	}
-
 	@GetMapping("/rooms")
 	public ResponseEntity<ApiResponse<RoomList>> fetchRoomList(@PageableDefault Pageable pageable, @RequestParam(required = false) String keyword) {
 		RoomList roomList = roomService.fetchAll(pageable, keyword);
@@ -50,9 +42,17 @@ public class RoomController {
 			.body(ApiResponse.ok(ResponseResult.ROOM_LIST_FETCH_SUCCESS, roomList));
 	}
 
+	@PostMapping("/rooms")
+	public ResponseEntity<ApiResponse<NewRoom>> createRoom(@UserTracking Long userId, @Valid @RequestBody RoomSettings roomSettings) {
+		NewRoom newRoom = roomService.create(userId, roomSettings, LocalDateTime.now());
+
+		return ResponseEntity.status(HttpStatus.CREATED)
+			.body(ApiResponse.created(ResponseResult.ROOM_CREATION_SUCCESS, newRoom));
+	}
+
 	@PostMapping("/rooms/{roomCode}")
-	public ResponseEntity<ApiResponse<RoomDetail>> enterRoom(@PathVariable String roomCode,
-		@Valid @RequestBody(required = false) PasswordInput form, @UserTracking Long userId) {
+	public ResponseEntity<ApiResponse<RoomDetail>> enterRoom(@PathVariable String roomCode, @UserTracking Long userId,
+		@Valid @RequestBody(required = false) PasswordInput form) {
 
 		String passwordInput = form == null ? null : form.getPasswordInput();
 		RoomDetail roomDetail = roomService.enter(userId, roomCode, passwordInput);
