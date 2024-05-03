@@ -14,7 +14,6 @@ import site.youtogether.user.infrastructure.UserStorage;
 @RequiredArgsConstructor
 public class UserService {
 
-	private final RoomStorage roomStorage;
 	private final UserStorage userStorage;
 	private final MessageService messageService;
 

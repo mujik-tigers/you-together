@@ -25,14 +25,16 @@ public class UserController {
 	public ResponseEntity<ApiResponse<Participant>> changeUserNickname(@UserTracking Long userId, @RequestBody @Valid NicknameInput form) {
 		Participant participantInfo = userService.changeUserNickname(userId, form.getNewNickname());
 
-		return ResponseEntity.ok(ApiResponse.ok(ResponseResult.USER_NICKNAME_CHANGE_SUCCESS, participantInfo));
+		return ResponseEntity.ok()
+			.body(ApiResponse.ok(ResponseResult.USER_NICKNAME_CHANGE_SUCCESS, participantInfo));
 	}
 
 	@PatchMapping("/users/role")
 	public ResponseEntity<ApiResponse<Participant>> changeUserRole(@UserTracking Long userId, @Valid @RequestBody UserRoleChangeForm form) {
 		Participant changedParticipantInfo = userService.changeUserRole(userId, form);
 
-		return ResponseEntity.ok(ApiResponse.ok(ResponseResult.USER_ROLE_CHANGE_SUCCESS, changedParticipantInfo));
+		return ResponseEntity.ok()
+			.body(ApiResponse.ok(ResponseResult.USER_ROLE_CHANGE_SUCCESS, changedParticipantInfo));
 	}
 
 }

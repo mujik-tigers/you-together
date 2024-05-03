@@ -16,6 +16,7 @@ import site.youtogether.playlist.Playlist;
 import site.youtogether.playlist.infrastructure.PlaylistStorage;
 import site.youtogether.room.Room;
 import site.youtogether.room.dto.ChangedRoomTitle;
+import site.youtogether.room.dto.NewRoom;
 import site.youtogether.room.dto.RoomDetail;
 import site.youtogether.room.dto.RoomList;
 import site.youtogether.room.dto.RoomSettings;
@@ -33,7 +34,7 @@ public class RoomService {
 	private final UserStorage userStorage;
 	private final MessageService messageService;
 
-	public RoomDetail create(Long userId, RoomSettings roomSettings, LocalDateTime now) {
+	public NewRoom create(Long userId, RoomSettings roomSettings, LocalDateTime now) {
 		String roomCode = RandomUtil.generateRandomCode(ROOM_CODE_LENGTH);
 
 		User host = userStorage.findById(userId)
@@ -53,7 +54,7 @@ public class RoomService {
 		Playlist playlist = new Playlist(roomCode);
 		playlistStorage.save(playlist);
 
-		return new RoomDetail(room, host);
+		return new NewRoom(roomCode, room.getPassword());
 	}
 
 	public RoomList fetchAll(Pageable pageable, String keyword) {

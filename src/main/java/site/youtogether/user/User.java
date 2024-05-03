@@ -105,7 +105,6 @@ public class User {
 
 	public void createRoom(String createRoomCode) {
 		history.put(createRoomCode, Role.HOST);
-		currentRoomCode = createRoomCode;
 	}
 
 	public boolean isNotEditable() {

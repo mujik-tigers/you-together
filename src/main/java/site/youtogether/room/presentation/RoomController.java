@@ -18,6 +18,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import site.youtogether.room.application.RoomService;
 import site.youtogether.room.dto.ChangedRoomTitle;
+import site.youtogether.room.dto.NewRoom;
 import site.youtogether.room.dto.PasswordInput;
 import site.youtogether.room.dto.RoomDetail;
 import site.youtogether.room.dto.RoomList;
@@ -34,11 +35,11 @@ public class RoomController {
 	private final RoomService roomService;
 
 	@PostMapping("/rooms")
-	public ResponseEntity<ApiResponse<RoomDetail>> createRoom(@Valid @RequestBody RoomSettings roomSettings, @UserTracking Long userId) {
-		RoomDetail roomDetail = roomService.create(userId, roomSettings, LocalDateTime.now());
+	public ResponseEntity<ApiResponse<NewRoom>> createRoom(@Valid @RequestBody RoomSettings roomSettings, @UserTracking Long userId) {
+		NewRoom newRoom = roomService.create(userId, roomSettings, LocalDateTime.now());
 
 		return ResponseEntity.status(HttpStatus.CREATED)
-			.body(ApiResponse.created(ResponseResult.ROOM_CREATION_SUCCESS, roomDetail));
+			.body(ApiResponse.created(ResponseResult.ROOM_CREATION_SUCCESS, newRoom));
 	}
 
 	@GetMapping("/rooms")
@@ -56,16 +57,16 @@ public class RoomController {
 		String passwordInput = form == null ? null : form.getPasswordInput();
 		RoomDetail roomDetail = roomService.enter(userId, roomCode, passwordInput);
 
-		return ResponseEntity.ok(
-			ApiResponse.ok(ResponseResult.ROOM_ENTER_SUCCESS, roomDetail));
+		return ResponseEntity.ok()
+			.body(ApiResponse.ok(ResponseResult.ROOM_ENTER_SUCCESS, roomDetail));
 	}
 
 	@PatchMapping("/rooms/title")
 	public ResponseEntity<ApiResponse<ChangedRoomTitle>> changeRoomTitle(@UserTracking Long userId, @Valid @RequestBody TitleInput form) {
 		ChangedRoomTitle changedRoomTitle = roomService.changeRoomTitle(userId, form.getNewTitle());
 
-		return ResponseEntity.ok(
-			ApiResponse.ok(ResponseResult.ROOM_TITLE_CHANGE_SUCCESS, changedRoomTitle));
+		return ResponseEntity.ok()
+			.body(ApiResponse.ok(ResponseResult.ROOM_TITLE_CHANGE_SUCCESS, changedRoomTitle));
 	}
 
 }
