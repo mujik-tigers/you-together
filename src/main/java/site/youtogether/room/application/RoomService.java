@@ -11,9 +11,13 @@ import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 import site.youtogether.exception.room.RoomNoExistenceException;
 import site.youtogether.exception.user.UserNoExistenceException;
+import site.youtogether.message.AlarmMessage;
 import site.youtogether.message.application.MessageService;
+import site.youtogether.playlist.Playlist;
+import site.youtogether.playlist.infrastructure.PlaylistStorage;
 import site.youtogether.room.Room;
 import site.youtogether.room.dto.ChangedRoomTitle;
+import site.youtogether.room.dto.NewRoom;
 import site.youtogether.room.dto.RoomDetail;
 import site.youtogether.room.dto.RoomList;
 import site.youtogether.room.dto.RoomSettings;
@@ -27,10 +31,11 @@ import site.youtogether.util.RandomUtil;
 public class RoomService {
 
 	private final RoomStorage roomStorage;
+	private final PlaylistStorage playlistStorage;
 	private final UserStorage userStorage;
 	private final MessageService messageService;
 
-	public RoomDetail create(Long userId, RoomSettings roomSettings, LocalDateTime now) {
+	public NewRoom create(Long userId, RoomSettings roomSettings, LocalDateTime now) {
 		String roomCode = RandomUtil.generateRandomCode(ROOM_CODE_LENGTH);
 
 		User host = userStorage.findById(userId)
@@ -44,11 +49,13 @@ public class RoomService {
 			.title(roomSettings.getTitle())
 			.password(roomSettings.getPassword())
 			.createdAt(now)
-			.host(host)
 			.build();
 		roomStorage.save(room);
 
-		return new RoomDetail(room, host);
+		Playlist playlist = new Playlist(roomCode);
+		playlistStorage.save(playlist);
+
+		return new NewRoom(roomCode, room.getPassword());
 	}
 
 	public RoomList fetchAll(Pageable pageable, String keyword) {
@@ -64,34 +71,36 @@ public class RoomService {
 
 		Room room = roomStorage.findById(roomCode)
 			.orElseThrow(RoomNoExistenceException::new);
-		room.enterParticipant(user, passwordInput);
+		room.enter(passwordInput);
 		roomStorage.save(room);
 
 		return new RoomDetail(room, user);
 	}
 
-	public void leave(String roomCode, Long userId) {
+	public void leave(Long userId) {
 		User user = userStorage.findById(userId)
 			.orElseThrow(UserNoExistenceException::new);
+		String roomCode = user.getCurrentRoomCode();
 		user.leaveRoom();
 		userStorage.save(user);
 
 		Room room = roomStorage.findById(roomCode)
 			.orElseThrow(RoomNoExistenceException::new);
-		room.leaveParticipant(userId);
+		room.leave();
 		roomStorage.save(room);
 	}
 
-	public ChangedRoomTitle changeRoomTitle(Long userId, String roomCode, String updateTitle) {
+	public ChangedRoomTitle changeRoomTitle(Long userId, String newTitle) {
 		User user = userStorage.findById(userId)
 			.orElseThrow(UserNoExistenceException::new);
 
-		Room room = roomStorage.findById(roomCode)
+		Room room = roomStorage.findById(user.getCurrentRoomCode())
 			.orElseThrow(RoomNoExistenceException::new);
-		room.changeRoomTitle(user, updateTitle);
+		room.changeTitle(user, newTitle);
 		roomStorage.save(room);
 
-		messageService.sendRoomTitle(roomCode);
+		messageService.sendRoomTitle(user.getCurrentRoomCode());
+		messageService.sendAlarm(new AlarmMessage(room.getCode(), "[알림] 방 제목이 " + newTitle + "(으)로 변경되었습니다."));
 
 		return new ChangedRoomTitle(room);
 	}

@@ -18,11 +18,12 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import site.youtogether.room.application.RoomService;
 import site.youtogether.room.dto.ChangedRoomTitle;
+import site.youtogether.room.dto.NewRoom;
 import site.youtogether.room.dto.PasswordInput;
 import site.youtogether.room.dto.RoomDetail;
 import site.youtogether.room.dto.RoomList;
 import site.youtogether.room.dto.RoomSettings;
-import site.youtogether.room.dto.RoomTitleChangeForm;
+import site.youtogether.room.dto.TitleInput;
 import site.youtogether.util.api.ApiResponse;
 import site.youtogether.util.api.ResponseResult;
 import site.youtogether.util.resolver.UserTracking;
@@ -33,14 +34,6 @@ public class RoomController {
 
 	private final RoomService roomService;
 
-	@PostMapping("/rooms")
-	public ResponseEntity<ApiResponse<RoomDetail>> createRoom(@Valid @RequestBody RoomSettings roomSettings, @UserTracking Long userId) {
-		RoomDetail roomDetail = roomService.create(userId, roomSettings, LocalDateTime.now());
-
-		return ResponseEntity.status(HttpStatus.CREATED)
-			.body(ApiResponse.created(ResponseResult.ROOM_CREATION_SUCCESS, roomDetail));
-	}
-
 	@GetMapping("/rooms")
 	public ResponseEntity<ApiResponse<RoomList>> fetchRoomList(@PageableDefault Pageable pageable, @RequestParam(required = false) String keyword) {
 		RoomList roomList = roomService.fetchAll(pageable, keyword);
@@ -49,23 +42,31 @@ public class RoomController {
 			.body(ApiResponse.ok(ResponseResult.ROOM_LIST_FETCH_SUCCESS, roomList));
 	}
 
+	@PostMapping("/rooms")
+	public ResponseEntity<ApiResponse<NewRoom>> createRoom(@UserTracking Long userId, @Valid @RequestBody RoomSettings roomSettings) {
+		NewRoom newRoom = roomService.create(userId, roomSettings, LocalDateTime.now());
+
+		return ResponseEntity.status(HttpStatus.CREATED)
+			.body(ApiResponse.created(ResponseResult.ROOM_CREATION_SUCCESS, newRoom));
+	}
+
 	@PostMapping("/rooms/{roomCode}")
-	public ResponseEntity<ApiResponse<RoomDetail>> enterRoom(@PathVariable String roomCode,
-		@Valid @RequestBody(required = false) PasswordInput form, @UserTracking Long userId) {
+	public ResponseEntity<ApiResponse<RoomDetail>> enterRoom(@PathVariable String roomCode, @UserTracking Long userId,
+		@Valid @RequestBody(required = false) PasswordInput form) {
 
 		String passwordInput = form == null ? null : form.getPasswordInput();
 		RoomDetail roomDetail = roomService.enter(userId, roomCode, passwordInput);
 
-		return ResponseEntity.ok(
-			ApiResponse.ok(ResponseResult.ROOM_ENTER_SUCCESS, roomDetail));
+		return ResponseEntity.ok()
+			.body(ApiResponse.ok(ResponseResult.ROOM_ENTER_SUCCESS, roomDetail));
 	}
 
 	@PatchMapping("/rooms/title")
-	public ResponseEntity<ApiResponse<ChangedRoomTitle>> changeRoomTitle(@UserTracking Long userId, @Valid @RequestBody RoomTitleChangeForm form) {
-		ChangedRoomTitle changedRoomTitle = roomService.changeRoomTitle(userId, form.getRoomCode(), form.getNewTitle());
+	public ResponseEntity<ApiResponse<ChangedRoomTitle>> changeRoomTitle(@UserTracking Long userId, @Valid @RequestBody TitleInput form) {
+		ChangedRoomTitle changedRoomTitle = roomService.changeRoomTitle(userId, form.getNewTitle());
 
-		return ResponseEntity.ok(
-			ApiResponse.ok(ResponseResult.ROOM_TITLE_CHANGE_SUCCESS, changedRoomTitle));
+		return ResponseEntity.ok()
+			.body(ApiResponse.ok(ResponseResult.ROOM_TITLE_CHANGE_SUCCESS, changedRoomTitle));
 	}
 
 }

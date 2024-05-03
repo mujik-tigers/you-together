@@ -1,14 +1,13 @@
 package site.youtogether.user;
 
-import static site.youtogether.util.AppConstants.*;
-
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.data.annotation.Id;
-import org.springframework.data.redis.core.TimeToLive;
 
 import com.redis.om.spring.annotations.Document;
+import com.redis.om.spring.annotations.Indexed;
 
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -18,9 +17,10 @@ import site.youtogether.exception.user.HigherOrEqualRoleChangeException;
 import site.youtogether.exception.user.HigherOrEqualRoleUserChangeException;
 import site.youtogether.exception.user.NotManageableUserException;
 import site.youtogether.exception.user.SelfRoleChangeException;
+import site.youtogether.exception.user.UserNotEnteringException;
 import site.youtogether.exception.user.UsersInDifferentRoomException;
 
-@Document(value = "user")
+@Document(value = "user", timeToLive = 86400L)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 public class User {
@@ -28,18 +28,22 @@ public class User {
 	@Id
 	private Long id;
 
-	private String nickname;
+	@Indexed
 	private String currentRoomCode;
-	private Map<String, Role> history = new HashMap<>();
 
-	@TimeToLive
-	private final Long expirationTime = TIME_TO_LIVE;
+	private String nickname;
+	private Map<String, Role> history = new HashMap<>();
 
 	@Builder
 	private User(Long id, String nickname, String currentRoomCode) {
 		this.id = id;
 		this.nickname = nickname;
 		this.currentRoomCode = currentRoomCode;
+	}
+
+	public String getCurrentRoomCode() {
+		return Optional.ofNullable(currentRoomCode)
+			.orElseThrow(UserNotEnteringException::new);
 	}
 
 	public boolean isParticipant() {
@@ -64,21 +68,16 @@ public class User {
 		return role.isLowerOrEqualThan(compareRole);
 	}
 
-	private boolean hasLowerRoleThan(Role compareRole) {
-		Role role = getRoleInCurrentRoom();
-		return role.isLowerThan(compareRole);
-	}
-
 	public void changeNickname(String updateNickname) {
 		nickname = updateNickname;
 	}
 
-	public void changeOtherUserRole(String roomCode, User targetUser, Role newUserRole) {
+	public void changeOtherUserRole(User targetUser, Role newUserRole) {
 		if (id.equals(targetUser.getId())) {
 			throw new SelfRoleChangeException();
 		}
 
-		if (!isInSameRoom(this, targetUser, roomCode)) {
+		if (!isInSameRoom(this, targetUser)) {
 			throw new UsersInDifferentRoomException();
 		}
 
@@ -94,7 +93,7 @@ public class User {
 			throw new HigherOrEqualRoleChangeException();
 		}
 
-		targetUser.changeRole(roomCode, newUserRole);
+		targetUser.changeRole(newUserRole);
 	}
 
 	public void enterRoom(String roomCode) {
@@ -106,7 +105,10 @@ public class User {
 
 	public void createRoom(String createRoomCode) {
 		history.put(createRoomCode, Role.HOST);
-		currentRoomCode = createRoomCode;
+	}
+
+	public boolean isNotEditable() {
+		return getRoleInCurrentRoom().isLowerThan(Role.EDITOR);
 	}
 
 	public void leaveRoom() {
@@ -114,19 +116,24 @@ public class User {
 	}
 
 	public Role getRoleInCurrentRoom() {
-		return history.get(currentRoomCode);
+		return history.get(getCurrentRoomCode());
+	}
+
+	private boolean hasLowerRoleThan(Role compareRole) {
+		Role role = getRoleInCurrentRoom();
+		return role.isLowerThan(compareRole);
 	}
 
 	private boolean isFirstTimeEntering(String roomCode) {
 		return !history.containsKey(roomCode);
 	}
 
-	private boolean isInSameRoom(User user, User targetUser, String roomCode) {
-		return user.getCurrentRoomCode().equals(roomCode) && targetUser.getCurrentRoomCode().equals(roomCode);
+	private boolean isInSameRoom(User user, User targetUser) {
+		return user.getCurrentRoomCode().equals(targetUser.getCurrentRoomCode());
 	}
 
-	private void changeRole(String roomCode, Role changeRole) {
-		history.put(roomCode, changeRole);
+	private void changeRole(Role changeRole) {
+		history.put(getCurrentRoomCode(), changeRole);
 	}
 
 }

@@ -23,7 +23,7 @@ import site.youtogether.exception.user.NotManageableUserException;
 import site.youtogether.exception.user.SelfRoleChangeException;
 import site.youtogether.room.Participant;
 import site.youtogether.user.Role;
-import site.youtogether.user.dto.UserNicknameChangeForm;
+import site.youtogether.user.dto.NicknameInput;
 import site.youtogether.user.dto.UserRoleChangeForm;
 import site.youtogether.util.api.ResponseResult;
 
@@ -38,9 +38,8 @@ class UserControllerTest extends RestDocsSupport {
 		Cookie sessionCookie = new Cookie(cookieProperties.getName(), token);
 
 		// Setting new user nickname for request
-		String roomCode = "c98780fe33";
 		String newNickname = "new nickname";
-		UserNicknameChangeForm form = new UserNicknameChangeForm(roomCode, newNickname);
+		NicknameInput form = new NicknameInput(newNickname);
 
 		// Setting up response data
 		Participant participant = new Participant(1L, newNickname, Role.GUEST);
@@ -49,7 +48,7 @@ class UserControllerTest extends RestDocsSupport {
 			.willReturn(true);
 		given(jwtService.parse(eq(token)))
 			.willReturn(participant.getId());
-		given(userService.changeUserNickname(eq(participant.getId()), eq(newNickname), eq(roomCode)))
+		given(userService.changeUserNickname(eq(participant.getId()), eq(newNickname)))
 			.willReturn(participant);
 
 		// when // then
@@ -69,7 +68,6 @@ class UserControllerTest extends RestDocsSupport {
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
 				requestFields(
-					fieldWithPath("roomCode").type(JsonFieldType.STRING).description("방 코드"),
 					fieldWithPath("newNickname").type(JsonFieldType.STRING).description("새로운 닉네임")
 				),
 				responseFields(
@@ -93,9 +91,8 @@ class UserControllerTest extends RestDocsSupport {
 		Cookie sessionCookie = new Cookie(cookieProperties.getName(), token);
 
 		// Setting new user nickname for request
-		String roomCode = "c98780fe33";
 		String newNickname = " ";
-		UserNicknameChangeForm form = new UserNicknameChangeForm(roomCode, newNickname);
+		NicknameInput form = new NicknameInput(newNickname);
 
 		// Setting up response data
 		Participant participant = new Participant(1L, newNickname, Role.GUEST);
@@ -104,7 +101,7 @@ class UserControllerTest extends RestDocsSupport {
 			.willReturn(true);
 		given(jwtService.parse(eq(token)))
 			.willReturn(participant.getId());
-		given(userService.changeUserNickname(eq(participant.getId()), eq(newNickname), eq(roomCode)))
+		given(userService.changeUserNickname(eq(participant.getId()), eq(newNickname)))
 			.willReturn(participant);
 
 		// when // then
@@ -122,7 +119,6 @@ class UserControllerTest extends RestDocsSupport {
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
 				requestFields(
-					fieldWithPath("roomCode").type(JsonFieldType.STRING).description("방 코드"),
 					fieldWithPath("newNickname").type(JsonFieldType.STRING).description("새로운 닉네임")
 				),
 				responseFields(
@@ -145,10 +141,9 @@ class UserControllerTest extends RestDocsSupport {
 		Cookie sessionCookie = new Cookie(cookieProperties.getName(), token);
 
 		// Setting new user role for request
-		String roomCode = "c98780fe33";
 		Long targetUserId = 2L;
 		Role newUserRole = Role.VIEWER;
-		UserRoleChangeForm form = new UserRoleChangeForm(roomCode, targetUserId, newUserRole);
+		UserRoleChangeForm form = new UserRoleChangeForm(targetUserId, newUserRole);
 
 		// Setting up response data
 		Participant participant = new Participant(form.getTargetUserId(), "hyun", form.getNewUserRole());
@@ -176,7 +171,6 @@ class UserControllerTest extends RestDocsSupport {
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
 				requestFields(
-					fieldWithPath("roomCode").type(JsonFieldType.STRING).description("방 코드"),
 					fieldWithPath("targetUserId").type(JsonFieldType.NUMBER).description("변경할 유저의 아이디"),
 					fieldWithPath("newUserRole").type(JsonFieldType.STRING).description("새로운 역할")
 				),
@@ -201,10 +195,9 @@ class UserControllerTest extends RestDocsSupport {
 		Cookie sessionCookie = new Cookie(cookieProperties.getName(), token);
 
 		// Setting new user role for request
-		String roomCode = "c98780fe33";
 		Long targetUserId = 2L;
 		Role newUserRole = Role.VIEWER;
-		UserRoleChangeForm form = new UserRoleChangeForm(roomCode, targetUserId, newUserRole);
+		UserRoleChangeForm form = new UserRoleChangeForm(targetUserId, newUserRole);
 
 		given(jwtService.isValidToken(eq(token)))
 			.willReturn(true);
@@ -230,7 +223,6 @@ class UserControllerTest extends RestDocsSupport {
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
 				requestFields(
-					fieldWithPath("roomCode").type(JsonFieldType.STRING).description("방 코드"),
 					fieldWithPath("targetUserId").type(JsonFieldType.NUMBER).description("변경할 유저의 아이디"),
 					fieldWithPath("newUserRole").type(JsonFieldType.STRING).description("새로운 역할")
 				),
@@ -254,10 +246,9 @@ class UserControllerTest extends RestDocsSupport {
 		Cookie sessionCookie = new Cookie(cookieProperties.getName(), token);
 
 		// Setting new user role for request
-		String roomCode = "c98780fe33";
 		Long targetUserId = 2L;
 		Role newUserRole = Role.VIEWER;
-		UserRoleChangeForm form = new UserRoleChangeForm(roomCode, targetUserId, newUserRole);
+		UserRoleChangeForm form = new UserRoleChangeForm(targetUserId, newUserRole);
 
 		given(jwtService.isValidToken(eq(token)))
 			.willReturn(true);
@@ -283,7 +274,6 @@ class UserControllerTest extends RestDocsSupport {
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
 				requestFields(
-					fieldWithPath("roomCode").type(JsonFieldType.STRING).description("방 코드"),
 					fieldWithPath("targetUserId").type(JsonFieldType.NUMBER).description("변경할 유저의 아이디"),
 					fieldWithPath("newUserRole").type(JsonFieldType.STRING).description("새로운 역할")
 				),
@@ -307,10 +297,9 @@ class UserControllerTest extends RestDocsSupport {
 		Cookie sessionCookie = new Cookie(cookieProperties.getName(), token);
 
 		// Setting new user role for request
-		String roomCode = "c98780fe33";
 		Long targetUserId = 2L;
 		Role newUserRole = Role.HOST;
-		UserRoleChangeForm form = new UserRoleChangeForm(roomCode, targetUserId, newUserRole);
+		UserRoleChangeForm form = new UserRoleChangeForm(targetUserId, newUserRole);
 
 		given(jwtService.isValidToken(eq(token)))
 			.willReturn(true);
@@ -336,7 +325,6 @@ class UserControllerTest extends RestDocsSupport {
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
 				requestFields(
-					fieldWithPath("roomCode").type(JsonFieldType.STRING).description("방 코드"),
 					fieldWithPath("targetUserId").type(JsonFieldType.NUMBER).description("변경할 유저의 아이디"),
 					fieldWithPath("newUserRole").type(JsonFieldType.STRING).description("새로운 역할")
 				),
@@ -361,10 +349,9 @@ class UserControllerTest extends RestDocsSupport {
 		Cookie sessionCookie = new Cookie(cookieProperties.getName(), token);
 
 		// Setting new user role for request
-		String roomCode = "c98780fe33";
 		Long targetUserId = 2L;
 		Role newUserRole = Role.GUEST;
-		UserRoleChangeForm form = new UserRoleChangeForm(roomCode, targetUserId, newUserRole);
+		UserRoleChangeForm form = new UserRoleChangeForm(targetUserId, newUserRole);
 
 		given(jwtService.isValidToken(eq(token)))
 			.willReturn(true);
@@ -390,7 +377,6 @@ class UserControllerTest extends RestDocsSupport {
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
 				requestFields(
-					fieldWithPath("roomCode").type(JsonFieldType.STRING).description("방 코드"),
 					fieldWithPath("targetUserId").type(JsonFieldType.NUMBER).description("변경할 유저의 아이디"),
 					fieldWithPath("newUserRole").type(JsonFieldType.STRING).description("새로운 역할")
 				),

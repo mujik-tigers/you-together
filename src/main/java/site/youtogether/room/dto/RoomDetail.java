@@ -22,7 +22,7 @@ public class RoomDetail {
 		this.roomTitle = room.getTitle();
 		this.user = new Participant(user);
 		this.capacity = room.getCapacity();
-		this.currentParticipant = 1;
+		this.currentParticipant = room.getParticipantCount();
 		this.passwordExist = room.getPassword() != null;
 	}
 
