@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 import site.youtogether.exception.playlist.PlaylistNoExistenceException;
 import site.youtogether.exception.room.RoomNoExistenceException;
+import site.youtogether.message.AlarmMessage;
 import site.youtogether.message.ChatMessage;
 import site.youtogether.message.ParticipantsMessage;
 import site.youtogether.message.PlaylistMessage;
@@ -70,6 +71,10 @@ public class MessageService {
 	}
 
 	public void sendVideoSyncInfo(VideoSyncInfoMessage message) {
+		messagingTemplate.convertAndSend("/sub/messages/rooms/" + message.getRoomCode(), message);
+	}
+
+	public void sendAlarm(AlarmMessage message) {
 		messagingTemplate.convertAndSend("/sub/messages/rooms/" + message.getRoomCode(), message);
 	}
 

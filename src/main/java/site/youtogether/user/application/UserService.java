@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
 import site.youtogether.exception.user.UserNoExistenceException;
+import site.youtogether.message.AlarmMessage;
 import site.youtogether.message.application.MessageService;
 import site.youtogether.room.Participant;
 import site.youtogether.user.User;
@@ -20,11 +21,13 @@ public class UserService {
 	public Participant changeUserNickname(Long userId, String newNickname) {
 		User user = userStorage.findById(userId)
 			.orElseThrow(UserNoExistenceException::new);
+		String previousNickname = user.getNickname();
 		user.changeNickname(newNickname);
 		userStorage.save(user);
 
 		if (user.isParticipant()) {
 			messageService.sendParticipants(user.getCurrentRoomCode());
+			messageService.sendAlarm(new AlarmMessage(user.getCurrentRoomCode(), "[알림] " + previousNickname + "님이 " + newNickname + "(으)로 닉네임을 변경했습니다."));
 		}
 
 		return new Participant(user);
@@ -39,6 +42,8 @@ public class UserService {
 		userStorage.save(targetUser);
 
 		messageService.sendParticipants(user.getCurrentRoomCode());
+		messageService.sendAlarm(
+			new AlarmMessage(user.getCurrentRoomCode(), "[알림] " + targetUser.getNickname() + "님의 역할이 " + form.getNewUserRole().name() + "(으)로 변경되었습니다."));
 
 		return new Participant(targetUser);
 	}

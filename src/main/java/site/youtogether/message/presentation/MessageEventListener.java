@@ -11,7 +11,7 @@ import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import site.youtogether.exception.user.UserNoExistenceException;
-import site.youtogether.message.ChatMessage;
+import site.youtogether.message.AlarmMessage;
 import site.youtogether.message.application.MessageService;
 import site.youtogether.room.application.RoomService;
 import site.youtogether.user.User;
@@ -41,7 +41,7 @@ public class MessageEventListener {
 
 		messageService.sendParticipants(roomCode);
 		messageService.sendPlaylist(roomCode);
-		messageService.sendChat(new ChatMessage(roomCode, null, "[알림]", user.getNickname() + "님이 입장하셨습니다."));
+		messageService.sendAlarm(new AlarmMessage(roomCode, "[알림] " + user.getNickname() + "님이 입장하셨습니다."));
 	}
 
 	@EventListener
@@ -56,7 +56,7 @@ public class MessageEventListener {
 
 		roomService.leave(userId);
 		messageService.sendParticipants(roomCode);
-		messageService.sendChat(new ChatMessage(roomCode, null, "[알림]", user.getNickname() + "님이 퇴장하셨습니다."));
+		messageService.sendAlarm(new AlarmMessage(roomCode, "[알림] " + user.getNickname() + "님이 퇴장하셨습니다."));
 	}
 
 }

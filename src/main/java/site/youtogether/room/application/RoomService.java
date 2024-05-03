@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 import site.youtogether.exception.room.RoomNoExistenceException;
 import site.youtogether.exception.user.UserNoExistenceException;
+import site.youtogether.message.AlarmMessage;
 import site.youtogether.message.application.MessageService;
 import site.youtogether.playlist.Playlist;
 import site.youtogether.playlist.infrastructure.PlaylistStorage;
@@ -89,16 +90,17 @@ public class RoomService {
 		roomStorage.save(room);
 	}
 
-	public ChangedRoomTitle changeRoomTitle(Long userId, String updateTitle) {
+	public ChangedRoomTitle changeRoomTitle(Long userId, String newTitle) {
 		User user = userStorage.findById(userId)
 			.orElseThrow(UserNoExistenceException::new);
 
 		Room room = roomStorage.findById(user.getCurrentRoomCode())
 			.orElseThrow(RoomNoExistenceException::new);
-		room.changeTitle(user, updateTitle);
+		room.changeTitle(user, newTitle);
 		roomStorage.save(room);
 
 		messageService.sendRoomTitle(user.getCurrentRoomCode());
+		messageService.sendAlarm(new AlarmMessage(room.getCode(), "[알림] 방 제목이 " + newTitle + "(으)로 변경되었습니다."));
 
 		return new ChangedRoomTitle(room);
 	}
