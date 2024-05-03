@@ -763,11 +763,6 @@ class RoomControllerTest extends RestDocsSupport {
 	}
 
 	private List<Room> generateRooms(int count) {
-		User host = User.builder()
-			.id(1L)
-			.nickname("연츠비")
-			.build();
-
 		return IntStream.rangeClosed(1, count)
 			.mapToObj(number -> Room.builder()
 				.code(RandomUtil.generateRandomCode(ROOM_CODE_LENGTH))
