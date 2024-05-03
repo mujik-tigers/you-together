@@ -2,6 +2,7 @@ package site.youtogether.user;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.data.annotation.Id;
 
@@ -16,6 +17,7 @@ import site.youtogether.exception.user.HigherOrEqualRoleChangeException;
 import site.youtogether.exception.user.HigherOrEqualRoleUserChangeException;
 import site.youtogether.exception.user.NotManageableUserException;
 import site.youtogether.exception.user.SelfRoleChangeException;
+import site.youtogether.exception.user.UserNotEnteringException;
 import site.youtogether.exception.user.UsersInDifferentRoomException;
 
 @Document(value = "user", timeToLive = 86400L)
@@ -37,6 +39,11 @@ public class User {
 		this.id = id;
 		this.nickname = nickname;
 		this.currentRoomCode = currentRoomCode;
+	}
+
+	public String getCurrentRoomCode() {
+		return Optional.ofNullable(currentRoomCode)
+			.orElseThrow(UserNotEnteringException::new);
 	}
 
 	public boolean isParticipant() {
@@ -65,12 +72,12 @@ public class User {
 		nickname = updateNickname;
 	}
 
-	public void changeOtherUserRole(String roomCode, User targetUser, Role newUserRole) {
+	public void changeOtherUserRole(User targetUser, Role newUserRole) {
 		if (id.equals(targetUser.getId())) {
 			throw new SelfRoleChangeException();
 		}
 
-		if (!isInSameRoom(this, targetUser, roomCode)) {
+		if (!isInSameRoom(this, targetUser)) {
 			throw new UsersInDifferentRoomException();
 		}
 
@@ -86,7 +93,7 @@ public class User {
 			throw new HigherOrEqualRoleChangeException();
 		}
 
-		targetUser.changeRole(roomCode, newUserRole);
+		targetUser.changeRole(newUserRole);
 	}
 
 	public void enterRoom(String roomCode) {
@@ -110,7 +117,7 @@ public class User {
 	}
 
 	public Role getRoleInCurrentRoom() {
-		return history.get(currentRoomCode);
+		return history.get(getCurrentRoomCode());
 	}
 
 	private boolean hasLowerRoleThan(Role compareRole) {
@@ -122,12 +129,12 @@ public class User {
 		return !history.containsKey(roomCode);
 	}
 
-	private boolean isInSameRoom(User user, User targetUser, String roomCode) {
-		return user.getCurrentRoomCode().equals(roomCode) && targetUser.getCurrentRoomCode().equals(roomCode);
+	private boolean isInSameRoom(User user, User targetUser) {
+		return user.getCurrentRoomCode().equals(targetUser.getCurrentRoomCode());
 	}
 
-	private void changeRole(String roomCode, Role changeRole) {
-		history.put(roomCode, changeRole);
+	private void changeRole(Role changeRole) {
+		history.put(getCurrentRoomCode(), changeRole);
 	}
 
 }

@@ -23,7 +23,7 @@ import site.youtogether.exception.user.NotManageableUserException;
 import site.youtogether.exception.user.SelfRoleChangeException;
 import site.youtogether.room.Participant;
 import site.youtogether.user.Role;
-import site.youtogether.user.dto.UserNicknameChangeForm;
+import site.youtogether.user.dto.NicknameInput;
 import site.youtogether.user.dto.UserRoleChangeForm;
 import site.youtogether.util.api.ResponseResult;
 
@@ -40,7 +40,7 @@ class UserControllerTest extends RestDocsSupport {
 		// Setting new user nickname for request
 		String roomCode = "c98780fe33";
 		String newNickname = "new nickname";
-		UserNicknameChangeForm form = new UserNicknameChangeForm(roomCode, newNickname);
+		NicknameInput form = new NicknameInput(roomCode, newNickname);
 
 		// Setting up response data
 		Participant participant = new Participant(1L, newNickname, Role.GUEST);
@@ -95,7 +95,7 @@ class UserControllerTest extends RestDocsSupport {
 		// Setting new user nickname for request
 		String roomCode = "c98780fe33";
 		String newNickname = " ";
-		UserNicknameChangeForm form = new UserNicknameChangeForm(roomCode, newNickname);
+		NicknameInput form = new NicknameInput(roomCode, newNickname);
 
 		// Setting up response data
 		Participant participant = new Participant(1L, newNickname, Role.GUEST);

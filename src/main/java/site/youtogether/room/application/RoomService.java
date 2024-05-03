@@ -75,9 +75,10 @@ public class RoomService {
 		return new RoomDetail(room, user);
 	}
 
-	public void leave(String roomCode, Long userId) {
+	public void leave(Long userId) {
 		User user = userStorage.findById(userId)
 			.orElseThrow(UserNoExistenceException::new);
+		String roomCode = user.getCurrentRoomCode();
 		user.leaveRoom();
 		userStorage.save(user);
 
@@ -87,16 +88,16 @@ public class RoomService {
 		roomStorage.save(room);
 	}
 
-	public ChangedRoomTitle changeRoomTitle(Long userId, String roomCode, String updateTitle) {
+	public ChangedRoomTitle changeRoomTitle(Long userId, String updateTitle) {
 		User user = userStorage.findById(userId)
 			.orElseThrow(UserNoExistenceException::new);
 
-		Room room = roomStorage.findById(roomCode)
+		Room room = roomStorage.findById(user.getCurrentRoomCode())
 			.orElseThrow(RoomNoExistenceException::new);
 		room.changeTitle(user, updateTitle);
 		roomStorage.save(room);
 
-		messageService.sendRoomTitle(roomCode);
+		messageService.sendRoomTitle(user.getCurrentRoomCode());
 
 		return new ChangedRoomTitle(room);
 	}

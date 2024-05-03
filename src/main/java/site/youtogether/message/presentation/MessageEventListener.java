@@ -54,7 +54,7 @@ public class MessageEventListener {
 		User user = userStorage.findById(userId)
 			.orElseThrow(UserNoExistenceException::new);
 
-		roomService.leave(roomCode, userId);
+		roomService.leave(userId);
 		messageService.sendParticipants(roomCode);
 		messageService.sendChat(new ChatMessage(roomCode, null, "[알림]", user.getNickname() + "님이 퇴장하셨습니다."));
 	}

@@ -9,7 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import site.youtogether.room.Participant;
 import site.youtogether.user.application.UserService;
-import site.youtogether.user.dto.UserNicknameChangeForm;
+import site.youtogether.user.dto.NicknameInput;
 import site.youtogether.user.dto.UserRoleChangeForm;
 import site.youtogether.util.api.ApiResponse;
 import site.youtogether.util.api.ResponseResult;
@@ -22,8 +22,8 @@ public class UserController {
 	private final UserService userService;
 
 	@PatchMapping("/users")
-	public ResponseEntity<ApiResponse<Participant>> changeUserNickname(@UserTracking Long userId, @RequestBody @Valid UserNicknameChangeForm form) {
-		Participant participantInfo = userService.changeUserNickname(userId, form.getNewNickname(), form.getRoomCode());
+	public ResponseEntity<ApiResponse<Participant>> changeUserNickname(@UserTracking Long userId, @RequestBody @Valid NicknameInput form) {
+		Participant participantInfo = userService.changeUserNickname(userId, form.getNewNickname());
 
 		return ResponseEntity.ok(ApiResponse.ok(ResponseResult.USER_NICKNAME_CHANGE_SUCCESS, participantInfo));
 	}

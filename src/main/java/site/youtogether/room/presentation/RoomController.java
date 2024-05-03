@@ -22,7 +22,7 @@ import site.youtogether.room.dto.PasswordInput;
 import site.youtogether.room.dto.RoomDetail;
 import site.youtogether.room.dto.RoomList;
 import site.youtogether.room.dto.RoomSettings;
-import site.youtogether.room.dto.RoomTitleChangeForm;
+import site.youtogether.room.dto.TitleInput;
 import site.youtogether.util.api.ApiResponse;
 import site.youtogether.util.api.ResponseResult;
 import site.youtogether.util.resolver.UserTracking;
@@ -61,8 +61,8 @@ public class RoomController {
 	}
 
 	@PatchMapping("/rooms/title")
-	public ResponseEntity<ApiResponse<ChangedRoomTitle>> changeRoomTitle(@UserTracking Long userId, @Valid @RequestBody RoomTitleChangeForm form) {
-		ChangedRoomTitle changedRoomTitle = roomService.changeRoomTitle(userId, form.getRoomCode(), form.getNewTitle());
+	public ResponseEntity<ApiResponse<ChangedRoomTitle>> changeRoomTitle(@UserTracking Long userId, @Valid @RequestBody TitleInput form) {
+		ChangedRoomTitle changedRoomTitle = roomService.changeRoomTitle(userId, form.getNewTitle());
 
 		return ResponseEntity.ok(
 			ApiResponse.ok(ResponseResult.ROOM_TITLE_CHANGE_SUCCESS, changedRoomTitle));

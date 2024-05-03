@@ -38,7 +38,8 @@ public enum ErrorType {
 	INVALID_VIDEO_ORDER(HttpStatus.BAD_REQUEST, "변경하고자 하는 순서가 유효하지 않습니다"),
 	PLAYLIST_INDEX_OUT_OF_BOUNDS(HttpStatus.BAD_REQUEST, "플레이리스트를 초과하는 인덱스입니다"),
 	PLAYING_VIDEO_NO_EXISTENCE(HttpStatus.NOT_FOUND, "현재 재생중인 영상이 없습니다"),
-	INVALID_VIDEO_RATE(HttpStatus.BAD_REQUEST, "유효하지 않은 재생속도입니다");
+	INVALID_VIDEO_RATE(HttpStatus.BAD_REQUEST, "유효하지 않은 재생속도입니다"),
+	USER_NOT_ENTERING(HttpStatus.BAD_REQUEST, "현재 참여중인 방이 없습니다");
 
 	private final HttpStatus status;
 	private final String message;

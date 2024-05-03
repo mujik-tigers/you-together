@@ -3,12 +3,9 @@ package site.youtogether.user.application;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
-import site.youtogether.exception.room.RoomNoExistenceException;
 import site.youtogether.exception.user.UserNoExistenceException;
 import site.youtogether.message.application.MessageService;
 import site.youtogether.room.Participant;
-import site.youtogether.room.Room;
-import site.youtogether.room.infrastructure.RoomStorage;
 import site.youtogether.user.User;
 import site.youtogether.user.dto.UserRoleChangeForm;
 import site.youtogether.user.infrastructure.UserStorage;
@@ -21,17 +18,15 @@ public class UserService {
 	private final UserStorage userStorage;
 	private final MessageService messageService;
 
-	public Participant changeUserNickname(Long userId, String newNickname, String roomCode) {
+	public Participant changeUserNickname(Long userId, String newNickname) {
 		User user = userStorage.findById(userId)
 			.orElseThrow(UserNoExistenceException::new);
 		user.changeNickname(newNickname);
 		userStorage.save(user);
 
-		Room room = roomStorage.findById(roomCode)
-			.orElseThrow(RoomNoExistenceException::new);
-		roomStorage.save(room);
-
-		messageService.sendParticipants(roomCode);
+		if (user.isParticipant()) {
+			messageService.sendParticipants(user.getCurrentRoomCode());
+		}
 
 		return new Participant(user);
 	}
@@ -41,14 +36,10 @@ public class UserService {
 			.orElseThrow(UserNoExistenceException::new);
 		User targetUser = userStorage.findById(form.getTargetUserId())
 			.orElseThrow(UserNoExistenceException::new);
-		user.changeOtherUserRole(form.getRoomCode(), targetUser, form.getNewUserRole());
+		user.changeOtherUserRole(targetUser, form.getNewUserRole());
 		userStorage.save(targetUser);
 
-		Room room = roomStorage.findById(form.getRoomCode())
-			.orElseThrow(RoomNoExistenceException::new);
-		roomStorage.save(room);
-
-		messageService.sendParticipants(room.getCode());
+		messageService.sendParticipants(user.getCurrentRoomCode());
 
 		return new Participant(targetUser);
 	}

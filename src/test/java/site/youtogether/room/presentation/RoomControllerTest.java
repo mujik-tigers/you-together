@@ -39,7 +39,7 @@ import site.youtogether.room.dto.PasswordInput;
 import site.youtogether.room.dto.RoomDetail;
 import site.youtogether.room.dto.RoomList;
 import site.youtogether.room.dto.RoomSettings;
-import site.youtogether.room.dto.RoomTitleChangeForm;
+import site.youtogether.room.dto.TitleInput;
 import site.youtogether.user.Role;
 import site.youtogether.user.User;
 import site.youtogether.util.RandomUtil;
@@ -668,7 +668,7 @@ class RoomControllerTest extends RestDocsSupport {
 		Long id = 10L;
 		String updateTitle = "연똥땡의 방";
 
-		RoomTitleChangeForm form = new RoomTitleChangeForm(roomCode, updateTitle);
+		TitleInput form = new TitleInput(roomCode, updateTitle);
 
 		given(jwtService.parse(anyString()))
 			.willReturn(id);
@@ -714,7 +714,7 @@ class RoomControllerTest extends RestDocsSupport {
 		Long id = 10L;
 		String updateTitle = "  ";
 
-		RoomTitleChangeForm form = new RoomTitleChangeForm(roomCode, updateTitle);
+		TitleInput form = new TitleInput(roomCode, updateTitle);
 
 		given(jwtService.parse(anyString()))
 			.willReturn(id);
@@ -759,7 +759,7 @@ class RoomControllerTest extends RestDocsSupport {
 		Long id = 10L;
 		String updateTitle = "연똥땡의 방";
 
-		RoomTitleChangeForm form = new RoomTitleChangeForm(roomCode, updateTitle);
+		TitleInput form = new TitleInput(roomCode, updateTitle);
 
 		given(jwtService.parse(anyString()))
 			.willReturn(id);
