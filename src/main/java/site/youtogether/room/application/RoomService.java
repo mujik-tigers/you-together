@@ -47,7 +47,6 @@ public class RoomService {
 			.title(roomSettings.getTitle())
 			.password(roomSettings.getPassword())
 			.createdAt(now)
-			.host(host)
 			.build();
 		roomStorage.save(room);
 
@@ -70,7 +69,7 @@ public class RoomService {
 
 		Room room = roomStorage.findById(roomCode)
 			.orElseThrow(RoomNoExistenceException::new);
-		room.enterParticipant(user, passwordInput);
+		room.enter(passwordInput);
 		roomStorage.save(room);
 
 		return new RoomDetail(room, user);
@@ -84,7 +83,7 @@ public class RoomService {
 
 		Room room = roomStorage.findById(roomCode)
 			.orElseThrow(RoomNoExistenceException::new);
-		room.leaveParticipant(userId);
+		room.leave();
 		roomStorage.save(room);
 	}
 
@@ -94,7 +93,7 @@ public class RoomService {
 
 		Room room = roomStorage.findById(roomCode)
 			.orElseThrow(RoomNoExistenceException::new);
-		room.changeRoomTitle(user, updateTitle);
+		room.changeTitle(user, updateTitle);
 		roomStorage.save(room);
 
 		messageService.sendRoomTitle(roomCode);

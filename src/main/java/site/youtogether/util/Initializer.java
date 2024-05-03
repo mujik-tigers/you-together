@@ -44,7 +44,6 @@ public class Initializer implements ApplicationRunner {
 			LocalDateTime createTime = LocalDateTime.of(2024, 4, 6, 12, 0, (int)i);
 			Room room = Room.builder()
 				.code(RandomUtil.generateRandomCode(ROOM_CODE_LENGTH))
-				.host(host)
 				.capacity(5)
 				.title("황똥땡의 공개방... no." + i)
 				.createdAt(createTime)
@@ -64,7 +63,6 @@ public class Initializer implements ApplicationRunner {
 			LocalDateTime createTime = LocalDateTime.of(2024, 4, 6, 11, 0, (int)i);
 			Room room = Room.builder()
 				.code(RandomUtil.generateRandomCode(ROOM_CODE_LENGTH))
-				.host(host)
 				.capacity(5)
 				.title("연똥땡의 은밀한 방... no." + i)
 				.createdAt(createTime)

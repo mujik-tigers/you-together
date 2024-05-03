@@ -20,12 +20,14 @@ import site.youtogether.playlist.infrastructure.PlaylistStorage;
 import site.youtogether.room.Participant;
 import site.youtogether.room.Room;
 import site.youtogether.room.infrastructure.RoomStorage;
+import site.youtogether.user.infrastructure.UserStorage;
 
 @Service
 @RequiredArgsConstructor
 public class MessageService {
 
 	private final RoomStorage roomStorage;
+	private final UserStorage userStorage;
 	private final PlaylistStorage playlistStorage;
 	private final SimpMessageSendingOperations messagingTemplate;
 
@@ -34,10 +36,13 @@ public class MessageService {
 	}
 
 	public void sendParticipants(String roomCode) {
-		Room room = roomStorage.findById(roomCode)
-			.orElseThrow(RoomNoExistenceException::new);
+		if (!roomStorage.existsById(roomCode)) {
+			throw new RoomNoExistenceException();
+		}
 
-		List<Participant> participants = room.getParticipants().values().stream().toList();
+		List<Participant> participants = userStorage.findAllByCurrentRoomCode(roomCode).stream()
+			.map(Participant::new)
+			.toList();
 
 		ParticipantsMessage participantsMessage = new ParticipantsMessage(participants);
 		messagingTemplate.convertAndSend("/sub/messages/rooms/" + roomCode, participantsMessage);

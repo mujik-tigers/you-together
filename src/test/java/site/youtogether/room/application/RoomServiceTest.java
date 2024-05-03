@@ -69,7 +69,6 @@ class RoomServiceTest extends IntegrationTestSupport {
 		assertThat(room.getCapacity()).isEqualTo(10);
 		assertThat(room.getTitle()).isEqualTo("재밌는 쇼츠 같이 보기");
 		assertThat(room.getPassword()).isNull();
-		assertThat(room.getParticipants()).hasSize(1);
 		assertThat(savedUser.getId()).isEqualTo(user.getId());
 		assertThat(savedUser.getRoleInCurrentRoom()).isEqualTo(Role.HOST);
 	}
@@ -127,7 +126,6 @@ class RoomServiceTest extends IntegrationTestSupport {
 
 		assertThat(savedUser.getId()).isEqualTo(user.getId());
 		assertThat(savedUser.getRoleInCurrentRoom()).isEqualTo(Role.GUEST);
-		assertThat(savedRoom.getParticipants()).containsKey(savedUser.getId());
 	}
 
 	@Test
@@ -147,7 +145,6 @@ class RoomServiceTest extends IntegrationTestSupport {
 
 		assertThat(savedUser.getId()).isEqualTo(user.getId());
 		assertThat(savedUser.getRoleInCurrentRoom()).isEqualTo(Role.GUEST);
-		assertThat(savedRoom.getParticipants()).containsKey(savedUser.getId());
 	}
 
 	@ParameterizedTest
@@ -194,7 +191,6 @@ class RoomServiceTest extends IntegrationTestSupport {
 		Room savedRoom = roomStorage.findById(room.getCode()).get();
 		User savedUser = userStorage.findById(user.getId()).get();
 
-		assertThat(savedRoom.getParticipants()).doesNotContainKey(user.getId());
 		assertThat(savedUser.getCurrentRoomCode()).isNull();
 		assertThat(savedUser.isParticipant()).isFalse();
 		assertThat(savedUser.getHistory()).containsKey(savedRoom.getCode());
@@ -232,7 +228,6 @@ class RoomServiceTest extends IntegrationTestSupport {
 
 		// then
 		Room savedRoom = roomStorage.findById(room.getCode()).get();
-		assertThat(savedRoom.getParticipants().get(user.getId()).getRole()).isEqualTo(Role.MANAGER);
 
 		User savedUser = userStorage.findById(user.getId()).get();
 		assertThat(savedUser.getRoleInCurrentRoom()).isEqualTo(Role.MANAGER);
@@ -255,7 +250,6 @@ class RoomServiceTest extends IntegrationTestSupport {
 
 		// then
 		Room savedRoom = roomStorage.findById(room2.getCode()).get();
-		assertThat(savedRoom.getParticipants().get(user.getId()).getRole()).isEqualTo(Role.GUEST);
 
 		User savedUser = userStorage.findById(user.getId()).get();
 		assertThat(savedUser.getRoleInCurrentRoom()).isEqualTo(Role.GUEST);
@@ -266,7 +260,6 @@ class RoomServiceTest extends IntegrationTestSupport {
 		userStorage.save(user);
 
 		Room room = roomStorage.findById(roomCode).get();
-		room.updateParticipant(user);
 		roomStorage.save(room);
 	}
 
@@ -287,7 +280,6 @@ class RoomServiceTest extends IntegrationTestSupport {
 		Room room = Room.builder()
 			.code(RandomUtil.generateRandomCode(ROOM_CODE_LENGTH))
 			.title(title)
-			.host(host)
 			.createdAt(createTime)
 			.capacity(10)
 			.build();
@@ -305,7 +297,6 @@ class RoomServiceTest extends IntegrationTestSupport {
 		Room room = Room.builder()
 			.code(roomCode)
 			.title(title)
-			.host(host)
 			.createdAt(createTime)
 			.capacity(capacity)
 			.build();
@@ -323,7 +314,6 @@ class RoomServiceTest extends IntegrationTestSupport {
 			.code("roomCode")
 			.title(title)
 			.password(password)
-			.host(user)
 			.createdAt(createTime)
 			.capacity(10)
 			.build();

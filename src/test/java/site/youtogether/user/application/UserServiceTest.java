@@ -46,7 +46,7 @@ class UserServiceTest extends IntegrationTestSupport {
 		Room room = createRoom();
 		User user = createUser(room.getCode());
 
-		room.enterParticipant(user, null);
+		room.enter(null);
 		roomStorage.save(room);
 
 		String newNickname = "new nickname";
@@ -60,7 +60,6 @@ class UserServiceTest extends IntegrationTestSupport {
 
 		assertThat(participant.getNickname()).isEqualTo(newNickname);
 		assertThat(savedUser.getNickname()).isEqualTo(newNickname);
-		assertThat(savedRoom.getParticipants().get(savedUser.getId()).getNickname()).isEqualTo(newNickname);
 	}
 
 	@Test
@@ -70,7 +69,7 @@ class UserServiceTest extends IntegrationTestSupport {
 		Room room = createRoom();
 		User user = createUser(room.getCode());
 
-		room.enterParticipant(user, null);
+		room.enter(null);
 		roomStorage.save(room);
 
 		UserRoleChangeForm userRoleChangeForm = new UserRoleChangeForm(room.getCode(), user.getId(), Role.VIEWER);
@@ -83,7 +82,6 @@ class UserServiceTest extends IntegrationTestSupport {
 		Room savedRoom = roomStorage.findById(room.getCode()).get();
 
 		assertThat(savedUser.getRoleInCurrentRoom()).isEqualTo(userRoleChangeForm.getNewUserRole());
-		assertThat(savedRoom.getParticipants().get(savedUser.getId()).getRole()).isEqualTo(userRoleChangeForm.getNewUserRole());
 	}
 
 	private Room createRoom() {
@@ -101,7 +99,6 @@ class UserServiceTest extends IntegrationTestSupport {
 		Room room = Room.builder()
 			.code(roomCode)
 			.title("room title")
-			.host(host)
 			.createdAt(LocalDateTime.of(2024, 4, 21, 17, 0, 0))
 			.capacity(10)
 			.build();

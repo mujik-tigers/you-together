@@ -808,7 +808,6 @@ class RoomControllerTest extends RestDocsSupport {
 				.code(RandomUtil.generateRandomCode(ROOM_CODE_LENGTH))
 				.title("2023년 침착맨 정주행 " + number)
 				.capacity(10)
-				.host(host)
 				.createdAt(LocalDateTime.of(2024, 4, 6, 19, 43, 0))
 				.build())
 			.toList();

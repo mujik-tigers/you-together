@@ -25,7 +25,7 @@ class RoomTest {
 		String updateTitle = "연츠비의 방";
 
 		// when
-		room.changeRoomTitle(host, updateTitle);
+		room.changeTitle(host, updateTitle);
 
 		// then
 		assertThat(room.getTitle()).isNotEqualTo(originTitle);
@@ -43,7 +43,7 @@ class RoomTest {
 		String updateTitle = "연츠비의 방";
 
 		// when // then
-		assertThatThrownBy(() -> room2.changeRoomTitle(host, updateTitle))
+		assertThatThrownBy(() -> room2.changeTitle(host, updateTitle))
 			.isInstanceOf(UserAbsentException.class);
 	}
 
@@ -56,12 +56,12 @@ class RoomTest {
 
 		User user = createUser(2L);
 		user.enterRoom(room.getCode());
-		room.enterParticipant(user, null);
+		room.enter(null);
 
 		String updateTitle = "연츠비의 방";
 
 		// when // then
-		assertThatThrownBy(() -> room.changeRoomTitle(user, updateTitle))
+		assertThatThrownBy(() -> room.changeTitle(user, updateTitle))
 			.isInstanceOf(ChangeRoomTitleDeniedException.class);
 	}
 
@@ -72,7 +72,6 @@ class RoomTest {
 		return Room.builder()
 			.code(roomCode)
 			.title("황똥땡의 방")
-			.host(host)
 			.createdAt(createTime)
 			.capacity(10)
 			.build();

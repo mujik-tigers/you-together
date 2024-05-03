@@ -1,14 +1,12 @@
 package site.youtogether.user;
 
-import static site.youtogether.util.AppConstants.*;
-
 import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.data.annotation.Id;
-import org.springframework.data.redis.core.TimeToLive;
 
 import com.redis.om.spring.annotations.Document;
+import com.redis.om.spring.annotations.Indexed;
 
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -20,7 +18,7 @@ import site.youtogether.exception.user.NotManageableUserException;
 import site.youtogether.exception.user.SelfRoleChangeException;
 import site.youtogether.exception.user.UsersInDifferentRoomException;
 
-@Document(value = "user")
+@Document(value = "user", timeToLive = 86400L)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 public class User {
@@ -28,12 +26,11 @@ public class User {
 	@Id
 	private Long id;
 
-	private String nickname;
+	@Indexed
 	private String currentRoomCode;
-	private Map<String, Role> history = new HashMap<>();
 
-	@TimeToLive
-	private final Long expirationTime = TIME_TO_LIVE;
+	private String nickname;
+	private Map<String, Role> history = new HashMap<>();
 
 	@Builder
 	private User(Long id, String nickname, String currentRoomCode) {

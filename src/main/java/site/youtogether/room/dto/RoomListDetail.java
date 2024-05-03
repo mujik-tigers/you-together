@@ -18,7 +18,7 @@ public class RoomListDetail {
 		this.roomCode = room.getCode();
 		this.roomTitle = room.getTitle();
 		this.capacity = room.getCapacity();
-		this.currentParticipant = room.getParticipants().size();
+		this.currentParticipant = room.getParticipantCount();
 		this.passwordExist = room.hasPassword();
 		this.videoThumbnail = "https://i.ytimg.com/vi/sl7ih5rLfYM/hq720.jpg?sqp=-oaymwEcCNAFEJQDSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLDbjCXvhBJSBKs9bX_XMy_EfUtvSw";
 		this.videoTitle = "궤도 '연애의 과학' 특강 1";

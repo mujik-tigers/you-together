@@ -29,7 +29,6 @@ public class UserService {
 
 		Room room = roomStorage.findById(roomCode)
 			.orElseThrow(RoomNoExistenceException::new);
-		room.updateParticipant(user);
 		roomStorage.save(room);
 
 		messageService.sendParticipants(roomCode);
@@ -47,7 +46,6 @@ public class UserService {
 
 		Room room = roomStorage.findById(form.getRoomCode())
 			.orElseThrow(RoomNoExistenceException::new);
-		room.updateParticipant(targetUser);
 		roomStorage.save(room);
 
 		messageService.sendParticipants(room.getCode());
