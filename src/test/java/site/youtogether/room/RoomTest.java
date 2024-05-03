@@ -8,7 +8,8 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import site.youtogether.exception.room.UserAbsentException;
+import site.youtogether.exception.room.PasswordNotMatchException;
+import site.youtogether.exception.room.RoomCapacityExceededException;
 import site.youtogether.exception.user.ChangeRoomTitleDeniedException;
 import site.youtogether.user.User;
 import site.youtogether.util.RandomUtil;
@@ -16,71 +17,105 @@ import site.youtogether.util.RandomUtil;
 class RoomTest {
 
 	@Test
-	@DisplayName("호스트는 방 제목을 변경할 수 있다")
-	void changeRoomTitle() throws Exception {
+	@DisplayName("HOST는 현재 참여 중인 방의 제목을 변경할 수 있다")
+	void changeRoomTitleSuccess() {
 		// given
 		User host = createUser(1L);
-		Room room = createRoom(LocalDateTime.of(2024, 4, 14, 10, 37, 0), host);
+		Room room = createRoom(host, null, 5);
+		host.enterRoom(room.getCode());
+		room.enter(null);
+
 		String originTitle = room.getTitle();
-		String updateTitle = "연츠비의 방";
+		String newTitle = "new title";
 
 		// when
-		room.changeTitle(host, updateTitle);
+		room.changeTitle(host, newTitle);
 
 		// then
 		assertThat(room.getTitle()).isNotEqualTo(originTitle);
-		assertThat(room.getTitle()).isEqualTo(updateTitle);
+		assertThat(room.getTitle()).isEqualTo(newTitle);
 	}
 
 	@Test
-	@DisplayName("현재 방에서 호스트여도, 다른 방의 제목을 변경할 순 없다")
-	void otherRoomTitleChangeFail() throws Exception {
+	@DisplayName("HOST가 아닌 유저는 방 제목을 변경할 수 없다")
+	void changeRoomTitleFail() {
 		// given
 		User host = createUser(1L);
-		Room room1 = createRoom(LocalDateTime.of(2024, 4, 14, 10, 37, 0), host);
-
-		Room room2 = createRoom(LocalDateTime.of(2024, 4, 14, 10, 37, 0), createUser(2L));
-		String updateTitle = "연츠비의 방";
-
-		// when // then
-		assertThatThrownBy(() -> room2.changeTitle(host, updateTitle))
-			.isInstanceOf(UserAbsentException.class);
-	}
-
-	@Test
-	@DisplayName("호스트가 아닌 유저는 방 제목을 변경할 수 없다")
-	void changeRoomTitleFail() throws Exception {
-		// given
-		User host = createUser(1L);
-		Room room = createRoom(LocalDateTime.of(2024, 4, 14, 10, 37, 0), host);
+		Room room = createRoom(host, null, 5);
 
 		User user = createUser(2L);
 		user.enterRoom(room.getCode());
 		room.enter(null);
 
-		String updateTitle = "연츠비의 방";
+		String newTitle = "new title";
 
 		// when // then
-		assertThatThrownBy(() -> room.changeTitle(user, updateTitle))
+		assertThatThrownBy(() -> room.changeTitle(user, newTitle))
 			.isInstanceOf(ChangeRoomTitleDeniedException.class);
 	}
 
-	private Room createRoom(LocalDateTime createTime, User host) {
+	@Test
+	@DisplayName("비밀번호가 일치하면 방에 입장할 수 있다")
+	void enterPasswordSuccess() {
+		// given
+		User host = createUser(1L);
+
+		String password = "room password";
+		Room room = createRoom(host, password, 5);
+
+		// when
+		room.enter(password);
+
+		// then
+		assertThat(room.getParticipantCount()).isEqualTo(1);
+	}
+
+	@Test
+	@DisplayName("비밀번호가 일치하지 않으면 방에 입장할 수 없다")
+	void enterPasswordFail() {
+		// given
+		User host = createUser(1L);
+
+		String password = "room password";
+		Room room = createRoom(host, "wrong password", 5);
+
+		// when / then
+		assertThatThrownBy(() -> room.enter(password))
+			.isInstanceOf(PasswordNotMatchException.class);
+	}
+
+	@Test
+	@DisplayName("정원을 초과하여 방에 입장할 수 없다")
+	void test() {
+		// given
+		User host = createUser(1L);
+
+		String password = "room password";
+		Room room = createRoom(host, password, 1);
+		room.enter(password);
+
+		// when / then
+		assertThatThrownBy(() -> room.enter(password))
+			.isInstanceOf(RoomCapacityExceededException.class);
+	}
+
+	private Room createRoom(User host, String password, int capacity) {
 		String roomCode = RandomUtil.generateRandomCode(ROOM_CODE_LENGTH);
 		host.createRoom(roomCode);
 
 		return Room.builder()
 			.code(roomCode)
 			.title("황똥땡의 방")
-			.createdAt(createTime)
-			.capacity(10)
+			.createdAt(LocalDateTime.of(2024, 5, 3, 16, 30, 0))
+			.capacity(capacity)
+			.password(password)
 			.build();
 	}
 
 	private User createUser(Long userId) {
 		return User.builder()
-			.nickname("황똥땡")
 			.id(userId)
+			.nickname("황똥땡")
 			.build();
 	}
 
