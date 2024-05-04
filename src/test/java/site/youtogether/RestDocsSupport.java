@@ -12,6 +12,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import site.youtogether.config.PropertiesConfig;
 import site.youtogether.config.property.CookieProperties;
 import site.youtogether.jwt.JwtService;
+import site.youtogether.playlist.application.PlaylistService;
+import site.youtogether.playlist.presentation.PlaylistController;
 import site.youtogether.room.application.RoomService;
 import site.youtogether.room.presentation.RoomController;
 import site.youtogether.user.application.UserService;
@@ -20,7 +22,8 @@ import site.youtogether.user.presentation.UserController;
 
 @WebMvcTest(controllers = {
 	RoomController.class,
-	UserController.class
+	UserController.class,
+	PlaylistController.class
 })
 @AutoConfigureRestDocs
 @Import(PropertiesConfig.class)
@@ -46,5 +49,8 @@ public abstract class RestDocsSupport {
 
 	@MockBean
 	protected UserStorage userStorage;
+
+	@MockBean
+	protected PlaylistService playlistService;
 
 }
