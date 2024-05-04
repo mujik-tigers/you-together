@@ -3,7 +3,10 @@ package site.youtogether.room.application;
 import static site.youtogether.util.AppConstants.*;
 
 import java.time.LocalDateTime;
+import java.util.concurrent.TimeUnit;
 
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
@@ -34,6 +37,7 @@ public class RoomService {
 	private final PlaylistStorage playlistStorage;
 	private final UserStorage userStorage;
 	private final MessageService messageService;
+	private final RedissonClient redissonClient;
 
 	public NewRoom create(Long userId, RoomSettings roomSettings, LocalDateTime now) {
 		String roomCode = RandomUtil.generateRandomCode(ROOM_CODE_LENGTH);
@@ -62,6 +66,28 @@ public class RoomService {
 		Slice<Room> roomSlice = roomStorage.findSliceBy(pageable, keyword);
 
 		return new RoomList(roomSlice);
+	}
+
+	public RoomDetail enterWithLock(Long userId, String roomCode, String passwordInput) {
+		RLock lock = redissonClient.getFairLock(roomCode);
+
+		try {
+			boolean available = lock.tryLock(10, 1, TimeUnit.SECONDS);
+
+			if (!available) {
+				System.out.println("Lock 획득 실패");
+			}
+
+			return enter(userId, roomCode, passwordInput);
+		} catch (InterruptedException e) {
+			throw new RuntimeException("머 다른 거로도 실패할 수도..");
+		} finally {
+			lock.unlock();
+		}
+	}
+
+	public RoomDetail enterWithSpinLock() {
+		
 	}
 
 	public RoomDetail enter(Long userId, String roomCode, String passwordInput) {
