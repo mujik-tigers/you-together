@@ -762,6 +762,8 @@ class RoomControllerTest extends RestDocsSupport {
 			));
 	}
 
+	// TODO: Reorder 테스트는 프론트와 협의 후 작성
+
 	private List<Room> generateRooms(int count) {
 		return IntStream.rangeClosed(1, count)
 			.mapToObj(number -> Room.builder()

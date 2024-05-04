@@ -13,3 +13,4 @@ endif::[]
 
 include::api/room.adoc[]
 include::api/user.adoc[]
+include::api/playlist.adoc[]

@@ -13,7 +13,7 @@ public class Video {
 	private final String channelTitle;
 
 	@Builder
-	private Video(String videoId, long duration, String thumbnail, String videoTitle, String channelTitle) {
+	public Video(String videoId, long duration, String thumbnail, String videoTitle, String channelTitle) {
 		this.videoId = videoId;
 		this.duration = duration;
 		this.thumbnail = thumbnail;
