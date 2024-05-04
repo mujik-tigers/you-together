@@ -60,18 +60,20 @@ public class RoomService {
 
 	public RoomList fetchAll(Pageable pageable, String keyword) {
 		Slice<Room> roomSlice = roomStorage.findSliceBy(pageable, keyword);
+
 		return new RoomList(roomSlice);
 	}
 
 	public RoomDetail enter(Long userId, String roomCode, String passwordInput) {
 		User user = userStorage.findById(userId)
 			.orElseThrow(UserNoExistenceException::new);
-		user.enterRoom(roomCode);
-		userStorage.save(user);
-
 		Room room = roomStorage.findById(roomCode)
 			.orElseThrow(RoomNoExistenceException::new);
+
+		user.enterRoom(roomCode);
 		room.enter(passwordInput);
+
+		userStorage.save(user);
 		roomStorage.save(room);
 
 		return new RoomDetail(room, user);
@@ -80,13 +82,13 @@ public class RoomService {
 	public void leave(Long userId) {
 		User user = userStorage.findById(userId)
 			.orElseThrow(UserNoExistenceException::new);
-		String roomCode = user.getCurrentRoomCode();
-		user.leaveRoom();
-		userStorage.save(user);
-
-		Room room = roomStorage.findById(roomCode)
+		Room room = roomStorage.findById(user.getCurrentRoomCode())
 			.orElseThrow(RoomNoExistenceException::new);
+
+		user.leaveRoom();
 		room.leave();
+
+		userStorage.save(user);
 		roomStorage.save(room);
 	}
 
