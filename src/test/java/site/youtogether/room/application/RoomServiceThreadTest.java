@@ -59,7 +59,7 @@ public class RoomServiceThreadTest extends IntegrationTestSupport {
 	}
 
 	@Test
-	@DisplayName("동시에 100명 입장")
+	@DisplayName("동시에 100명 입장-redisson")
 	void testMultiThread() throws InterruptedException {
 		int threadCount = 150;
 		ExecutorService executorService = Executors.newFixedThreadPool(32);
@@ -75,19 +75,10 @@ public class RoomServiceThreadTest extends IntegrationTestSupport {
 				}
 			});
 		}
-
 		latch.await();
 
 		Room room = roomStorage.findById("room code").get();
-
 		assertThat(room.getParticipantCount()).isEqualTo(100);
-		// Expected: 100 but Actual: ?
-	}
-
-	@Test
-	@DisplayName("")
-	void test() {
-		roomService.enterWithLock(0L, "room code", null);
 	}
 
 }

@@ -86,10 +86,6 @@ public class RoomService {
 		}
 	}
 
-	public RoomDetail enterWithSpinLock() {
-		
-	}
-
 	public RoomDetail enter(Long userId, String roomCode, String passwordInput) {
 		User user = userStorage.findById(userId)
 			.orElseThrow(UserNoExistenceException::new);
