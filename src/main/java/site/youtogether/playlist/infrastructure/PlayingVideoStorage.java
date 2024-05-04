@@ -22,15 +22,13 @@ public class PlayingVideoStorage {
 	}
 
 	public void saveAndPlay(PlayingVideo playingVideo) {
-		deleteIfPresent(playingVideo.getRoomCode());
-
 		storage.put(playingVideo.getRoomCode(), playingVideo);
 		playingVideo.start(0);
 	}
 
-	public void deleteIfPresent(String roomCode) {
-		Optional.ofNullable(storage.remove(roomCode))
-			.ifPresent(PlayingVideo::stop);
+	public void delete(String roomCode) {
+		PlayingVideo removed = storage.remove(roomCode);
+		removed.stop();
 	}
 
 }

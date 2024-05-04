@@ -5,7 +5,6 @@ import java.time.Duration;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
-import site.youtogether.exception.playlist.PlaylistEmptyException;
 import site.youtogether.exception.playlist.PlaylistNoExistenceException;
 import site.youtogether.exception.user.UserNoExistenceException;
 import site.youtogether.exception.user.VideoEditDeniedException;
@@ -35,52 +34,47 @@ public class PlaylistService {
 		if (user.isNotEditable()) {
 			throw new VideoEditDeniedException();
 		}
-
 		Playlist playlist = playlistStorage.findById(user.getCurrentRoomCode())
 			.orElseThrow(PlaylistNoExistenceException::new);
+
 		Video video = createVideo(form);
-		Video nextVideo = playlist.add(video);
+		playlist.add(video);
 
 		if (!playingVideoStorage.existsById(user.getCurrentRoomCode())) {
+			Video nextVideo = playlist.playNext();
 			playingVideoStorage.saveAndPlay(new PlayingVideo(user.getCurrentRoomCode(), nextVideo, messageService, this));
 		}
-
 		playlistStorage.save(playlist);
+
 		messageService.sendPlaylist(user.getCurrentRoomCode());
 	}
 
 	public void callNextVideoByTimer(String roomCode) {        // PlayingVideo 타이머에 의해 수동적으로 호출되는 메서드
 		Playlist playlist = playlistStorage.findById(roomCode)
 			.orElseThrow(PlaylistNoExistenceException::new);
-		Video nextVideo = playlist.playNext()
-			.orElseThrow(() -> {
-				playingVideoStorage.deleteIfPresent(roomCode);
-				playlistStorage.save(playlist);
-				return new PlaylistEmptyException();
-			});
 
+		playingVideoStorage.delete(roomCode);
+		Video nextVideo = playlist.playNext();
 		playingVideoStorage.saveAndPlay(new PlayingVideo(roomCode, nextVideo, messageService, this));
-
 		playlistStorage.save(playlist);
+
 		messageService.sendPlaylist(roomCode);
 	}
 
 	public void playNextVideo(Long userId) {
 		User user = userStorage.findById(userId)
 			.orElseThrow(UserNoExistenceException::new);
+		if (user.isNotEditable()) {
+			throw new VideoEditDeniedException();
+		}
 		Playlist playlist = playlistStorage.findById(user.getCurrentRoomCode())
 			.orElseThrow(PlaylistNoExistenceException::new);
 
-		Video nextVideo = playlist.playNext()
-			.orElseThrow(() -> {
-				playingVideoStorage.deleteIfPresent(user.getCurrentRoomCode());
-				playlistStorage.save(playlist);
-				return new PlaylistEmptyException();
-			});
-
+		playingVideoStorage.delete(user.getCurrentRoomCode());
+		Video nextVideo = playlist.playNext();
 		playingVideoStorage.saveAndPlay(new PlayingVideo(user.getCurrentRoomCode(), nextVideo, messageService, this));
-
 		playlistStorage.save(playlist);
+
 		messageService.sendPlaylist(user.getCurrentRoomCode());
 	}
 
@@ -90,9 +84,9 @@ public class PlaylistService {
 		if (user.isNotEditable()) {
 			throw new VideoEditDeniedException();
 		}
-
 		Playlist playlist = playlistStorage.findById(user.getCurrentRoomCode())
 			.orElseThrow(PlaylistNoExistenceException::new);
+
 		playlist.reorderVideo(videoOrder.getFrom(), videoOrder.getTo());
 		playlistStorage.save(playlist);
 
