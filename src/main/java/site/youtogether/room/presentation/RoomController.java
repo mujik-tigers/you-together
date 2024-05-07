@@ -55,7 +55,7 @@ public class RoomController {
 		@Valid @RequestBody(required = false) PasswordInput form) {
 
 		String passwordInput = form == null ? null : form.getPasswordInput();
-		RoomDetail roomDetail = roomService.enter(userId, roomCode, passwordInput);
+		RoomDetail roomDetail = roomService.enter(roomCode, userId, passwordInput);
 
 		return ResponseEntity.ok()
 			.body(ApiResponse.ok(ResponseResult.ROOM_ENTER_SUCCESS, roomDetail));

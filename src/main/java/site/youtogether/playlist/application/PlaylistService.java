@@ -18,6 +18,7 @@ import site.youtogether.playlist.infrastructure.PlayingVideoStorage;
 import site.youtogether.playlist.infrastructure.PlaylistStorage;
 import site.youtogether.user.User;
 import site.youtogether.user.infrastructure.UserStorage;
+import site.youtogether.util.aop.PlaylistSynchronize;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +29,7 @@ public class PlaylistService {
 	private final UserStorage userStorage;
 	private final MessageService messageService;
 
+	@PlaylistSynchronize
 	public void addVideo(Long userId, PlaylistAddForm form) {
 		User user = userStorage.findById(userId)
 			.orElseThrow(UserNoExistenceException::new);

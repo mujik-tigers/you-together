@@ -47,8 +47,8 @@ class UserControllerTest extends RestDocsSupport {
 		given(jwtService.isValidToken(eq(token)))
 			.willReturn(true);
 		given(jwtService.parse(eq(token)))
-			.willReturn(participant.getId());
-		given(userService.changeUserNickname(eq(participant.getId()), eq(newNickname)))
+			.willReturn(participant.getUserId());
+		given(userService.changeUserNickname(eq(participant.getUserId()), eq(newNickname)))
 			.willReturn(participant);
 
 		// when // then
@@ -61,7 +61,7 @@ class UserControllerTest extends RestDocsSupport {
 			.andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
 			.andExpect(jsonPath("$.status").value(HttpStatus.OK.getReasonPhrase()))
 			.andExpect(jsonPath("$.result").value(ResponseResult.USER_NICKNAME_CHANGE_SUCCESS.getDescription()))
-			.andExpect(jsonPath("$.data.id").value(participant.getId()))
+			.andExpect(jsonPath("$.data.userId").value(participant.getUserId()))
 			.andExpect(jsonPath("$.data.nickname").value(newNickname))
 			.andExpect(jsonPath("$.data.role").value(participant.getRole().name()))
 			.andDo(document("change-nickname-success",
@@ -75,7 +75,7 @@ class UserControllerTest extends RestDocsSupport {
 					fieldWithPath("status").type(JsonFieldType.STRING).description("상태"),
 					fieldWithPath("result").type(JsonFieldType.STRING).description("결과"),
 					fieldWithPath("data").type(JsonFieldType.OBJECT).description("응답 데이터"),
-					fieldWithPath("data.id").type(JsonFieldType.NUMBER).description("유저 아이디"),
+					fieldWithPath("data.userId").type(JsonFieldType.NUMBER).description("유저 아이디"),
 					fieldWithPath("data.nickname").type(JsonFieldType.STRING).description("새로운 닉네임"),
 					fieldWithPath("data.role").type(JsonFieldType.STRING).description("역할")
 				)
@@ -100,8 +100,8 @@ class UserControllerTest extends RestDocsSupport {
 		given(jwtService.isValidToken(eq(token)))
 			.willReturn(true);
 		given(jwtService.parse(eq(token)))
-			.willReturn(participant.getId());
-		given(userService.changeUserNickname(eq(participant.getId()), eq(newNickname)))
+			.willReturn(participant.getUserId());
+		given(userService.changeUserNickname(eq(participant.getUserId()), eq(newNickname)))
 			.willReturn(participant);
 
 		// when // then
@@ -165,7 +165,7 @@ class UserControllerTest extends RestDocsSupport {
 			.andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
 			.andExpect(jsonPath("$.status").value(HttpStatus.OK.getReasonPhrase()))
 			.andExpect(jsonPath("$.result").value(ResponseResult.USER_ROLE_CHANGE_SUCCESS.getDescription()))
-			.andExpect(jsonPath("$.data.id").value(targetUserId))
+			.andExpect(jsonPath("$.data.userId").value(targetUserId))
 			.andExpect(jsonPath("$.data.role").value(Role.VIEWER.name()))
 			.andDo(document("change-role-success",
 				preprocessRequest(prettyPrint()),
@@ -179,7 +179,7 @@ class UserControllerTest extends RestDocsSupport {
 					fieldWithPath("status").type(JsonFieldType.STRING).description("상태"),
 					fieldWithPath("result").type(JsonFieldType.STRING).description("결과"),
 					fieldWithPath("data").type(JsonFieldType.OBJECT).description("응답 데이터"),
-					fieldWithPath("data.id").type(JsonFieldType.NUMBER).description("유저 아이디"),
+					fieldWithPath("data.userId").type(JsonFieldType.NUMBER).description("유저 아이디"),
 					fieldWithPath("data.nickname").type(JsonFieldType.STRING).description("닉네임"),
 					fieldWithPath("data.role").type(JsonFieldType.STRING).description("새로운 역할")
 				)

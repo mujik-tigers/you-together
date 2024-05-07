@@ -3,9 +3,7 @@ package site.youtogether.room.application;
 import static site.youtogether.util.AppConstants.*;
 
 import java.time.LocalDateTime;
-import java.util.concurrent.TimeUnit;
 
-import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -28,6 +26,7 @@ import site.youtogether.room.infrastructure.RoomStorage;
 import site.youtogether.user.User;
 import site.youtogether.user.infrastructure.UserStorage;
 import site.youtogether.util.RandomUtil;
+import site.youtogether.util.aop.RoomSynchronize;
 
 @Service
 @RequiredArgsConstructor
@@ -68,25 +67,8 @@ public class RoomService {
 		return new RoomList(roomSlice);
 	}
 
-	public RoomDetail enterWithLock(Long userId, String roomCode, String passwordInput) {
-		RLock lock = redissonClient.getFairLock(roomCode);
-
-		try {
-			boolean available = lock.tryLock(10, 1, TimeUnit.SECONDS);
-
-			if (!available) {
-				System.out.println("Lock 획득 실패");
-			}
-
-			return enter(userId, roomCode, passwordInput);
-		} catch (InterruptedException e) {
-			throw new RuntimeException("머 다른 거로도 실패할 수도..");
-		} finally {
-			lock.unlock();
-		}
-	}
-
-	public RoomDetail enter(Long userId, String roomCode, String passwordInput) {
+	@RoomSynchronize
+	public RoomDetail enter(String roomCode, Long userId, String passwordInput) {
 		User user = userStorage.findById(userId)
 			.orElseThrow(UserNoExistenceException::new);
 		Room room = roomStorage.findById(roomCode)
@@ -101,6 +83,7 @@ public class RoomService {
 		return new RoomDetail(room, user);
 	}
 
+	@RoomSynchronize
 	public void leave(Long userId) {
 		User user = userStorage.findById(userId)
 			.orElseThrow(UserNoExistenceException::new);

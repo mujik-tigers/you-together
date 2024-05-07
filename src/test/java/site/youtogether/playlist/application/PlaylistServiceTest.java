@@ -6,6 +6,7 @@ import static site.youtogether.util.AppConstants.*;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -41,6 +42,13 @@ class PlaylistServiceTest extends IntegrationTestSupport {
 
 	@Autowired
 	private PlaylistStorage playlistStorage;
+
+	@AfterEach
+	void clear() {
+		roomStorage.deleteAll();
+		userStorage.deleteAll();
+		playlistStorage.deleteAll();
+	}
 
 	@Test
 	@DisplayName("재생 목록에 영상을 추가할 수 있다")
