@@ -15,7 +15,7 @@ class PlaylistTest {
 	void addVideoSuccess() {
 		// given
 		Playlist playlist = new Playlist("room code");
-		Video video = createVideo("id");
+		Video video = createVideo("id", 1L);
 
 		// when
 		playlist.add(video);
@@ -30,14 +30,14 @@ class PlaylistTest {
 	void deleteVideoSuccess() {
 		// given
 		Playlist playlist = new Playlist("room code");
-		Video video1 = createVideo("id-1");
-		Video video2 = createVideo("id-2");
+		Video video1 = createVideo("id-1", 1L);
+		Video video2 = createVideo("id-2", 2L);
 
 		playlist.add(video1);
 		playlist.add(video2);
 
 		// when
-		playlist.delete(1);
+		playlist.delete(1, video2.getVideoNumber());
 
 		// then
 		assertThat(playlist.getVideos()).hasSize(1);
@@ -49,14 +49,14 @@ class PlaylistTest {
 	void deleteVideoFail() {
 		// given
 		Playlist playlist = new Playlist("room code");
-		Video video1 = createVideo("id-1");
-		Video video2 = createVideo("id-2");
+		Video video1 = createVideo("id-1", 1L);
+		Video video2 = createVideo("id-2", 2L);
 
 		playlist.add(video1);
 		playlist.add(video2);
 
 		// when / then
-		assertThatThrownBy(() -> playlist.delete(2))
+		assertThatThrownBy(() -> playlist.delete(2, 3L))
 			.isInstanceOf(InvalidVideoOrderException.class);
 	}
 
@@ -65,14 +65,14 @@ class PlaylistTest {
 	void playNextVideoSuccess() {
 		// given
 		Playlist playlist = new Playlist("room code");
-		Video video1 = createVideo("id-1");
-		Video video2 = createVideo("id-2");
+		Video video1 = createVideo("id-1", 1L);
+		Video video2 = createVideo("id-2", 2L);
 
 		playlist.add(video1);
 		playlist.add(video2);
 
 		// when
-		playlist.playNext();
+		playlist.playNext(video1.getVideoNumber());
 
 		// then
 		assertThat(playlist.getVideos()).hasSize(1);
@@ -86,13 +86,14 @@ class PlaylistTest {
 		Playlist playlist = new Playlist("room code");
 
 		// when / then
-		assertThatThrownBy(() -> playlist.playNext())
+		assertThatThrownBy(() -> playlist.playNext(1L))
 			.isInstanceOf(PlaylistEmptyException.class);
 	}
 
-	private Video createVideo(String id) {
+	private Video createVideo(String id, Long number) {
 		return Video.builder()
 			.videoId(id)
+			.videoNumber(number)
 			.videoTitle("title")
 			.channelTitle("channel")
 			.duration(10L)

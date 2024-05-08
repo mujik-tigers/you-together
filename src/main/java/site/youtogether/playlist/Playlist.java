@@ -13,6 +13,7 @@ import com.redis.om.spring.annotations.Document;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import site.youtogether.exception.playlist.InvalidVideoNumberException;
 import site.youtogether.exception.playlist.InvalidVideoOrderException;
 import site.youtogether.exception.playlist.PlaylistEmptyException;
 
@@ -37,15 +38,24 @@ public class Playlist {
 		videos.add(video);
 	}
 
-	public Video playNext() {
+	public Video playNext(Long videoNumber) {
 		if (videos.isEmpty()) {
 			throw new PlaylistEmptyException();
 		}
+
+		if (!videos.get(0).getVideoNumber().equals(videoNumber)) {
+			throw new InvalidVideoNumberException();
+		}
+
 		return videos.remove(0);
 	}
 
-	public void delete(int index) {
+	public void delete(int index, Long videoNumber) {
 		try {
+			if (!videos.get(index).getVideoNumber().equals(videoNumber)) {
+				throw new InvalidVideoNumberException();
+			}
+
 			videos.remove(index);
 		} catch (IndexOutOfBoundsException e) {
 			throw new InvalidVideoOrderException();
@@ -60,6 +70,14 @@ public class Playlist {
 		} catch (IndexOutOfBoundsException e) {
 			throw new InvalidVideoOrderException();
 		}
+	}
+
+	public Long findNextVideoNumber() {
+		if (videos.isEmpty()) {
+			throw new PlaylistEmptyException();
+		}
+
+		return videos.get(0).getVideoNumber();
 	}
 
 }

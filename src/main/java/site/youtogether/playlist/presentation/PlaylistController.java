@@ -4,14 +4,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
 import site.youtogether.playlist.application.PlaylistService;
+import site.youtogether.playlist.dto.NextVideo;
 import site.youtogether.playlist.dto.PlaylistAddForm;
+import site.youtogether.playlist.dto.VideoDeletion;
 import site.youtogether.playlist.dto.VideoOrder;
 import site.youtogether.util.api.ApiResponse;
 import site.youtogether.util.api.ResponseResult;
@@ -32,8 +33,8 @@ public class PlaylistController {
 	}
 
 	@PostMapping("/playlists/next")
-	public ResponseEntity<ApiResponse<Void>> playNextVideo(@UserTracking Long userId) {
-		playlistService.playNextVideo(userId);
+	public ResponseEntity<ApiResponse<Void>> playNextVideo(@UserTracking Long userId, @RequestBody NextVideo nextVideo) {
+		playlistService.playNextVideo(userId, nextVideo.getVideoNumber());
 
 		return ResponseEntity.ok(
 			ApiResponse.ok(ResponseResult.PLAY_NEXT_VIDEO_SUCCESS, null));
@@ -47,9 +48,9 @@ public class PlaylistController {
 			ApiResponse.ok(ResponseResult.PLAYLIST_REORDER_SUCCESS, null));
 	}
 
-	@DeleteMapping("/playlists/{index}")
-	public ResponseEntity<ApiResponse<Void>> deleteVideo(@UserTracking Long userId, @PathVariable int index) {
-		playlistService.deleteVideo(userId, index);
+	@DeleteMapping("/playlists")
+	public ResponseEntity<ApiResponse<Void>> deleteVideo(@UserTracking Long userId, @RequestBody VideoDeletion videoDeletion) {
+		playlistService.deleteVideo(userId, videoDeletion.getVideoIndex(), videoDeletion.getVideoNumber());
 
 		return ResponseEntity.ok(
 			ApiResponse.ok(ResponseResult.PLAYLIST_DELETE_SUCCESS, null));

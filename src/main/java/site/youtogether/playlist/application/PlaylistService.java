@@ -18,6 +18,7 @@ import site.youtogether.playlist.infrastructure.PlayingVideoStorage;
 import site.youtogether.playlist.infrastructure.PlaylistStorage;
 import site.youtogether.user.User;
 import site.youtogether.user.infrastructure.UserStorage;
+import site.youtogether.util.RandomUtil;
 import site.youtogether.util.aop.PlaylistSynchronize;
 
 @Service
@@ -43,7 +44,7 @@ public class PlaylistService {
 		playlist.add(video);
 
 		if (!playingVideoStorage.existsById(user.getCurrentRoomCode())) {
-			Video nextVideo = playlist.playNext();
+			Video nextVideo = playlist.playNext(video.getVideoNumber());
 			playingVideoStorage.saveAndPlay(new PlayingVideo(user.getCurrentRoomCode(), nextVideo, messageService, this));
 		}
 		playlistStorage.save(playlist);
@@ -55,15 +56,16 @@ public class PlaylistService {
 		Playlist playlist = playlistStorage.findById(roomCode)
 			.orElseThrow(PlaylistNoExistenceException::new);
 
+		Video nextVideo = playlist.playNext(playlist.findNextVideoNumber());
 		playingVideoStorage.delete(roomCode);
-		Video nextVideo = playlist.playNext();
 		playingVideoStorage.saveAndPlay(new PlayingVideo(roomCode, nextVideo, messageService, this));
 		playlistStorage.save(playlist);
 
 		messageService.sendPlaylist(roomCode);
 	}
 
-	public void playNextVideo(Long userId) {
+	@PlaylistSynchronize
+	public void playNextVideo(Long userId, Long videoNumber) {
 		User user = userStorage.findById(userId)
 			.orElseThrow(UserNoExistenceException::new);
 		if (user.isNotEditable()) {
@@ -72,14 +74,15 @@ public class PlaylistService {
 		Playlist playlist = playlistStorage.findById(user.getCurrentRoomCode())
 			.orElseThrow(PlaylistNoExistenceException::new);
 
+		Video nextVideo = playlist.playNext(videoNumber);
 		playingVideoStorage.delete(user.getCurrentRoomCode());
-		Video nextVideo = playlist.playNext();
 		playingVideoStorage.saveAndPlay(new PlayingVideo(user.getCurrentRoomCode(), nextVideo, messageService, this));
 		playlistStorage.save(playlist);
 
 		messageService.sendPlaylist(user.getCurrentRoomCode());
 	}
 
+	@PlaylistSynchronize
 	public void reorderVideo(Long userId, VideoOrder videoOrder) {
 		User user = userStorage.findById(userId)
 			.orElseThrow(UserNoExistenceException::new);
@@ -95,7 +98,8 @@ public class PlaylistService {
 		messageService.sendPlaylist(user.getCurrentRoomCode());
 	}
 
-	public void deleteVideo(Long userId, int videoIndex) {
+	@PlaylistSynchronize
+	public void deleteVideo(Long userId, int videoIndex, Long videoNumber) {
 		User user = userStorage.findById(userId)
 			.orElseThrow(UserNoExistenceException::new);
 		if (user.isNotEditable()) {
@@ -104,7 +108,7 @@ public class PlaylistService {
 
 		Playlist playlist = playlistStorage.findById(user.getCurrentRoomCode())
 			.orElseThrow(PlaylistNoExistenceException::new);
-		playlist.delete(videoIndex);
+		playlist.delete(videoIndex, videoNumber);
 
 		playlistStorage.save(playlist);
 		messageService.sendPlaylist(user.getCurrentRoomCode());
@@ -113,6 +117,7 @@ public class PlaylistService {
 	private Video createVideo(PlaylistAddForm form) {
 		return Video.builder()
 			.videoId(form.getVideoId())
+			.videoNumber(RandomUtil.generateVideoNumber())
 			.videoTitle(form.getVideoTitle())
 			.thumbnail(form.getThumbnail())
 			.channelTitle(form.getChannelTitle())

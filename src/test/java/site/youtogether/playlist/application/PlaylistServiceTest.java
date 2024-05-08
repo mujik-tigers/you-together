@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import site.youtogether.IntegrationTestSupport;
 import site.youtogether.exception.user.VideoEditDeniedException;
 import site.youtogether.playlist.Playlist;
+import site.youtogether.playlist.Video;
 import site.youtogether.playlist.dto.PlaylistAddForm;
 import site.youtogether.playlist.infrastructure.PlayingVideoStorage;
 import site.youtogether.playlist.infrastructure.PlaylistStorage;
@@ -132,12 +133,15 @@ class PlaylistServiceTest extends IntegrationTestSupport {
 		String roomCode = RandomUtil.generateRandomCode(ROOM_CODE_LENGTH);
 		User editor = createRoomAndEnterUser(roomCode, Role.EDITOR);
 
-		PlaylistAddForm form = new PlaylistAddForm("video id", "title", "channel", "thumbnail", Duration.ofSeconds(10).toString());
+		PlaylistAddForm form = new PlaylistAddForm("video id", "title", "channel", "thumbnail", Duration.ofMinutes(10).toString());
 		playlistService.addVideo(editor.getId(), form);
 		playlistService.addVideo(editor.getId(), form);
 
+		Playlist playlist = playlistStorage.findById(roomCode).get();
+		Video nextVideo = playlist.getVideos().get(0);
+
 		// when
-		playlistService.playNextVideo(editor.getId());
+		playlistService.playNextVideo(editor.getId(), nextVideo.getVideoNumber());
 
 		// then
 		Playlist result = playlistStorage.findById(roomCode).get();
@@ -158,8 +162,10 @@ class PlaylistServiceTest extends IntegrationTestSupport {
 		playlistService.addVideo(editor.getId(), form);
 		playlistService.addVideo(editor.getId(), form);
 
+		Video video = playlistStorage.findById(roomCode).get().getVideos().get(1);
+
 		// when
-		playlistService.deleteVideo(editor.getId(), 1);
+		playlistService.deleteVideo(editor.getId(), 1, video.getVideoNumber());
 
 		// then
 		Playlist result = playlistStorage.findById(roomCode).get();
