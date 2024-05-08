@@ -56,8 +56,8 @@ public class PlaylistService {
 		Playlist playlist = playlistStorage.findById(roomCode)
 			.orElseThrow(PlaylistNoExistenceException::new);
 
-		Video nextVideo = playlist.playNext(playlist.findNextVideoNumber());
 		playingVideoStorage.delete(roomCode);
+		Video nextVideo = playlist.playNext(playlist.findNextVideoNumber());
 		playingVideoStorage.saveAndPlay(new PlayingVideo(roomCode, nextVideo, messageService, this));
 		playlistStorage.save(playlist);
 
