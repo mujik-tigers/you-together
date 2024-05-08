@@ -4,6 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -12,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import site.youtogether.playlist.application.PlaylistService;
 import site.youtogether.playlist.dto.NextVideo;
 import site.youtogether.playlist.dto.PlaylistAddForm;
-import site.youtogether.playlist.dto.VideoDeletion;
 import site.youtogether.playlist.dto.VideoOrder;
 import site.youtogether.util.api.ApiResponse;
 import site.youtogether.util.api.ResponseResult;
@@ -48,9 +48,9 @@ public class PlaylistController {
 			ApiResponse.ok(ResponseResult.PLAYLIST_REORDER_SUCCESS, null));
 	}
 
-	@DeleteMapping("/playlists")
-	public ResponseEntity<ApiResponse<Void>> deleteVideo(@UserTracking Long userId, @RequestBody VideoDeletion videoDeletion) {
-		playlistService.deleteVideo(userId, videoDeletion.getVideoIndex(), videoDeletion.getVideoNumber());
+	@DeleteMapping("/playlists/{videoNumber}")
+	public ResponseEntity<ApiResponse<Void>> deleteVideo(@UserTracking Long userId, @PathVariable Long videoNumber) {
+		playlistService.deleteVideo(userId, videoNumber);
 
 		return ResponseEntity.ok(
 			ApiResponse.ok(ResponseResult.PLAYLIST_DELETE_SUCCESS, null));

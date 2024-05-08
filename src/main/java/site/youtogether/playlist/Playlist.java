@@ -4,6 +4,7 @@ import static site.youtogether.util.AppConstants.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.TimeToLive;
@@ -50,16 +51,10 @@ public class Playlist {
 		return videos.remove(0);
 	}
 
-	public void delete(int index, Long videoNumber) {
-		try {
-			if (!videos.get(index).getVideoNumber().equals(videoNumber)) {
-				throw new InvalidVideoNumberException();
-			}
-
-			videos.remove(index);
-		} catch (IndexOutOfBoundsException e) {
-			throw new InvalidVideoOrderException();
-		}
+	public void delete(Long videoNumber) {
+		videos = videos.stream()
+			.filter(v -> !v.getVideoNumber().equals(videoNumber))
+			.collect(Collectors.toList());
 	}
 
 	public void reorderVideo(int from, int to) {

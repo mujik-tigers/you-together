@@ -40,7 +40,8 @@ public enum ErrorType {
 	PLAYING_VIDEO_NO_EXISTENCE(HttpStatus.NOT_FOUND, "현재 재생중인 영상이 없습니다"),
 	INVALID_VIDEO_RATE(HttpStatus.BAD_REQUEST, "유효하지 않은 재생속도입니다"),
 	USER_NOT_ENTERING(HttpStatus.BAD_REQUEST, "현재 참여중인 방이 없습니다"),
-	INVALID_VIDEO_NUMBER(HttpStatus.BAD_REQUEST, "이미 처리된 요청이거나 유효하지 않은 영상입니다");
+	INVALID_VIDEO_NUMBER(HttpStatus.BAD_REQUEST, "이미 처리된 요청이거나 유효하지 않은 영상입니다"),
+	PLAYLIST_LOCK_ACQUISITION_FAIL(HttpStatus.CONFLICT, "플레이리스트 순서 변경을 위한 락을 얻지 못하였습니다");
 
 	private final HttpStatus status;
 	private final String message;

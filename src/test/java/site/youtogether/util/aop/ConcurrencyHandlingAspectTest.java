@@ -14,20 +14,33 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import site.youtogether.IntegrationTestSupport;
+import site.youtogether.message.application.MessageService;
+import site.youtogether.playlist.PlayingVideo;
 import site.youtogether.playlist.Playlist;
+import site.youtogether.playlist.Video;
 import site.youtogether.playlist.application.PlaylistService;
 import site.youtogether.playlist.dto.PlaylistAddForm;
+import site.youtogether.playlist.infrastructure.PlayingVideoStorage;
 import site.youtogether.playlist.infrastructure.PlaylistStorage;
 import site.youtogether.room.Room;
 import site.youtogether.room.application.RoomService;
 import site.youtogether.room.infrastructure.RoomStorage;
+import site.youtogether.user.Role;
 import site.youtogether.user.User;
+import site.youtogether.user.application.UserService;
+import site.youtogether.user.dto.UserRoleChangeForm;
 import site.youtogether.user.infrastructure.UserStorage;
 
 class ConcurrencyHandlingAspectTest extends IntegrationTestSupport {
 
 	@Autowired
 	private RoomService roomService;
+
+	@Autowired
+	private UserService userService;
+
+	@Autowired
+	private PlaylistService playlistService;
 
 	@Autowired
 	private RoomStorage roomStorage;
@@ -39,7 +52,10 @@ class ConcurrencyHandlingAspectTest extends IntegrationTestSupport {
 	private PlaylistStorage playlistStorage;
 
 	@Autowired
-	private PlaylistService playlistService;
+	private PlayingVideoStorage playingVideoStorage;
+
+	@Autowired
+	private MessageService messageService;
 
 	@AfterEach
 	void clean() {
@@ -101,6 +117,43 @@ class ConcurrencyHandlingAspectTest extends IntegrationTestSupport {
 	}
 
 	@Test
+	@DisplayName("여러 명이 동시에 한 명의 역할을 변경")
+	void changeOtherRoleMultiThread() throws Exception {
+		Room room = createRoom(10);
+		User host = createAndEnterUser(1L, Role.HOST, room.getCode());
+		User manager1 = createAndEnterUser(2L, Role.MANAGER, room.getCode());
+		User manager2 = createAndEnterUser(3L, Role.MANAGER, room.getCode());
+		User manager3 = createAndEnterUser(4L, Role.MANAGER, room.getCode());
+		User guest = createAndEnterUser(5L, Role.GUEST, room.getCode());
+
+		ExecutorService executorService = Executors.newFixedThreadPool(10);
+		CountDownLatch latch = new CountDownLatch(4);
+		executorService.submit(() -> {
+			try {
+				UserRoleChangeForm form = new UserRoleChangeForm(guest.getId(), Role.MANAGER);
+				userService.changeUserRole(host.getId(), form);
+			} finally {
+				latch.countDown();
+			}
+		});
+		for (long i = 2; i < 5; i++) {
+			long userId = i;
+			executorService.submit(() -> {
+				try {
+					UserRoleChangeForm form = new UserRoleChangeForm(guest.getId(), Role.VIEWER);
+					userService.changeUserRole(userId, form);
+				} finally {
+					latch.countDown();
+				}
+			});
+		}
+		latch.await();
+
+		User targetUser = userStorage.findById(guest.getId()).get();
+		assertThat(targetUser.getRoleInCurrentRoom()).isEqualTo(Role.MANAGER);
+	}
+
+	@Test
 	@DisplayName("동시에 50명이 플레이리스트에 영상 추가")
 	void addPlaylistMultiThread() throws Exception {
 		Room room = createRoom(50);
@@ -129,6 +182,62 @@ class ConcurrencyHandlingAspectTest extends IntegrationTestSupport {
 		assertThat(savedPlaylist.getVideos()).hasSize(49);
 	}
 
+	@Test
+	@DisplayName("동시에 50명이 플레이리스트에 영상 제거")
+	void deletePlaylistMultiThread() throws Exception {
+		int videoCount = 100;
+		Room room = createRoom(50, videoCount);
+		createAndEnterBulkUsers(50, room.getCode());
+
+		int threadCount = 50;
+		ExecutorService executorService = Executors.newFixedThreadPool(32);
+		CountDownLatch latch = new CountDownLatch(threadCount);
+
+		for (long i = 0; i < threadCount; i++) {
+			long userId = i;
+			long videoNumber = i;
+			executorService.submit(() -> {
+				try {
+					playlistService.deleteVideo(userId, videoNumber);
+				} finally {
+					latch.countDown();
+				}
+			});
+		}
+		latch.await();
+
+		Playlist savedPlaylist = playlistStorage.findById(room.getCode()).get();
+		assertThat(savedPlaylist.getVideos()).hasSize(videoCount - threadCount);
+	}
+
+	// @Test
+	// @DisplayName("동시에 20명이 플레이리스트의 다음 영상 재생")		// TODO: playNextVideo 동시성 테스트, saveAndPlay 가 1번만 호출되면 제대로 된 거
+	// void playNextVideoMultiThread() throws Exception {
+	// 	int videoCount = 10;
+	// 	Room room = createRoom(20, videoCount);
+	// 	createAndEnterBulkUsers(20, room.getCode());
+	//
+	// 	int threadCount = 20;
+	// 	ExecutorService executorService = Executors.newFixedThreadPool(32);
+	// 	CountDownLatch latch = new CountDownLatch(threadCount);
+	//
+	// 	for (long i = 0; i < threadCount; i++) {
+	// 		long userId = i;
+	//
+	// 		executorService.submit(() -> {
+	// 			try {
+	// 				playlistService.playNextVideo(userId, 0L);
+	// 			} finally {
+	// 				latch.countDown();
+	// 			}
+	// 		});
+	// 	}
+	// 	latch.await();
+	//
+	// 	Playlist savedPlaylist = playlistStorage.findById(room.getCode()).get();
+	// 	assertThat(savedPlaylist.getVideos()).hasSize(videoCount - 1);
+	// }
+
 	private Room createRoom(int capacity) {
 		Room room = Room.builder()
 			.code("room code")
@@ -141,6 +250,37 @@ class ConcurrencyHandlingAspectTest extends IntegrationTestSupport {
 
 		Playlist playlist = new Playlist(room.getCode());
 		playlistStorage.save(playlist);
+
+		return room;
+	}
+
+	private Room createRoom(int capacity, int videoCount) {
+		Room room = Room.builder()
+			.code("room code")
+			.title("title")
+			.capacity(capacity)
+			.createdAt(LocalDateTime.now())
+			.password(null)
+			.build();
+		roomStorage.save(room);
+
+		Playlist playlist = new Playlist(room.getCode());
+		for (long i = 0; i < videoCount; i++) {
+			Video video = Video.builder()
+				.videoNumber(i)
+				.videoId("videoId" + i)
+				.duration(100000)
+				.build();
+			playlist.add(video);
+		}
+		playlistStorage.save(playlist);
+
+		Video video = Video.builder()
+			.videoNumber(9999L)
+			.videoId("videoId" + 9999)
+			.duration(100000)
+			.build();
+		playingVideoStorage.saveAndPlay(new PlayingVideo(room.getCode(), video, messageService, playlistService));
 
 		return room;
 	}
@@ -172,6 +312,22 @@ class ConcurrencyHandlingAspectTest extends IntegrationTestSupport {
 			userStorage.save(user);
 		}
 		roomStorage.save(room);
+	}
+
+	private User createAndEnterUser(long id, Role role, String roomCode) {
+		User user = User.builder()
+			.id(id)
+			.currentRoomCode(roomCode)
+			.build();
+
+		user.getHistory().put(roomCode, role);
+		userStorage.save(user);
+
+		Room room = roomStorage.findById(roomCode).get();
+		room.enter(null);
+		roomStorage.save(room);
+
+		return user;
 	}
 
 }

@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import site.youtogether.exception.playlist.InvalidVideoOrderException;
 import site.youtogether.exception.playlist.PlaylistEmptyException;
 
 class PlaylistTest {
@@ -37,27 +36,11 @@ class PlaylistTest {
 		playlist.add(video2);
 
 		// when
-		playlist.delete(1, video2.getVideoNumber());
+		playlist.delete(video2.getVideoNumber());
 
 		// then
 		assertThat(playlist.getVideos()).hasSize(1);
 		assertThat(playlist.getVideos().get(0).getVideoId()).isEqualTo("id-1");
-	}
-
-	@Test
-	@DisplayName("영상의 인덱스가 재생 목록의 인덱스를 벗어나면 예외가 발생한다")
-	void deleteVideoFail() {
-		// given
-		Playlist playlist = new Playlist("room code");
-		Video video1 = createVideo("id-1", 1L);
-		Video video2 = createVideo("id-2", 2L);
-
-		playlist.add(video1);
-		playlist.add(video2);
-
-		// when / then
-		assertThatThrownBy(() -> playlist.delete(2, 3L))
-			.isInstanceOf(InvalidVideoOrderException.class);
 	}
 
 	@Test

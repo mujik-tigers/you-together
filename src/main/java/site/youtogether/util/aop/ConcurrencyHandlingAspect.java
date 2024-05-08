@@ -12,7 +12,9 @@ import org.springframework.stereotype.Component;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import site.youtogether.exception.CustomException;
+import site.youtogether.exception.playlist.PlaylistLockAcquisitionFailureException;
 import site.youtogether.exception.user.UserNoExistenceException;
+import site.youtogether.playlist.dto.VideoOrder;
 import site.youtogether.user.User;
 import site.youtogether.user.dto.UserRoleChangeForm;
 import site.youtogether.user.infrastructure.UserStorage;
@@ -54,6 +56,26 @@ public class ConcurrencyHandlingAspect {
 
 		RLock lock = redissonClient.getLock("pl-" + user.getCurrentRoomCode());
 		synchronize(joinPoint, lock);
+	}
+
+	@Around("@annotation(PlaylistSynchronize) && args(userId, videoOrder)")
+	public void updatePlaylist(ProceedingJoinPoint joinPoint, Long userId, VideoOrder videoOrder) {
+		User user = userStorage.findById(userId)
+			.orElseThrow(UserNoExistenceException::new);
+		RLock lock = redissonClient.getLock("pl-" + user.getCurrentRoomCode());
+		try {
+			boolean available = lock.tryLock();                                    // 플레이리스트 업데이트 시엔, 락을 획득하지 못하면 바로 실패 처리
+			if (!available) {
+				throw new PlaylistLockAcquisitionFailureException();
+			}
+			joinPoint.proceed();
+		} catch (CustomException e) {
+			throw e;
+		} catch (Throwable t) {
+			throw new RuntimeException(t);
+		} finally {
+			lock.unlock();
+		}
 	}
 
 	private Object synchronize(ProceedingJoinPoint joinPoint, RLock lock) {

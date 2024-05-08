@@ -97,9 +97,9 @@ public class PlaylistService {
 
 		messageService.sendPlaylist(user.getCurrentRoomCode());
 	}
-
+	
 	@PlaylistSynchronize
-	public void deleteVideo(Long userId, int videoIndex, Long videoNumber) {
+	public void deleteVideo(Long userId, Long videoNumber) {
 		User user = userStorage.findById(userId)
 			.orElseThrow(UserNoExistenceException::new);
 		if (user.isNotEditable()) {
@@ -108,7 +108,7 @@ public class PlaylistService {
 
 		Playlist playlist = playlistStorage.findById(user.getCurrentRoomCode())
 			.orElseThrow(PlaylistNoExistenceException::new);
-		playlist.delete(videoIndex, videoNumber);
+		playlist.delete(videoNumber);
 
 		playlistStorage.save(playlist);
 		messageService.sendPlaylist(user.getCurrentRoomCode());

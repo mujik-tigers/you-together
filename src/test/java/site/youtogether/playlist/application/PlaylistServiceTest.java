@@ -165,7 +165,7 @@ class PlaylistServiceTest extends IntegrationTestSupport {
 		Video video = playlistStorage.findById(roomCode).get().getVideos().get(1);
 
 		// when
-		playlistService.deleteVideo(editor.getId(), 1, video.getVideoNumber());
+		playlistService.deleteVideo(editor.getId(), video.getVideoNumber());
 
 		// then
 		Playlist result = playlistStorage.findById(roomCode).get();
