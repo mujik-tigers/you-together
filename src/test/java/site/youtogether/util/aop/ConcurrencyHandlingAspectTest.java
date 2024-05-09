@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import site.youtogether.IntegrationTestSupport;
+import site.youtogether.exception.playlist.InvalidVideoNumberException;
 import site.youtogether.message.application.MessageService;
 import site.youtogether.playlist.PlayingVideo;
 import site.youtogether.playlist.Playlist;
@@ -156,7 +158,7 @@ class ConcurrencyHandlingAspectTest extends IntegrationTestSupport {
 	@Test
 	@DisplayName("동시에 50명이 플레이리스트에 영상 추가")
 	void addPlaylistMultiThread() throws Exception {
-		Room room = createRoom(50);
+		Room room = createRoom(50, 0);
 		createAndEnterBulkUsers(50, room.getCode());
 
 		int threadCount = 50;
@@ -179,7 +181,7 @@ class ConcurrencyHandlingAspectTest extends IntegrationTestSupport {
 		latch.await();
 
 		Playlist savedPlaylist = playlistStorage.findById(room.getCode()).get();
-		assertThat(savedPlaylist.getVideos()).hasSize(49);
+		assertThat(savedPlaylist.getVideos()).hasSize(50);
 	}
 
 	@Test
@@ -210,33 +212,35 @@ class ConcurrencyHandlingAspectTest extends IntegrationTestSupport {
 		assertThat(savedPlaylist.getVideos()).hasSize(videoCount - threadCount);
 	}
 
-	// @Test
-	// @DisplayName("동시에 20명이 플레이리스트의 다음 영상 재생")		// TODO: playNextVideo 동시성 테스트, saveAndPlay 가 1번만 호출되면 제대로 된 거
-	// void playNextVideoMultiThread() throws Exception {
-	// 	int videoCount = 10;
-	// 	Room room = createRoom(20, videoCount);
-	// 	createAndEnterBulkUsers(20, room.getCode());
-	//
-	// 	int threadCount = 20;
-	// 	ExecutorService executorService = Executors.newFixedThreadPool(32);
-	// 	CountDownLatch latch = new CountDownLatch(threadCount);
-	//
-	// 	for (long i = 0; i < threadCount; i++) {
-	// 		long userId = i;
-	//
-	// 		executorService.submit(() -> {
-	// 			try {
-	// 				playlistService.playNextVideo(userId, 0L);
-	// 			} finally {
-	// 				latch.countDown();
-	// 			}
-	// 		});
-	// 	}
-	// 	latch.await();
-	//
-	// 	Playlist savedPlaylist = playlistStorage.findById(room.getCode()).get();
-	// 	assertThat(savedPlaylist.getVideos()).hasSize(videoCount - 1);
-	// }
+	@Test
+	@DisplayName("동시에 20명이 플레이리스트의 다음 영상 재생")
+	void playNextVideoMultiThread() throws Exception {
+		int videoCount = 10;
+		Room room = createRoom(20, videoCount);
+		createAndEnterBulkUsers(20, room.getCode());
+
+		int threadCount = 20;
+		ExecutorService executorService = Executors.newFixedThreadPool(32);
+		CountDownLatch latch = new CountDownLatch(threadCount);
+		AtomicInteger exceptionCounter = new AtomicInteger();
+
+		for (long i = 0; i < threadCount; i++) {
+			long userId = i;
+
+			executorService.submit(() -> {
+				try {
+					playlistService.playNextVideo(userId, 0L);
+				} catch (InvalidVideoNumberException e) {
+					exceptionCounter.incrementAndGet();
+				} finally {
+					latch.countDown();
+				}
+			});
+		}
+		latch.await();
+
+		assertThat(exceptionCounter.get()).isEqualTo(threadCount - 1);
+	}
 
 	private Room createRoom(int capacity) {
 		Room room = Room.builder()
