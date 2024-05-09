@@ -4,6 +4,7 @@ import static site.youtogether.util.AppConstants.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.TimeToLive;
@@ -13,6 +14,7 @@ import com.redis.om.spring.annotations.Document;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import site.youtogether.exception.playlist.InvalidVideoNumberException;
 import site.youtogether.exception.playlist.InvalidVideoOrderException;
 import site.youtogether.exception.playlist.PlaylistEmptyException;
 
@@ -37,19 +39,22 @@ public class Playlist {
 		videos.add(video);
 	}
 
-	public Video playNext() {
+	public Video playNext(Long videoNumber) {
 		if (videos.isEmpty()) {
 			throw new PlaylistEmptyException();
 		}
+
+		if (!videos.get(0).getVideoNumber().equals(videoNumber)) {
+			throw new InvalidVideoNumberException();
+		}
+
 		return videos.remove(0);
 	}
 
-	public void delete(int index) {
-		try {
-			videos.remove(index);
-		} catch (IndexOutOfBoundsException e) {
-			throw new InvalidVideoOrderException();
-		}
+	public void delete(Long videoNumber) {
+		videos = videos.stream()
+			.filter(v -> !v.getVideoNumber().equals(videoNumber))
+			.collect(Collectors.toList());
 	}
 
 	public void reorderVideo(int from, int to) {
@@ -60,6 +65,14 @@ public class Playlist {
 		} catch (IndexOutOfBoundsException e) {
 			throw new InvalidVideoOrderException();
 		}
+	}
+
+	public Long findNextVideoNumber() {
+		if (videos.isEmpty()) {
+			throw new PlaylistEmptyException();
+		}
+
+		return videos.get(0).getVideoNumber();
 	}
 
 }

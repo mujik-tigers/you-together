@@ -19,6 +19,7 @@ import site.youtogether.RestDocsSupport;
 import site.youtogether.exception.playlist.InvalidVideoOrderException;
 import site.youtogether.exception.playlist.PlaylistEmptyException;
 import site.youtogether.exception.user.VideoEditDeniedException;
+import site.youtogether.playlist.dto.NextVideo;
 import site.youtogether.playlist.dto.PlaylistAddForm;
 import site.youtogether.util.api.ResponseResult;
 
@@ -123,17 +124,20 @@ class PlaylistControllerTest extends RestDocsSupport {
 		// given
 		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 		Cookie sessionCookie = new Cookie(cookieProperties.getName(), token);
+		NextVideo nextVideo = new NextVideo(12L);
 
 		given(jwtService.isValidToken(eq(token)))
 			.willReturn(true);
 		given(jwtService.parse(eq(token)))
 			.willReturn(1L);
 		doNothing()
-			.when(playlistService).playNextVideo(eq(1L));
+			.when(playlistService).playNextVideo(eq(1L), anyLong());
 
 		// when // then
 		mockMvc.perform(post("/playlists/next")
-				.cookie(sessionCookie))
+				.cookie(sessionCookie)
+				.content(objectMapper.writeValueAsString(nextVideo))
+				.contentType(MediaType.APPLICATION_JSON))
 			.andDo(print())
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
@@ -142,6 +146,9 @@ class PlaylistControllerTest extends RestDocsSupport {
 			.andDo(document("play-next-video-success",
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
+				requestFields(
+					fieldWithPath("videoNumber").type(JsonFieldType.NUMBER).description("Next video number")
+				),
 				responseFields(
 					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
 					fieldWithPath("status").type(JsonFieldType.STRING).description("상태"),
@@ -157,17 +164,20 @@ class PlaylistControllerTest extends RestDocsSupport {
 		// given
 		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 		Cookie sessionCookie = new Cookie(cookieProperties.getName(), token);
+		NextVideo nextVideo = new NextVideo(12L);
 
 		given(jwtService.isValidToken(eq(token)))
 			.willReturn(true);
 		given(jwtService.parse(eq(token)))
 			.willReturn(1L);
 		doThrow(new VideoEditDeniedException())
-			.when(playlistService).playNextVideo(eq(1L));
+			.when(playlistService).playNextVideo(eq(1L), anyLong());
 
 		// when // then
 		mockMvc.perform(post("/playlists/next")
-				.cookie(sessionCookie))
+				.cookie(sessionCookie)
+				.content(objectMapper.writeValueAsString(nextVideo))
+				.contentType(MediaType.APPLICATION_JSON))
 			.andDo(print())
 			.andExpect(status().isForbidden())
 			.andExpect(jsonPath("$.code").value(HttpStatus.FORBIDDEN.value()))
@@ -177,6 +187,9 @@ class PlaylistControllerTest extends RestDocsSupport {
 			.andDo(document("play-next-video-fail-not-editable",
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
+				requestFields(
+					fieldWithPath("videoNumber").type(JsonFieldType.NUMBER).description("Next video number")
+				),
 				responseFields(
 					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
 					fieldWithPath("status").type(JsonFieldType.STRING).description("상태"),
@@ -194,17 +207,20 @@ class PlaylistControllerTest extends RestDocsSupport {
 		// given
 		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 		Cookie sessionCookie = new Cookie(cookieProperties.getName(), token);
+		NextVideo nextVideo = new NextVideo(12L);
 
 		given(jwtService.isValidToken(eq(token)))
 			.willReturn(true);
 		given(jwtService.parse(eq(token)))
 			.willReturn(1L);
 		doThrow(new PlaylistEmptyException())
-			.when(playlistService).playNextVideo(eq(1L));
+			.when(playlistService).playNextVideo(eq(1L), anyLong());
 
 		// when // then
 		mockMvc.perform(post("/playlists/next")
-				.cookie(sessionCookie))
+				.cookie(sessionCookie)
+				.content(objectMapper.writeValueAsString(nextVideo))
+				.contentType(MediaType.APPLICATION_JSON))
 			.andDo(print())
 			.andExpect(status().isNotFound())
 			.andExpect(jsonPath("$.code").value(HttpStatus.NOT_FOUND.value()))
@@ -214,6 +230,9 @@ class PlaylistControllerTest extends RestDocsSupport {
 			.andDo(document("play-next-video-fail-playlist-empty",
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
+				requestFields(
+					fieldWithPath("videoNumber").type(JsonFieldType.NUMBER).description("Next video number")
+				),
 				responseFields(
 					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
 					fieldWithPath("status").type(JsonFieldType.STRING).description("상태"),
@@ -231,17 +250,17 @@ class PlaylistControllerTest extends RestDocsSupport {
 		// given
 		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 		Cookie sessionCookie = new Cookie(cookieProperties.getName(), token);
-		int videoIndex = 0;
+		Long videoNumber = 15L;
 
 		given(jwtService.isValidToken(eq(token)))
 			.willReturn(true);
 		given(jwtService.parse(eq(token)))
 			.willReturn(1L);
 		doNothing()
-			.when(playlistService).deleteVideo(eq(1L), eq(videoIndex));
+			.when(playlistService).deleteVideo(eq(1L), eq(videoNumber));
 
 		// when // then
-		mockMvc.perform(delete("/playlists/{index}", videoIndex)
+		mockMvc.perform(delete("/playlists/{videoNumber}", videoNumber)
 				.cookie(sessionCookie))
 			.andDo(print())
 			.andExpect(status().isOk())
@@ -266,17 +285,17 @@ class PlaylistControllerTest extends RestDocsSupport {
 		// given
 		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
 		Cookie sessionCookie = new Cookie(cookieProperties.getName(), token);
-		int videoIndex = 0;
+		Long videoNumber = 15L;
 
 		given(jwtService.isValidToken(eq(token)))
 			.willReturn(true);
 		given(jwtService.parse(eq(token)))
 			.willReturn(1L);
 		doThrow(new InvalidVideoOrderException())
-			.when(playlistService).deleteVideo(eq(1L), eq(videoIndex));
+			.when(playlistService).deleteVideo(eq(1L), eq(videoNumber));
 
 		// when // then
-		mockMvc.perform(delete("/playlists/{index}", videoIndex)
+		mockMvc.perform(delete("/playlists/{videoNumber}", videoNumber)
 				.cookie(sessionCookie))
 			.andDo(print())
 			.andExpect(status().isBadRequest())

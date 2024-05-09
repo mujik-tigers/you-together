@@ -11,10 +11,15 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class RandomUtil {
 
-	private static final AtomicLong atomicLong = new AtomicLong();
+	private static final AtomicLong userId = new AtomicLong();
+	private static final AtomicLong videoNumber = new AtomicLong();
 
 	public static Long generateUserId() {
-		return atomicLong.incrementAndGet();
+		return userId.incrementAndGet();
+	}
+
+	public static Long generateVideoNumber() {
+		return videoNumber.incrementAndGet();
 	}
 
 	/**

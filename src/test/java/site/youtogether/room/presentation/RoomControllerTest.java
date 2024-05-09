@@ -347,7 +347,7 @@ class RoomControllerTest extends RestDocsSupport {
 			.willReturn(token);
 		given(userStorage.findById(anyLong()))
 			.willReturn(user);
-		given(roomService.enter(anyLong(), eq(roomCode), eq(null)))
+		given(roomService.enter(eq(roomCode), anyLong(), eq(null)))
 			.willReturn(createdRoomDetail);
 
 		// when // then
@@ -360,7 +360,7 @@ class RoomControllerTest extends RestDocsSupport {
 			.andExpect(jsonPath("$.result").value(ResponseResult.ROOM_ENTER_SUCCESS.getDescription()))
 			.andExpect(jsonPath("$.data.roomCode").value(roomCode))
 			.andExpect(jsonPath("$.data.roomTitle").value(roomTitle))
-			.andExpect(jsonPath("$.data.user.id").value(participantInfo.getId()))
+			.andExpect(jsonPath("$.data.user.userId").value(participantInfo.getUserId()))
 			.andExpect(jsonPath("$.data.capacity").value(capacity))
 			.andExpect(jsonPath("$.data.currentParticipant").value(2))
 			.andExpect(jsonPath("$.data.passwordExist").value(false))
@@ -375,7 +375,7 @@ class RoomControllerTest extends RestDocsSupport {
 					fieldWithPath("data.roomCode").type(JsonFieldType.STRING).description("방 식별 코드"),
 					fieldWithPath("data.roomTitle").type(JsonFieldType.STRING).description("방 제목"),
 					fieldWithPath("data.user").type(JsonFieldType.OBJECT).description("유저"),
-					fieldWithPath("data.user.id").type(JsonFieldType.NUMBER).description("유저 아이디"),
+					fieldWithPath("data.user.userId").type(JsonFieldType.NUMBER).description("유저 아이디"),
 					fieldWithPath("data.user.nickname").type(JsonFieldType.STRING).description("유저 닉네임"),
 					fieldWithPath("data.user.role").type(JsonFieldType.STRING).description("유저 역할"),
 					fieldWithPath("data.capacity").type(JsonFieldType.NUMBER).description("정원"),
@@ -404,7 +404,7 @@ class RoomControllerTest extends RestDocsSupport {
 			.willReturn(token);
 		given(userStorage.findById(anyLong()))
 			.willReturn(user);
-		given(roomService.enter(anyLong(), eq(roomCode), eq(null)))
+		given(roomService.enter(eq(roomCode), anyLong(), eq(null)))
 			.willReturn(createdRoomDetail);
 
 		// when // then
@@ -451,7 +451,7 @@ class RoomControllerTest extends RestDocsSupport {
 			.willReturn(token);
 		given(userStorage.findById(anyLong()))
 			.willReturn(user);
-		given(roomService.enter(anyLong(), eq(roomCode), eq(password)))
+		given(roomService.enter(eq(roomCode), anyLong(), eq(password)))
 			.willReturn(createdRoomDetail);
 
 		// when // then
@@ -466,7 +466,7 @@ class RoomControllerTest extends RestDocsSupport {
 			.andExpect(jsonPath("$.result").value(ResponseResult.ROOM_ENTER_SUCCESS.getDescription()))
 			.andExpect(jsonPath("$.data.roomCode").value(roomCode))
 			.andExpect(jsonPath("$.data.roomTitle").value(roomTitle))
-			.andExpect(jsonPath("$.data.user.id").value(participantInfo.getId()))
+			.andExpect(jsonPath("$.data.user.userId").value(participantInfo.getUserId()))
 			.andExpect(jsonPath("$.data.capacity").value(capacity))
 			.andExpect(jsonPath("$.data.currentParticipant").value(2))
 			.andExpect(jsonPath("$.data.passwordExist").value(true))
@@ -484,7 +484,7 @@ class RoomControllerTest extends RestDocsSupport {
 					fieldWithPath("data.roomCode").type(JsonFieldType.STRING).description("방 식별 코드"),
 					fieldWithPath("data.roomTitle").type(JsonFieldType.STRING).description("방 제목"),
 					fieldWithPath("data.user").type(JsonFieldType.OBJECT).description("유저"),
-					fieldWithPath("data.user.id").type(JsonFieldType.NUMBER).description("유저 아이디"),
+					fieldWithPath("data.user.userId").type(JsonFieldType.NUMBER).description("유저 아이디"),
 					fieldWithPath("data.user.nickname").type(JsonFieldType.STRING).description("유저 닉네임"),
 					fieldWithPath("data.user.role").type(JsonFieldType.STRING).description("유저 역할"),
 					fieldWithPath("data.capacity").type(JsonFieldType.NUMBER).description("정원"),
@@ -510,7 +510,7 @@ class RoomControllerTest extends RestDocsSupport {
 			.willReturn(token);
 		given(userStorage.findById(anyLong()))
 			.willReturn(user);
-		given(roomService.enter(anyLong(), eq(roomCode), eq(password)))
+		given(roomService.enter(eq(roomCode), anyLong(), eq(password)))
 			.willThrow(new PasswordNotMatchException());
 
 		// when // then
@@ -601,7 +601,7 @@ class RoomControllerTest extends RestDocsSupport {
 			.willReturn(token);
 		given(userStorage.findById(anyLong()))
 			.willReturn(user);
-		given(roomService.enter(anyLong(), eq(roomCode), eq(null)))
+		given(roomService.enter(eq(roomCode), anyLong(), eq(null)))
 			.willThrow(new RoomCapacityExceededException());
 
 		// when // then

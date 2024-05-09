@@ -6,6 +6,7 @@ import static site.youtogether.util.AppConstants.*;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -15,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import site.youtogether.IntegrationTestSupport;
 import site.youtogether.exception.user.VideoEditDeniedException;
 import site.youtogether.playlist.Playlist;
+import site.youtogether.playlist.Video;
 import site.youtogether.playlist.dto.PlaylistAddForm;
 import site.youtogether.playlist.infrastructure.PlayingVideoStorage;
 import site.youtogether.playlist.infrastructure.PlaylistStorage;
@@ -41,6 +43,13 @@ class PlaylistServiceTest extends IntegrationTestSupport {
 
 	@Autowired
 	private PlaylistStorage playlistStorage;
+
+	@AfterEach
+	void clear() {
+		roomStorage.deleteAll();
+		userStorage.deleteAll();
+		playlistStorage.deleteAll();
+	}
 
 	@Test
 	@DisplayName("재생 목록에 영상을 추가할 수 있다")
@@ -124,12 +133,15 @@ class PlaylistServiceTest extends IntegrationTestSupport {
 		String roomCode = RandomUtil.generateRandomCode(ROOM_CODE_LENGTH);
 		User editor = createRoomAndEnterUser(roomCode, Role.EDITOR);
 
-		PlaylistAddForm form = new PlaylistAddForm("video id", "title", "channel", "thumbnail", Duration.ofSeconds(10).toString());
+		PlaylistAddForm form = new PlaylistAddForm("video id", "title", "channel", "thumbnail", Duration.ofMinutes(10).toString());
 		playlistService.addVideo(editor.getId(), form);
 		playlistService.addVideo(editor.getId(), form);
 
+		Playlist playlist = playlistStorage.findById(roomCode).get();
+		Video nextVideo = playlist.getVideos().get(0);
+
 		// when
-		playlistService.playNextVideo(editor.getId());
+		playlistService.playNextVideo(editor.getId(), nextVideo.getVideoNumber());
 
 		// then
 		Playlist result = playlistStorage.findById(roomCode).get();
@@ -150,8 +162,10 @@ class PlaylistServiceTest extends IntegrationTestSupport {
 		playlistService.addVideo(editor.getId(), form);
 		playlistService.addVideo(editor.getId(), form);
 
+		Video video = playlistStorage.findById(roomCode).get().getVideos().get(1);
+
 		// when
-		playlistService.deleteVideo(editor.getId(), 1);
+		playlistService.deleteVideo(editor.getId(), video.getVideoNumber());
 
 		// then
 		Playlist result = playlistStorage.findById(roomCode).get();
