@@ -36,6 +36,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     implementation "com.redis.om:redis-om-spring:0.8.9"
     annotationProcessor "com.redis.om:redis-om-spring:0.8.9"
+    implementation 'org.redisson:redisson-spring-boot-starter:3.26.0'
 
     // web-socket
     implementation 'org.springframework.boot:spring-boot-starter-websocket'

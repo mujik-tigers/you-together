@@ -121,7 +121,7 @@ class RoomServiceTest extends IntegrationTestSupport {
 		User user = createUser(3L);
 
 		// when
-		roomService.enter(user.getId(), room.getCode(), null);
+		roomService.enter(room.getCode(), user.getId(), null);
 
 		// then
 		Room savedRoom = roomStorage.findById(room.getCode()).get();
@@ -142,7 +142,7 @@ class RoomServiceTest extends IntegrationTestSupport {
 		User user = createUser(3L);
 
 		// when
-		roomService.enter(user.getId(), room.getCode(), password);
+		roomService.enter(room.getCode(), user.getId(), password);
 
 		// then
 		Room savedRoom = roomStorage.findById(room.getCode()).get();
@@ -165,7 +165,7 @@ class RoomServiceTest extends IntegrationTestSupport {
 		User user = createUser(3L);
 
 		// when // then
-		assertThatThrownBy(() -> roomService.enter(user.getId(), room.getCode(), passwordInput))
+		assertThatThrownBy(() -> roomService.enter(room.getCode(), user.getId(), passwordInput))
 			.isInstanceOf(PasswordNotMatchException.class);
 	}
 
@@ -176,12 +176,12 @@ class RoomServiceTest extends IntegrationTestSupport {
 		int capacity = 1;
 		Room room = createRoom(LocalDateTime.of(2024, 4, 10, 11, 37, 0), "황똥땡의 방", capacity);
 		User participant = createUser(2L);
-		roomService.enter(participant.getId(), room.getCode(), null);
+		roomService.enter(room.getCode(), participant.getId(), null);
 
 		User user = createUser(3L);
 
 		// when // then
-		assertThatThrownBy(() -> roomService.enter(user.getId(), room.getCode(), null))
+		assertThatThrownBy(() -> roomService.enter(room.getCode(), user.getId(), null))
 			.isInstanceOf(RoomCapacityExceededException.class);
 	}
 
@@ -191,7 +191,7 @@ class RoomServiceTest extends IntegrationTestSupport {
 		// given
 		Room room = createRoom(LocalDateTime.of(2024, 4, 10, 11, 37, 0), "연똥땡의 방");
 		User user = createUser(2L);
-		roomService.enter(user.getId(), room.getCode(), null);
+		roomService.enter(room.getCode(), user.getId(), null);
 
 		// when
 		roomService.leave(user.getId());
