@@ -13,12 +13,12 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class DataCleaner {
 
-	private final DefaultRedisScript<Void> batchRemovalScript;
+	private final DefaultRedisScript<Void> batchRemoveScript;
 	private final RedisTemplate<String, String> redisTemplate;
 
 	@Scheduled(cron = "0 0 6 * * *", zone = "Asia/Seoul")
 	public void clean() {
-		redisTemplate.execute(batchRemovalScript,
+		redisTemplate.execute(batchRemoveScript,
 			List.of("site.youtogether.room.RoomIdx", "site.youtogether.user.UserIdx", "site.youtogether.playlist.PlaylistIdx"));
 	}
 
