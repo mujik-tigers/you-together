@@ -1,13 +1,10 @@
 package site.youtogether.playlist;
 
-import static site.youtogether.util.AppConstants.*;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.data.annotation.Id;
-import org.springframework.data.redis.core.TimeToLive;
 
 import com.redis.om.spring.annotations.Document;
 
@@ -27,9 +24,6 @@ public class Playlist {
 	private String roomCode;
 
 	private List<Video> videos = new ArrayList<>();
-
-	@TimeToLive
-	private final Long expirationTime = TIME_TO_LIVE;
 
 	public Playlist(String roomCode) {
 		this.roomCode = roomCode;
