@@ -34,10 +34,10 @@ class PlaylistControllerTest extends RestDocsSupport {
 		PlaylistAddForm form = new PlaylistAddForm("TXI1npEFNss", "What a beautiful song by Sia ❤️ #snowman", "Raymond Salgado",
 			"https://i.ytimg.com/vi/TXI1npEFNss/hqdefault.jpg", "PT1M21S");
 
-		given(jwtService.isValidToken(eq(token)))
-			.willReturn(true);
 		given(jwtService.parse(eq(token)))
 			.willReturn(1L);
+		given(userStorage.existsById(eq(1L)))
+			.willReturn(true);
 		doNothing()
 			.when(playlistService).addVideo(eq(1L), any(PlaylistAddForm.class));
 
@@ -79,10 +79,10 @@ class PlaylistControllerTest extends RestDocsSupport {
 		PlaylistAddForm form = new PlaylistAddForm("TXI1npEFNss", "What a beautiful song by Sia ❤️ #snowman", "Raymond Salgado",
 			"https://i.ytimg.com/vi/TXI1npEFNss/hqdefault.jpg", "PT1M21S");
 
-		given(jwtService.isValidToken(eq(token)))
-			.willReturn(true);
 		given(jwtService.parse(eq(token)))
 			.willReturn(1L);
+		given(userStorage.existsById(eq(1L)))
+			.willReturn(true);
 		doThrow(new VideoEditDeniedException())
 			.when(playlistService).addVideo(eq(1L), any(PlaylistAddForm.class));
 
@@ -126,10 +126,10 @@ class PlaylistControllerTest extends RestDocsSupport {
 		Cookie sessionCookie = new Cookie(cookieProperties.getName(), token);
 		NextVideo nextVideo = new NextVideo(12L);
 
-		given(jwtService.isValidToken(eq(token)))
-			.willReturn(true);
 		given(jwtService.parse(eq(token)))
 			.willReturn(1L);
+		given(userStorage.existsById(eq(1L)))
+			.willReturn(true);
 		doNothing()
 			.when(playlistService).playNextVideo(eq(1L), anyLong());
 
@@ -166,10 +166,10 @@ class PlaylistControllerTest extends RestDocsSupport {
 		Cookie sessionCookie = new Cookie(cookieProperties.getName(), token);
 		NextVideo nextVideo = new NextVideo(12L);
 
-		given(jwtService.isValidToken(eq(token)))
-			.willReturn(true);
 		given(jwtService.parse(eq(token)))
 			.willReturn(1L);
+		given(userStorage.existsById(eq(1L)))
+			.willReturn(true);
 		doThrow(new VideoEditDeniedException())
 			.when(playlistService).playNextVideo(eq(1L), anyLong());
 
@@ -209,10 +209,11 @@ class PlaylistControllerTest extends RestDocsSupport {
 		Cookie sessionCookie = new Cookie(cookieProperties.getName(), token);
 		NextVideo nextVideo = new NextVideo(12L);
 
-		given(jwtService.isValidToken(eq(token)))
-			.willReturn(true);
 		given(jwtService.parse(eq(token)))
 			.willReturn(1L);
+		given(userStorage.existsById(eq(1L)))
+			.willReturn(true);
+		;
 		doThrow(new PlaylistEmptyException())
 			.when(playlistService).playNextVideo(eq(1L), anyLong());
 
@@ -252,10 +253,10 @@ class PlaylistControllerTest extends RestDocsSupport {
 		Cookie sessionCookie = new Cookie(cookieProperties.getName(), token);
 		Long videoNumber = 15L;
 
-		given(jwtService.isValidToken(eq(token)))
-			.willReturn(true);
 		given(jwtService.parse(eq(token)))
 			.willReturn(1L);
+		given(userStorage.existsById(eq(1L)))
+			.willReturn(true);
 		doNothing()
 			.when(playlistService).deleteVideo(eq(1L), eq(videoNumber));
 
@@ -287,10 +288,10 @@ class PlaylistControllerTest extends RestDocsSupport {
 		Cookie sessionCookie = new Cookie(cookieProperties.getName(), token);
 		Long videoNumber = 15L;
 
-		given(jwtService.isValidToken(eq(token)))
-			.willReturn(true);
 		given(jwtService.parse(eq(token)))
 			.willReturn(1L);
+		given(userStorage.existsById(eq(1L)))
+			.willReturn(true);
 		doThrow(new InvalidVideoOrderException())
 			.when(playlistService).deleteVideo(eq(1L), eq(videoNumber));
 

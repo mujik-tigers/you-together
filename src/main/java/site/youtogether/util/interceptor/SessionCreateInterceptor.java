@@ -3,7 +3,6 @@ package site.youtogether.util.interceptor;
 import static site.youtogether.util.AppConstants.*;
 
 import java.time.Duration;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.springframework.http.HttpHeaders;
@@ -37,36 +36,34 @@ public class SessionCreateInterceptor implements HandlerInterceptor {
 		if (CorsUtils.isPreFlightRequest(request)) {
 			return true;
 		}
-
 		Stream<Cookie> cookieStream = request.getCookies() == null ? Stream.empty() : Stream.of(request.getCookies());
-		Optional<String> token = cookieStream
+		Long userId = cookieStream
 			.filter(cookie -> cookie.getName().equals(cookieProperties.getName()))
-			.filter(cookie -> jwtService.isValidToken(cookie.getValue()))
-			.map(cookie -> cookie.getValue())
-			.findAny();
+			.map(cookie -> jwtService.parse(cookie.getValue()))
+			.filter(uid -> userStorage.existsById(uid))
+			.findAny()
+			.orElseGet(() -> generateSession(request, response));
 
-		if (token.isEmpty()) {
-			Long userId = RandomUtil.generateUserId();
-			String newToken = jwtService.issue(userId, Duration.ofSeconds(cookieProperties.getExpiry()));
-			request.setAttribute(USER_ID, userId);
-			generateCookie(response, newToken);
-
-			User user = User.builder()
-				.id(userId)
-				.nickname(RandomUtil.generateUserNickname())
-				.currentRoomCode(null)
-				.build();
-			userStorage.save(user);
-
-			log.info("--USER ID {} 새로운 토큰으로 세션 생성 인터셉터 통과함--", userId);
-			return true;
-		}
-
-		Long userId = jwtService.parse(token.get());
+		log.info("--USER ID {} 세션 생성 인터셉터 통과함--", userId);
 		request.setAttribute(USER_ID, userId);
-
-		log.info("--USER ID {} 기존의 토큰으로 세션 생성 인터셉터 통과함--", userId);
 		return true;
+	}
+
+	private Long generateSession(HttpServletRequest request, HttpServletResponse response) {
+		Long userId = RandomUtil.generateUserId();
+		String newToken = jwtService.issue(userId, Duration.ofSeconds(cookieProperties.getExpiry()));
+		request.setAttribute(USER_ID, userId);
+		generateCookie(response, newToken);
+
+		User user = User.builder()
+			.id(userId)
+			.nickname(RandomUtil.generateUserNickname())
+			.currentRoomCode(null)
+			.activate(true)
+			.build();
+		userStorage.save(user);
+
+		return userId;
 	}
 
 	private void generateCookie(HttpServletResponse response, String token) {
