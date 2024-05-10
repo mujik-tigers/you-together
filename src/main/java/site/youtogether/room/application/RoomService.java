@@ -52,6 +52,7 @@ public class RoomService {
 			.title(roomSettings.getTitle())
 			.password(roomSettings.getPassword())
 			.createdAt(now)
+			.activate(true)
 			.build();
 		roomStorage.save(room);
 

@@ -14,7 +14,6 @@ import site.youtogether.playlist.Playlist;
 import site.youtogether.playlist.infrastructure.PlaylistStorage;
 import site.youtogether.room.Room;
 import site.youtogether.room.infrastructure.RoomStorage;
-import site.youtogether.user.User;
 import site.youtogether.user.infrastructure.UserStorage;
 
 @Profile("!test")
@@ -36,17 +35,13 @@ public class Initializer implements ApplicationRunner {
 		playlistStorage.deleteAll();
 
 		for (long i = 0; i < NO_PASSWORD_ROOM_COUNT; i++) {
-			User host = User.builder()
-				.id(i)
-				.nickname("황똥땡" + i)
-				.build();
-
 			LocalDateTime createTime = LocalDateTime.of(2024, 4, 6, 12, 0, (int)i);
 			Room room = Room.builder()
 				.code(RandomUtil.generateRandomCode(ROOM_CODE_LENGTH))
 				.capacity(5)
 				.title("황똥땡의 공개방... no." + i)
 				.createdAt(createTime)
+				.activate(true)
 				.build();
 			roomStorage.save(room);
 
@@ -55,11 +50,6 @@ public class Initializer implements ApplicationRunner {
 		}
 
 		for (long i = 0; i < PASSWORD_ROOM_COUNT; i++) {
-			User host = User.builder()
-				.id(NO_PASSWORD_ROOM_COUNT + i)
-				.nickname("연똥땡" + i)
-				.build();
-
 			LocalDateTime createTime = LocalDateTime.of(2024, 4, 6, 11, 0, (int)i);
 			Room room = Room.builder()
 				.code(RandomUtil.generateRandomCode(ROOM_CODE_LENGTH))
@@ -67,6 +57,7 @@ public class Initializer implements ApplicationRunner {
 				.title("연똥땡의 은밀한 방... no." + i)
 				.createdAt(createTime)
 				.password("1234")
+				.activate(true)
 				.build();
 			roomStorage.save(room);
 

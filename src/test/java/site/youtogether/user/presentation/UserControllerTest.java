@@ -44,10 +44,10 @@ class UserControllerTest extends RestDocsSupport {
 		// Setting up response data
 		Participant participant = new Participant(1L, newNickname, Role.GUEST);
 
-		given(jwtService.isValidToken(eq(token)))
-			.willReturn(true);
 		given(jwtService.parse(eq(token)))
-			.willReturn(participant.getUserId());
+			.willReturn(1L);
+		given(userStorage.existsById(eq(1L)))
+			.willReturn(true);
 		given(userService.changeUserNickname(eq(participant.getUserId()), eq(newNickname)))
 			.willReturn(participant);
 
@@ -97,10 +97,10 @@ class UserControllerTest extends RestDocsSupport {
 		// Setting up response data
 		Participant participant = new Participant(1L, newNickname, Role.GUEST);
 
-		given(jwtService.isValidToken(eq(token)))
-			.willReturn(true);
 		given(jwtService.parse(eq(token)))
-			.willReturn(participant.getUserId());
+			.willReturn(1L);
+		given(userStorage.existsById(eq(1L)))
+			.willReturn(true);
 		given(userService.changeUserNickname(eq(participant.getUserId()), eq(newNickname)))
 			.willReturn(participant);
 
@@ -148,10 +148,10 @@ class UserControllerTest extends RestDocsSupport {
 		// Setting up response data
 		Participant participant = new Participant(form.getTargetUserId(), "hyun", form.getNewUserRole());
 
-		given(jwtService.isValidToken(eq(token)))
-			.willReturn(true);
 		given(jwtService.parse(eq(token)))
 			.willReturn(1L);
+		given(userStorage.existsById(eq(1L)))
+			.willReturn(true);
 		given(userService.changeUserRole(eq(1L), any(UserRoleChangeForm.class)))
 			.willReturn(participant);
 
@@ -195,14 +195,14 @@ class UserControllerTest extends RestDocsSupport {
 		Cookie sessionCookie = new Cookie(cookieProperties.getName(), token);
 
 		// Setting new user role for request
-		Long targetUserId = 2L;
+		Long targetUserId = 1L;
 		Role newUserRole = Role.VIEWER;
 		UserRoleChangeForm form = new UserRoleChangeForm(targetUserId, newUserRole);
 
-		given(jwtService.isValidToken(eq(token)))
-			.willReturn(true);
 		given(jwtService.parse(eq(token)))
-			.willReturn(targetUserId);
+			.willReturn(1L);
+		given(userStorage.existsById(eq(1L)))
+			.willReturn(true);
 		given(userService.changeUserRole(eq(targetUserId), any(UserRoleChangeForm.class)))
 			.willThrow(new SelfRoleChangeException());
 
@@ -250,10 +250,10 @@ class UserControllerTest extends RestDocsSupport {
 		Role newUserRole = Role.VIEWER;
 		UserRoleChangeForm form = new UserRoleChangeForm(targetUserId, newUserRole);
 
-		given(jwtService.isValidToken(eq(token)))
-			.willReturn(true);
 		given(jwtService.parse(eq(token)))
 			.willReturn(1L);
+		given(userStorage.existsById(eq(1L)))
+			.willReturn(true);
 		given(userService.changeUserRole(eq(1L), any(UserRoleChangeForm.class)))
 			.willThrow(new HigherOrEqualRoleUserChangeException());
 
@@ -301,10 +301,10 @@ class UserControllerTest extends RestDocsSupport {
 		Role newUserRole = Role.HOST;
 		UserRoleChangeForm form = new UserRoleChangeForm(targetUserId, newUserRole);
 
-		given(jwtService.isValidToken(eq(token)))
-			.willReturn(true);
 		given(jwtService.parse(eq(token)))
 			.willReturn(1L);
+		given(userStorage.existsById(eq(1L)))
+			.willReturn(true);
 		given(userService.changeUserRole(eq(1L), any(UserRoleChangeForm.class)))
 			.willThrow(new HigherOrEqualRoleChangeException());
 
@@ -353,10 +353,10 @@ class UserControllerTest extends RestDocsSupport {
 		Role newUserRole = Role.GUEST;
 		UserRoleChangeForm form = new UserRoleChangeForm(targetUserId, newUserRole);
 
-		given(jwtService.isValidToken(eq(token)))
-			.willReturn(true);
 		given(jwtService.parse(eq(token)))
 			.willReturn(1L);
+		given(userStorage.existsById(eq(1L)))
+			.willReturn(true);
 		given(userService.changeUserRole(eq(1L), any(UserRoleChangeForm.class)))
 			.willThrow(new NotManageableUserException());
 

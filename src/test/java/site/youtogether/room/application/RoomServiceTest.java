@@ -113,11 +113,29 @@ class RoomServiceTest extends IntegrationTestSupport {
 		assertThat(roomList3.isHasNext()).isFalse();
 	}
 
+	// @Test
+	// @DisplayName("빈 방은 목록 조회 시 포함하지 않는다")		// TODO: 현재 빈 방 필터링 조건이 주석 처리되어있어, 같이 주석처리
+	// void fetchOnlyActiveRoom() throws Exception {
+	// 	// given
+	// 	Room room1 = createRoom(LocalDateTime.of(2024, 4, 6, 12, 0, 0), "room title1");
+	// 	Room room2 = createRoom(LocalDateTime.of(2024, 4, 6, 12, 0, 0), "room title2");
+	// 	Room room3 = createEmptyRoom(LocalDateTime.of(2024, 4, 6, 12, 0, 0), "empty room1");
+	// 	Room room4 = createEmptyRoom(LocalDateTime.of(2024, 4, 6, 12, 0, 0), "empty room2");
+	//
+	// 	PageRequest pageRequest = PageRequest.of(0, 5);
+	//
+	// 	// when
+	// 	RoomList roomList = roomService.fetchAll(pageRequest, null);
+	//
+	// 	// then
+	// 	assertThat(roomList.getRooms()).hasSize(2);
+	// }
+
 	@Test
 	@DisplayName("방에 입장 한다")
 	void enterRoom() throws Exception {
 		// given
-		Room room = createRoom(LocalDateTime.of(2024, 4, 10, 11, 37, 0), "연똥땡의 방");
+		Room room = createEmptyRoom(LocalDateTime.of(2024, 4, 10, 11, 37, 0), "연똥땡의 방");
 		User user = createUser(3L);
 
 		// when
@@ -174,7 +192,7 @@ class RoomServiceTest extends IntegrationTestSupport {
 	void enterFullRoomFail() throws Exception {
 		// given
 		int capacity = 1;
-		Room room = createRoom(LocalDateTime.of(2024, 4, 10, 11, 37, 0), "황똥땡의 방", capacity);
+		Room room = createEmptyRoom(LocalDateTime.of(2024, 4, 10, 11, 37, 0), "황똥땡의 방", capacity);
 		User participant = createUser(2L);
 		roomService.enter(room.getCode(), participant.getId(), null);
 
@@ -189,7 +207,7 @@ class RoomServiceTest extends IntegrationTestSupport {
 	@DisplayName("방을 떠난다")
 	void leaveRoom() throws Exception {
 		// given
-		Room room = createRoom(LocalDateTime.of(2024, 4, 10, 11, 37, 0), "연똥땡의 방");
+		Room room = createEmptyRoom(LocalDateTime.of(2024, 4, 10, 11, 37, 0), "연똥땡의 방");
 		User user = createUser(2L);
 		roomService.enter(room.getCode(), user.getId(), null);
 
@@ -212,7 +230,7 @@ class RoomServiceTest extends IntegrationTestSupport {
 	@DisplayName("방 제목을 바꾼다")
 	void changeRoom() throws Exception {
 		// given
-		Room room = createRoom(LocalDateTime.of(2024, 4, 10, 11, 37, 0), "황똥땡의 방", 5);
+		Room room = createEmptyRoom(LocalDateTime.of(2024, 4, 10, 11, 37, 0), "황똥땡의 방", 5);
 		User host = createUser(HOST_ID);
 		host.createRoom(room.getCode());
 		host.enterRoom(room.getCode());
@@ -237,7 +255,7 @@ class RoomServiceTest extends IntegrationTestSupport {
 		return user;
 	}
 
-	private Room createRoom(LocalDateTime createTime, String title) {
+	private Room createEmptyRoom(LocalDateTime createTime, String title) {
 		Room room = Room.builder()
 			.code(RandomUtil.generateRandomCode(ROOM_CODE_LENGTH))
 			.title(title)
@@ -249,7 +267,20 @@ class RoomServiceTest extends IntegrationTestSupport {
 		return room;
 	}
 
-	private Room createRoom(LocalDateTime createTime, String title, int capacity) {
+	private Room createRoom(LocalDateTime createTime, String title) {
+		Room room = Room.builder()
+			.code(RandomUtil.generateRandomCode(ROOM_CODE_LENGTH))
+			.title(title)
+			.createdAt(createTime)
+			.capacity(10)
+			.build();
+		room.enter(null);
+		roomStorage.save(room);
+
+		return room;
+	}
+
+	private Room createEmptyRoom(LocalDateTime createTime, String title, int capacity) {
 		String roomCode = RandomUtil.generateRandomCode(ROOM_CODE_LENGTH);
 		Room room = Room.builder()
 			.code(roomCode)

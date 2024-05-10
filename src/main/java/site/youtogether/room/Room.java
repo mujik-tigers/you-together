@@ -17,7 +17,7 @@ import site.youtogether.exception.room.RoomCapacityExceededException;
 import site.youtogether.exception.user.ChangeRoomTitleDeniedException;
 import site.youtogether.user.User;
 
-@Document(value = "room", timeToLive = 86400L)
+@Document(value = "room")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 public class Room {
@@ -34,16 +34,20 @@ public class Room {
 	@Indexed
 	private int participantCount;
 
+	@Indexed
+	private boolean activate;
+
 	private int capacity;
 	private String password;
 
 	@Builder
-	private Room(String code, String title, int capacity, String password, LocalDateTime createdAt) {
+	private Room(String code, String title, int capacity, String password, LocalDateTime createdAt, boolean activate) {
 		this.code = code;
 		this.title = title;
 		this.capacity = capacity;
 		this.createdAt = createdAt;
 		this.password = password;
+		this.activate = activate;
 	}
 
 	public boolean hasPassword() {
@@ -54,7 +58,6 @@ public class Room {
 		if (!user.isHost()) {
 			throw new ChangeRoomTitleDeniedException();
 		}
-
 		title = updateTitle;
 	}
 
@@ -67,6 +70,7 @@ public class Room {
 		}
 
 		participantCount++;
+		activate = true;
 	}
 
 	public void leave() {

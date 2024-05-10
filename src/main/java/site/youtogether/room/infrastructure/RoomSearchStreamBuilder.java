@@ -30,6 +30,11 @@ public class RoomSearchStreamBuilder {
 		return this;
 	}
 
+	public RoomSearchStreamBuilder filterNoParticipant() {
+		roomSearchStream = roomSearchStream.filter(Room$.PARTICIPANT_COUNT.gt(0));
+		return this;
+	}
+
 	public RoomSearchStreamBuilder sortByCreatedAtDesc() {
 		roomSearchStream = roomSearchStream.sorted(Room$.CREATED_AT, SortedField.SortOrder.DESC);
 		return this;

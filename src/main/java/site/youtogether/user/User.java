@@ -20,7 +20,7 @@ import site.youtogether.exception.user.SelfRoleChangeException;
 import site.youtogether.exception.user.UserNotEnteringException;
 import site.youtogether.exception.user.UsersInDifferentRoomException;
 
-@Document(value = "user", timeToLive = 86400L)
+@Document(value = "user")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 public class User {
@@ -31,14 +31,18 @@ public class User {
 	@Indexed
 	private String currentRoomCode;
 
+	@Indexed
+	private boolean activate;
+
 	private String nickname;
 	private Map<String, Role> history = new HashMap<>();
 
 	@Builder
-	private User(Long id, String nickname, String currentRoomCode) {
+	private User(Long id, String nickname, String currentRoomCode, boolean activate) {
 		this.id = id;
 		this.nickname = nickname;
 		this.currentRoomCode = currentRoomCode;
+		this.activate = activate;
 	}
 
 	public String getCurrentRoomCode() {
@@ -101,6 +105,7 @@ public class User {
 			history.put(roomCode, Role.GUEST);
 		}
 		currentRoomCode = roomCode;
+		activate = true;
 	}
 
 	public void createRoom(String createRoomCode) {
