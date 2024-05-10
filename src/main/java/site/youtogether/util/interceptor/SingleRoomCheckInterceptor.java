@@ -38,11 +38,11 @@ public class SingleRoomCheckInterceptor implements HandlerInterceptor {
 			.orElseThrow(UserNoExistenceException::new);
 
 		if (user.isParticipant()) {
-			log.info("USER ID {} - {} 방 입장 인터셉터에서 실패함", userId, request.getRequestURI());
+			log.info("--USER ID {} - {} 방 입장 인터셉터에서 실패함--", userId, request.getRequestURI());
 			throw new SingleRoomParticipationViolationException();
 		}
 
-		log.info("USER ID {} - {} 방 입장 인터셉터 통과함", userId, request.getRequestURI());
+		log.info("--USER ID {} - {} 방 입장 인터셉터 통과함--", userId, request.getRequestURI());
 		return true;
 	}
 
