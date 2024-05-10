@@ -58,12 +58,14 @@ public class SessionCreateInterceptor implements HandlerInterceptor {
 				.build();
 			userStorage.save(user);
 
+			log.info("--USER ID {} 새로운 토큰으로 세션 생성 인터셉터 통과함--", userId);
 			return true;
 		}
 
 		Long userId = jwtService.parse(token.get());
 		request.setAttribute(USER_ID, userId);
 
+		log.info("--USER ID {} 기존의 토큰으로 세션 생성 인터셉터 통과함--", userId);
 		return true;
 	}
 
