@@ -15,7 +15,6 @@ import org.springframework.scripting.support.ResourceScriptSource;
 import com.redis.om.spring.annotations.EnableRedisDocumentRepositories;
 
 import lombok.RequiredArgsConstructor;
-import site.youtogether.message.AlarmMessage;
 import site.youtogether.message.ChatMessage;
 
 @Configuration
@@ -48,15 +47,6 @@ public class RedisConfig {
 		redisTemplate.setConnectionFactory(redisConnectionFactory());
 		redisTemplate.setKeySerializer(new StringRedisSerializer());
 		redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<>(ChatMessage.class));
-		return redisTemplate;
-	}
-
-	@Bean
-	public RedisTemplate<String, AlarmMessage> alarmRedisTemplate() {
-		RedisTemplate<String, AlarmMessage> redisTemplate = new RedisTemplate<>();
-		redisTemplate.setConnectionFactory(redisConnectionFactory());
-		redisTemplate.setKeySerializer(new StringRedisSerializer());
-		redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<>(AlarmMessage.class));
 		return redisTemplate;
 	}
 

@@ -35,7 +35,6 @@ public class MessageService {
 	private final PlaylistStorage playlistStorage;
 	private final SimpMessageSendingOperations messagingTemplate;
 	private final RedisTemplate<String, ChatMessage> chatRedisTemplate;
-	private final RedisTemplate<String, AlarmMessage> alarmRedisTemplate;
 
 	public void sendChat(ChatMessage chatMessage) {
 		messagingTemplate.convertAndSend(SUBSCRIBE_PATH + chatMessage.getRoomCode(), chatMessage);
@@ -84,9 +83,6 @@ public class MessageService {
 
 	public void sendAlarm(AlarmMessage message) {
 		messagingTemplate.convertAndSend(SUBSCRIBE_PATH + message.getRoomCode(), message);
-
-		alarmRedisTemplate.opsForList().rightPush(CHAT_PREFIX + message.getRoomCode(), message);
-		alarmRedisTemplate.opsForList().trim(CHAT_PREFIX + message.getRoomCode(), -100, -1);
 	}
 
 }
