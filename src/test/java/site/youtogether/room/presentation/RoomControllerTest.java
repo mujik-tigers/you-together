@@ -338,7 +338,7 @@ class RoomControllerTest extends RestDocsSupport {
 		int capacity = 10;
 
 		Participant participantInfo = new Participant(10L, "황똥땡", Role.HOST);
-		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, participantInfo, capacity, 2, false);
+		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, participantInfo, capacity, 2, false, null);
 		Optional<User> user = Optional.of(User.builder()
 			.currentRoomCode(null)
 			.build());
@@ -395,7 +395,7 @@ class RoomControllerTest extends RestDocsSupport {
 		int capacity = 10;
 
 		Participant participantInfo = new Participant(10L, "황똥땡", Role.HOST);
-		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, participantInfo, capacity, 2, false);
+		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, participantInfo, capacity, 2, false, null);
 		Optional<User> user = Optional.of(User.builder()
 			.currentRoomCode("1e7050f7d7")
 			.build());
@@ -442,7 +442,7 @@ class RoomControllerTest extends RestDocsSupport {
 		int capacity = 10;
 
 		Participant participantInfo = new Participant(10L, "황똥땡", Role.HOST);
-		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, participantInfo, capacity, 2, true);
+		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, participantInfo, capacity, 2, true, null);
 		Optional<User> user = Optional.of(User.builder()
 			.currentRoomCode(null)
 			.build());

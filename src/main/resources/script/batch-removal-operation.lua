@@ -6,6 +6,7 @@ local eraseRoomList = redis.call("FT.SEARCH", roomIndex, "@activate:{false}", "L
 for i = 2, #eraseRoomList do
     redis.call("DEL", eraseRoomList[i])
     redis.call("DEL", "playlist:" .. string.match(eraseRoomList[i], "([^:]+)$"))
+    redis.call("DEL", "chat:" .. string.match(eraseRoomList[i], "([^:]+)$"))
 end
 
 local inactiveRoomList = redis.call("FT.SEARCH", roomIndex, "@participantCount:[0 0]", "LIMIT", 0, 10000, "NOCONTENT")

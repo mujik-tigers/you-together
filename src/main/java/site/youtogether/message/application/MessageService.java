@@ -1,8 +1,11 @@
 package site.youtogether.message.application;
 
+import static site.youtogether.util.AppConstants.*;
+
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
 
@@ -31,9 +34,14 @@ public class MessageService {
 	private final UserStorage userStorage;
 	private final PlaylistStorage playlistStorage;
 	private final SimpMessageSendingOperations messagingTemplate;
+	private final RedisTemplate<String, ChatMessage> chatRedisTemplate;
+	private final RedisTemplate<String, AlarmMessage> alarmRedisTemplate;
 
 	public void sendChat(ChatMessage chatMessage) {
-		messagingTemplate.convertAndSend("/sub/messages/rooms/" + chatMessage.getRoomCode(), chatMessage);
+		messagingTemplate.convertAndSend(SUBSCRIBE_PATH + chatMessage.getRoomCode(), chatMessage);
+
+		chatRedisTemplate.opsForList().rightPush(CHAT_PREFIX + chatMessage.getRoomCode(), chatMessage);
+		chatRedisTemplate.opsForList().trim(CHAT_PREFIX + chatMessage.getRoomCode(), -100, -1);
 	}
 
 	public void sendParticipants(String roomCode) {
@@ -46,7 +54,7 @@ public class MessageService {
 			.toList();
 
 		ParticipantsMessage participantsMessage = new ParticipantsMessage(participants);
-		messagingTemplate.convertAndSend("/sub/messages/rooms/" + roomCode, participantsMessage);
+		messagingTemplate.convertAndSend(SUBSCRIBE_PATH + roomCode, participantsMessage);
 	}
 
 	public void sendRoomTitle(String roomCode) {
@@ -54,7 +62,7 @@ public class MessageService {
 			.orElseThrow(RoomNoExistenceException::new);
 
 		RoomTitleMessage roomTitleMessage = new RoomTitleMessage(room);
-		messagingTemplate.convertAndSend("/sub/messages/rooms/" + roomCode, roomTitleMessage);
+		messagingTemplate.convertAndSend(SUBSCRIBE_PATH + roomCode, roomTitleMessage);
 	}
 
 	public void sendPlaylist(String roomCode) {
@@ -67,15 +75,18 @@ public class MessageService {
 			.toList();
 
 		PlaylistMessage playlistMessage = new PlaylistMessage(videos);
-		messagingTemplate.convertAndSend("/sub/messages/rooms/" + roomCode, playlistMessage);
+		messagingTemplate.convertAndSend(SUBSCRIBE_PATH + roomCode, playlistMessage);
 	}
 
 	public void sendVideoSyncInfo(VideoSyncInfoMessage message) {
-		messagingTemplate.convertAndSend("/sub/messages/rooms/" + message.getRoomCode(), message);
+		messagingTemplate.convertAndSend(SUBSCRIBE_PATH + message.getRoomCode(), message);
 	}
 
 	public void sendAlarm(AlarmMessage message) {
-		messagingTemplate.convertAndSend("/sub/messages/rooms/" + message.getRoomCode(), message);
+		messagingTemplate.convertAndSend(SUBSCRIBE_PATH + message.getRoomCode(), message);
+
+		alarmRedisTemplate.opsForList().rightPush(CHAT_PREFIX + message.getRoomCode(), message);
+		alarmRedisTemplate.opsForList().trim(CHAT_PREFIX + message.getRoomCode(), -100, -1);
 	}
 
 }

@@ -3,16 +3,18 @@ package site.youtogether.room.application;
 import static site.youtogether.util.AppConstants.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
-import org.redisson.api.RedissonClient;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
 import site.youtogether.exception.room.RoomNoExistenceException;
 import site.youtogether.exception.user.UserNoExistenceException;
 import site.youtogether.message.AlarmMessage;
+import site.youtogether.message.ChatMessage;
 import site.youtogether.message.application.MessageService;
 import site.youtogether.playlist.Playlist;
 import site.youtogether.playlist.infrastructure.PlaylistStorage;
@@ -36,7 +38,7 @@ public class RoomService {
 	private final PlaylistStorage playlistStorage;
 	private final UserStorage userStorage;
 	private final MessageService messageService;
-	private final RedissonClient redissonClient;
+	private final RedisTemplate<String, ChatMessage> chatRedisTemplate;
 
 	public NewRoom create(Long userId, RoomSettings roomSettings, LocalDateTime now) {
 		String roomCode = RandomUtil.generateRandomCode(ROOM_CODE_LENGTH);
@@ -74,14 +76,18 @@ public class RoomService {
 			.orElseThrow(UserNoExistenceException::new);
 		Room room = roomStorage.findById(roomCode)
 			.orElseThrow(RoomNoExistenceException::new);
-
+		List<ChatMessage> chatHistory = chatRedisTemplate.opsForList().range(CHAT_PREFIX + roomCode, 0, -1);
+		for (ChatMessage chatMessage : chatHistory) {
+			System.out.println(chatMessage.getMessageType());
+			System.out.println(chatMessage.getContent());
+		}
 		user.enterRoom(roomCode);
 		room.enter(passwordInput);
 
 		userStorage.save(user);
 		roomStorage.save(room);
 
-		return new RoomDetail(room, user);
+		return new RoomDetail(room, user, chatHistory);
 	}
 
 	@RoomSynchronize

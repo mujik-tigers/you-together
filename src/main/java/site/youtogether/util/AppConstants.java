@@ -10,6 +10,7 @@ public final class AppConstants {
 	public static final String STOMP_ENDPOINT = "/stomp";
 	public static final String USER_ID = "userId";
 	public static final String ROOM_CODE = "roomCode";
-	public static final Long TIME_TO_LIVE = 86400L;
+	public static final String CHAT_PREFIX = "chat:";
+	public static final String SUBSCRIBE_PATH = "/sub/messages/rooms/";
 
 }
