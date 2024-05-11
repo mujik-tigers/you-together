@@ -37,7 +37,7 @@ public class MessageEventListener {
 		Long userId = (Long)headerAccessor.getSessionAttributes().get(USER_ID);
 		User user = userStorage.findById(userId)
 			.orElseThrow(UserNoExistenceException::new);
-		log.info("--USER {} 웹 소켓 구독 시작--", userId);
+		log.info("--USER {} ROOM {} 웹 소켓 구독 시작--", userId, roomCode);
 
 		messageService.sendParticipants(roomCode);
 		messageService.sendPlaylist(roomCode);
@@ -53,7 +53,7 @@ public class MessageEventListener {
 		User user = userStorage.findById(userId)
 			.orElseThrow(UserNoExistenceException::new);
 
-		log.info("--USER {} 웹 소켓 커넥션 종료 시도--", userId);
+		log.info("--USER {} ROOM {} 웹 소켓 커넥션 종료 시도--", userId, roomCode);
 		roomService.leave(userId);
 		messageService.sendParticipants(roomCode);
 		messageService.sendAlarm(new AlarmMessage(roomCode, "[알림] " + user.getNickname() + "님이 퇴장하셨습니다."));
