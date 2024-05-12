@@ -3,7 +3,6 @@ package site.youtogether.message.application;
 import static site.youtogether.util.AppConstants.*;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
@@ -68,9 +67,8 @@ public class MessageService {
 		Playlist playlist = playlistStorage.findById(roomCode)
 			.orElseThrow(PlaylistNoExistenceException::new);
 
-		AtomicInteger index = new AtomicInteger(0);
 		List<VideoInfo> videos = playlist.getVideos().stream()
-			.map(v -> new VideoInfo(index.getAndIncrement(), v))
+			.map(VideoInfo::new)
 			.toList();
 
 		PlaylistMessage playlistMessage = new PlaylistMessage(videos);
