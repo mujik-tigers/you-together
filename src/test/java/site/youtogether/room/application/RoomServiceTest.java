@@ -13,11 +13,13 @@ import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.redis.core.RedisTemplate;
 
 import site.youtogether.IntegrationTestSupport;
 import site.youtogether.exception.room.PasswordNotMatchException;
 import site.youtogether.exception.room.RoomCapacityExceededException;
 import site.youtogether.exception.user.UserNotEnteringException;
+import site.youtogether.message.ChatHistory;
 import site.youtogether.room.Room;
 import site.youtogether.room.dto.NewRoom;
 import site.youtogether.room.dto.RoomList;
@@ -41,10 +43,14 @@ class RoomServiceTest extends IntegrationTestSupport {
 	@Autowired
 	private UserStorage userStorage;
 
+	@Autowired
+	private RedisTemplate<String, ChatHistory> redisTemplate;
+
 	@AfterEach
 	void clean() {
 		roomStorage.deleteAll();
 		userStorage.deleteAll();
+		redisTemplate.delete(redisTemplate.keys(CHAT_PREFIX + "*"));
 	}
 
 	@Test
@@ -113,23 +119,23 @@ class RoomServiceTest extends IntegrationTestSupport {
 		assertThat(roomList3.isHasNext()).isFalse();
 	}
 
-	// @Test
-	// @DisplayName("빈 방은 목록 조회 시 포함하지 않는다")		// TODO: 현재 빈 방 필터링 조건이 주석 처리되어있어, 같이 주석처리
-	// void fetchOnlyActiveRoom() throws Exception {
-	// 	// given
-	// 	Room room1 = createRoom(LocalDateTime.of(2024, 4, 6, 12, 0, 0), "room title1");
-	// 	Room room2 = createRoom(LocalDateTime.of(2024, 4, 6, 12, 0, 0), "room title2");
-	// 	Room room3 = createEmptyRoom(LocalDateTime.of(2024, 4, 6, 12, 0, 0), "empty room1");
-	// 	Room room4 = createEmptyRoom(LocalDateTime.of(2024, 4, 6, 12, 0, 0), "empty room2");
-	//
-	// 	PageRequest pageRequest = PageRequest.of(0, 5);
-	//
-	// 	// when
-	// 	RoomList roomList = roomService.fetchAll(pageRequest, null);
-	//
-	// 	// then
-	// 	assertThat(roomList.getRooms()).hasSize(2);
-	// }
+	@Test
+	@DisplayName("빈 방은 목록 조회 시 포함하지 않는다")
+	void fetchOnlyActiveRoom() throws Exception {
+		// given
+		Room room1 = createRoom(LocalDateTime.of(2024, 4, 6, 12, 0, 0), "room title1");
+		Room room2 = createRoom(LocalDateTime.of(2024, 4, 6, 12, 0, 0), "room title2");
+		Room room3 = createEmptyRoom(LocalDateTime.of(2024, 4, 6, 12, 0, 0), "empty room1");
+		Room room4 = createEmptyRoom(LocalDateTime.of(2024, 4, 6, 12, 0, 0), "empty room2");
+
+		PageRequest pageRequest = PageRequest.of(0, 5);
+
+		// when
+		RoomList roomList = roomService.fetchAll(pageRequest, null);
+
+		// then
+		assertThat(roomList.getRooms()).hasSize(2);
+	}
 
 	@Test
 	@DisplayName("방에 입장 한다")

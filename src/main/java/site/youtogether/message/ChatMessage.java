@@ -17,7 +17,6 @@ public class ChatMessage {
 
 	private String roomCode;
 	private Long userId;
-	private String nickname;  // TODO: 프론트랑 의견 조율
 	private String content;
 	private final String createdAt = LocalDateTime.now().toString();
 

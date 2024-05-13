@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import site.youtogether.exception.playlist.PlaylistNoExistenceException;
 import site.youtogether.exception.room.RoomNoExistenceException;
 import site.youtogether.message.AlarmMessage;
+import site.youtogether.message.ChatHistory;
 import site.youtogether.message.ChatMessage;
 import site.youtogether.message.ParticipantsMessage;
 import site.youtogether.message.PlaylistMessage;
@@ -33,13 +34,13 @@ public class MessageService {
 	private final UserStorage userStorage;
 	private final PlaylistStorage playlistStorage;
 	private final SimpMessageSendingOperations messagingTemplate;
-	private final RedisTemplate<String, ChatMessage> chatRedisTemplate;
+	private final RedisTemplate<String, ChatHistory> chatRedisTemplate;
 
-	public void sendChat(ChatMessage chatMessage) {
-		messagingTemplate.convertAndSend(SUBSCRIBE_PATH + chatMessage.getRoomCode(), chatMessage);
+	public void sendChat(ChatMessage message) {
+		messagingTemplate.convertAndSend(SUBSCRIBE_PATH + message.getRoomCode(), message);
 
-		chatRedisTemplate.opsForList().rightPush(CHAT_PREFIX + chatMessage.getRoomCode(), chatMessage);
-		chatRedisTemplate.opsForList().trim(CHAT_PREFIX + chatMessage.getRoomCode(), -100, -1);
+		chatRedisTemplate.opsForList().rightPush(CHAT_PREFIX + message.getRoomCode(), new ChatHistory(message));
+		chatRedisTemplate.opsForList().trim(CHAT_PREFIX + message.getRoomCode(), -100, -1);
 	}
 
 	public void sendParticipants(String roomCode) {
@@ -81,6 +82,9 @@ public class MessageService {
 
 	public void sendAlarm(AlarmMessage message) {
 		messagingTemplate.convertAndSend(SUBSCRIBE_PATH + message.getRoomCode(), message);
+
+		chatRedisTemplate.opsForList().rightPush(CHAT_PREFIX + message.getRoomCode(), new ChatHistory(message));
+		chatRedisTemplate.opsForList().trim(CHAT_PREFIX + message.getRoomCode(), -100, -1);
 	}
 
 }

@@ -15,7 +15,7 @@ import org.springframework.scripting.support.ResourceScriptSource;
 import com.redis.om.spring.annotations.EnableRedisDocumentRepositories;
 
 import lombok.RequiredArgsConstructor;
-import site.youtogether.message.ChatMessage;
+import site.youtogether.message.ChatHistory;
 
 @Configuration
 @EnableRedisDocumentRepositories(basePackages = "site.youtogether.*")
@@ -42,11 +42,11 @@ public class RedisConfig {
 	}
 
 	@Bean
-	public RedisTemplate<String, ChatMessage> chatRedisTemplate() {
-		RedisTemplate<String, ChatMessage> redisTemplate = new RedisTemplate<>();
+	public RedisTemplate<String, ChatHistory> redisTemplate() {
+		RedisTemplate<String, ChatHistory> redisTemplate = new RedisTemplate<>();
 		redisTemplate.setConnectionFactory(redisConnectionFactory());
 		redisTemplate.setKeySerializer(new StringRedisSerializer());
-		redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<>(ChatMessage.class));
+		redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<>(ChatHistory.class));
 		return redisTemplate;
 	}
 

@@ -33,9 +33,7 @@ public class MessageController {
 		if (user.isViewer()) {
 			throw new ChatMessageSendDeniedException();
 		}
-
 		chatMessage.setUserId(user.getId());
-		chatMessage.setNickname(user.getNickname());
 
 		messageService.sendChat(chatMessage);
 	}

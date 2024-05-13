@@ -30,7 +30,8 @@ import site.youtogether.exception.room.PasswordNotMatchException;
 import site.youtogether.exception.room.RoomCapacityExceededException;
 import site.youtogether.exception.room.SingleRoomParticipationViolationException;
 import site.youtogether.exception.user.ChangeRoomTitleDeniedException;
-import site.youtogether.message.ChatMessage;
+import site.youtogether.message.ChatHistory;
+import site.youtogether.message.MessageType;
 import site.youtogether.room.Participant;
 import site.youtogether.room.Room;
 import site.youtogether.room.dto.ChangedRoomTitle;
@@ -339,7 +340,7 @@ class RoomControllerTest extends RestDocsSupport {
 		int capacity = 10;
 
 		Participant participantInfo = new Participant(10L, "황똥땡", Role.HOST);
-		List<ChatMessage> chatHistory = createChatHistory(roomCode);
+		List<ChatHistory> chatHistory = createChatHistory(roomCode);
 		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, participantInfo, capacity, 2, false, chatHistory);
 		Optional<User> user = Optional.of(User.builder()
 			.currentRoomCode(null)
@@ -366,7 +367,7 @@ class RoomControllerTest extends RestDocsSupport {
 			.andExpect(jsonPath("$.data.capacity").value(capacity))
 			.andExpect(jsonPath("$.data.currentParticipant").value(2))
 			.andExpect(jsonPath("$.data.passwordExist").value(false))
-			.andExpect(jsonPath("$.data.chatHistory").isArray())
+			.andExpect(jsonPath("$.data.chatHistories").isArray())
 			.andDo(document("enter-room-success",
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
@@ -384,13 +385,11 @@ class RoomControllerTest extends RestDocsSupport {
 					fieldWithPath("data.capacity").type(JsonFieldType.NUMBER).description("정원"),
 					fieldWithPath("data.currentParticipant").type(JsonFieldType.NUMBER).description("현재 참가자 수"),
 					fieldWithPath("data.passwordExist").type(JsonFieldType.BOOLEAN).description("비밀번호 존재 여부"),
-					fieldWithPath("data.chatHistory").type(JsonFieldType.ARRAY).description("채팅 기록"),
-					fieldWithPath("data.chatHistory[].messageType").type(JsonFieldType.STRING).description("메세지 타입"),
-					fieldWithPath("data.chatHistory[].roomCode").type(JsonFieldType.STRING).description("방 코드"),
-					fieldWithPath("data.chatHistory[].userId").type(JsonFieldType.NUMBER).description("유저 아이디"),
-					fieldWithPath("data.chatHistory[].nickname").type(JsonFieldType.STRING).description("유저 닉네임"),
-					fieldWithPath("data.chatHistory[].content").type(JsonFieldType.STRING).description("메시지 내용"),
-					fieldWithPath("data.chatHistory[].createdAt").type(JsonFieldType.STRING).description("전송 시간")
+					fieldWithPath("data.chatHistories").type(JsonFieldType.ARRAY).description("채팅 기록"),
+					fieldWithPath("data.chatHistories[].messageType").type(JsonFieldType.STRING).description("메세지 타입"),
+					fieldWithPath("data.chatHistories[].userId").type(JsonFieldType.NUMBER).optional().description("유저 아이디"),
+					fieldWithPath("data.chatHistories[].content").type(JsonFieldType.STRING).description("메시지 내용"),
+					fieldWithPath("data.chatHistories[].createdAt").type(JsonFieldType.STRING).description("전송 시간")
 				)
 			));
 	}
@@ -452,7 +451,7 @@ class RoomControllerTest extends RestDocsSupport {
 		int capacity = 10;
 
 		Participant participantInfo = new Participant(10L, "황똥땡", Role.HOST);
-		List<ChatMessage> chatHistory = createChatHistory(roomCode);
+		List<ChatHistory> chatHistory = createChatHistory(roomCode);
 		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, participantInfo, capacity, 2, true, chatHistory);
 		Optional<User> user = Optional.of(User.builder()
 			.currentRoomCode(null)
@@ -481,7 +480,7 @@ class RoomControllerTest extends RestDocsSupport {
 			.andExpect(jsonPath("$.data.capacity").value(capacity))
 			.andExpect(jsonPath("$.data.currentParticipant").value(2))
 			.andExpect(jsonPath("$.data.passwordExist").value(true))
-			.andExpect(jsonPath("$.data.chatHistory").isArray())
+			.andExpect(jsonPath("$.data.chatHistories").isArray())
 			.andDo(document("enter-password-room-success",
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
@@ -502,13 +501,11 @@ class RoomControllerTest extends RestDocsSupport {
 					fieldWithPath("data.capacity").type(JsonFieldType.NUMBER).description("정원"),
 					fieldWithPath("data.currentParticipant").type(JsonFieldType.NUMBER).description("현재 참가자 수"),
 					fieldWithPath("data.passwordExist").type(JsonFieldType.BOOLEAN).description("비밀번호 존재 여부"),
-					fieldWithPath("data.chatHistory").type(JsonFieldType.ARRAY).description("채팅 기록"),
-					fieldWithPath("data.chatHistory[].messageType").type(JsonFieldType.STRING).description("메세지 타입"),
-					fieldWithPath("data.chatHistory[].roomCode").type(JsonFieldType.STRING).description("방 코드"),
-					fieldWithPath("data.chatHistory[].userId").type(JsonFieldType.NUMBER).description("유저 아이디"),
-					fieldWithPath("data.chatHistory[].nickname").type(JsonFieldType.STRING).description("유저 닉네임"),
-					fieldWithPath("data.chatHistory[].content").type(JsonFieldType.STRING).description("메시지 내용"),
-					fieldWithPath("data.chatHistory[].createdAt").type(JsonFieldType.STRING).description("전송 시간")
+					fieldWithPath("data.chatHistories").type(JsonFieldType.ARRAY).description("채팅 기록"),
+					fieldWithPath("data.chatHistories[].messageType").type(JsonFieldType.STRING).description("메세지 타입"),
+					fieldWithPath("data.chatHistories[].userId").type(JsonFieldType.NUMBER).optional().description("유저 아이디"),
+					fieldWithPath("data.chatHistories[].content").type(JsonFieldType.STRING).description("메시지 내용"),
+					fieldWithPath("data.chatHistories[].createdAt").type(JsonFieldType.STRING).description("전송 시간")
 				)
 			));
 	}
@@ -794,11 +791,12 @@ class RoomControllerTest extends RestDocsSupport {
 			.toList();
 	}
 
-	private List<ChatMessage> createChatHistory(String roomCode) {
+	private List<ChatHistory> createChatHistory(String roomCode) {
 		return List.of(
-			new ChatMessage(roomCode, 1L, "hyun", "안녕하세요"),
-			new ChatMessage(roomCode, 2L, "yeon", "방가방가 햄토리"),
-			new ChatMessage(roomCode, 1L, "hyun", "ㄷㄷ")
+			new ChatHistory(MessageType.CHAT, 1L, "안녕하세요", LocalDateTime.now().toString()),
+			new ChatHistory(MessageType.ALARM, null, "[알림] yeon님이 입장하셨습니다.", LocalDateTime.now().toString()),
+			new ChatHistory(MessageType.CHAT, 2L, "방가방가 햄토리", LocalDateTime.now().toString()),
+			new ChatHistory(MessageType.CHAT, 1L, "ㄷㄷ", LocalDateTime.now().toString())
 		);
 	}
 

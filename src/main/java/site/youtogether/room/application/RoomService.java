@@ -14,7 +14,7 @@ import lombok.RequiredArgsConstructor;
 import site.youtogether.exception.room.RoomNoExistenceException;
 import site.youtogether.exception.user.UserNoExistenceException;
 import site.youtogether.message.AlarmMessage;
-import site.youtogether.message.ChatMessage;
+import site.youtogether.message.ChatHistory;
 import site.youtogether.message.application.MessageService;
 import site.youtogether.playlist.Playlist;
 import site.youtogether.playlist.infrastructure.PlaylistStorage;
@@ -38,7 +38,7 @@ public class RoomService {
 	private final PlaylistStorage playlistStorage;
 	private final UserStorage userStorage;
 	private final MessageService messageService;
-	private final RedisTemplate<String, ChatMessage> chatRedisTemplate;
+	private final RedisTemplate<String, ChatHistory> chatRedisTemplate;
 
 	public NewRoom create(Long userId, RoomSettings roomSettings, LocalDateTime now) {
 		String roomCode = RandomUtil.generateRandomCode(ROOM_CODE_LENGTH);
@@ -76,18 +76,15 @@ public class RoomService {
 			.orElseThrow(UserNoExistenceException::new);
 		Room room = roomStorage.findById(roomCode)
 			.orElseThrow(RoomNoExistenceException::new);
-		List<ChatMessage> chatHistory = chatRedisTemplate.opsForList().range(CHAT_PREFIX + roomCode, 0, -1);
-		for (ChatMessage chatMessage : chatHistory) {
-			System.out.println(chatMessage.getMessageType());
-			System.out.println(chatMessage.getContent());
-		}
+		List<ChatHistory> chatHistories = chatRedisTemplate.opsForList().range(CHAT_PREFIX + roomCode, 0, -1);
+
 		user.enterRoom(roomCode);
 		room.enter(passwordInput);
 
 		userStorage.save(user);
 		roomStorage.save(room);
 
-		return new RoomDetail(room, user, chatHistory);
+		return new RoomDetail(room, user, chatHistories);
 	}
 
 	@RoomSynchronize

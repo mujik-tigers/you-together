@@ -1,6 +1,7 @@
 package site.youtogether.util.aop;
 
 import static org.assertj.core.api.Assertions.*;
+import static site.youtogether.util.AppConstants.*;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -13,9 +14,11 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 
 import site.youtogether.IntegrationTestSupport;
 import site.youtogether.exception.playlist.InvalidVideoNumberException;
+import site.youtogether.message.ChatHistory;
 import site.youtogether.message.application.MessageService;
 import site.youtogether.playlist.PlayingVideo;
 import site.youtogether.playlist.Playlist;
@@ -59,11 +62,15 @@ class ConcurrencyHandlingAspectTest extends IntegrationTestSupport {
 	@Autowired
 	private MessageService messageService;
 
+	@Autowired
+	private RedisTemplate<String, ChatHistory> redisTemplate;
+
 	@AfterEach
 	void clean() {
 		roomStorage.deleteAll();
 		userStorage.deleteAll();
 		playlistStorage.deleteAll();
+		redisTemplate.delete(redisTemplate.keys(CHAT_PREFIX + "*"));
 	}
 
 	@Test
