@@ -19,7 +19,7 @@ public class RoomStorageCustomImpl implements RoomStorageCustom {
 	public Slice<Room> findSliceBy(Pageable pageable, String keyword) {
 		return new RoomSearchStreamBuilder(entityStream)
 			.filterTitleContaining(keyword)
-			.filterNoParticipant()
+			// .filterNoParticipant()
 			.sortByCreatedAtDesc()
 			.buildSlice(pageable);
 	}

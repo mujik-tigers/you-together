@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 import lombok.RequiredArgsConstructor;
 import site.youtogether.exception.user.ChatMessageSendDeniedException;
 import site.youtogether.exception.user.UserNoExistenceException;
+import site.youtogether.exception.user.VideoEditDeniedException;
 import site.youtogether.message.ChatMessage;
 import site.youtogether.message.VideoSyncInfoMessage;
 import site.youtogether.message.application.MessageService;
@@ -44,9 +45,9 @@ public class MessageController {
 		User user = userStorage.findById(userId)
 			.orElseThrow(UserNoExistenceException::new);
 
-		// if (user.isNotEditable()) {
-		// 	throw new VideoEditDeniedException();				// TODO: 주석풀기
-		// }
+		if (user.isNotEditable()) {
+			throw new VideoEditDeniedException();
+		}
 
 		playingVideoService.manageVideo(videoSyncInfoMessage);
 	}
