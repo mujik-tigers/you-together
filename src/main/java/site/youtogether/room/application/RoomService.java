@@ -108,7 +108,7 @@ public class RoomService {
 		roomStorage.save(room);
 
 		messageService.sendRoomTitle(user.getCurrentRoomCode());
-		messageService.sendAlarm(new AlarmMessage(room.getCode(), "[알림] 방 제목이 " + newTitle + "(으)로 변경되었습니다."));
+		messageService.sendAlarm(new AlarmMessage(RandomUtil.generateChatId(), room.getCode(), "[알림] 방 제목이 " + newTitle + "(으)로 변경되었습니다."));
 
 		return new ChangedRoomTitle(room);
 	}

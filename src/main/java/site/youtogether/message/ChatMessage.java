@@ -14,6 +14,7 @@ public class ChatMessage {
 	private final MessageType messageType = MessageType.CHAT;
 
 	private String roomCode;
+	private Long chatId;
 	private Long userId;
 	private String nickname;
 	private String content;
