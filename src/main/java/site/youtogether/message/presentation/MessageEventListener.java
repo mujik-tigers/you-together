@@ -16,6 +16,7 @@ import site.youtogether.message.application.MessageService;
 import site.youtogether.room.application.RoomService;
 import site.youtogether.user.User;
 import site.youtogether.user.infrastructure.UserStorage;
+import site.youtogether.util.RandomUtil;
 
 @Component
 @RequiredArgsConstructor
@@ -41,7 +42,7 @@ public class MessageEventListener {
 
 		messageService.sendParticipants(roomCode);
 		messageService.sendPlaylist(roomCode);
-		messageService.sendAlarm(new AlarmMessage(roomCode, "[알림] " + user.getNickname() + "님이 입장하셨습니다."));
+		messageService.sendAlarm(new AlarmMessage(RandomUtil.generateChatId(), roomCode, "[알림] " + user.getNickname() + "님이 입장하셨습니다."));
 	}
 
 	@EventListener
@@ -56,7 +57,7 @@ public class MessageEventListener {
 		log.info("--USER {} ROOM {} 웹 소켓 커넥션 종료 시도--", userId, roomCode);
 		roomService.leave(userId);
 		messageService.sendParticipants(roomCode);
-		messageService.sendAlarm(new AlarmMessage(roomCode, "[알림] " + user.getNickname() + "님이 퇴장하셨습니다."));
+		messageService.sendAlarm(new AlarmMessage(RandomUtil.generateChatId(), roomCode, "[알림] " + user.getNickname() + "님이 퇴장하셨습니다."));
 	}
 
 }

@@ -12,10 +12,15 @@ import lombok.NoArgsConstructor;
 public final class RandomUtil {
 
 	private static final AtomicLong userId = new AtomicLong();
+	private static final AtomicLong chatId = new AtomicLong();
 	private static final AtomicLong videoNumber = new AtomicLong();
 
 	public static Long generateUserId() {
 		return userId.incrementAndGet();
+	}
+
+	public static Long generateChatId() {
+		return chatId.incrementAndGet();
 	}
 
 	public static Long generateVideoNumber() {

@@ -10,6 +10,7 @@ import site.youtogether.room.Participant;
 import site.youtogether.user.User;
 import site.youtogether.user.dto.UserRoleChangeForm;
 import site.youtogether.user.infrastructure.UserStorage;
+import site.youtogether.util.RandomUtil;
 import site.youtogether.util.aop.UserSynchronize;
 
 @Service
@@ -29,7 +30,8 @@ public class UserService {
 		if (user.isParticipant()) {
 			messageService.sendParticipants(user.getCurrentRoomCode());
 			messageService.sendAlarm(
-				new AlarmMessage(user.getCurrentRoomCode(), "[알림] " + previousNickname + "님이 " + newNickname + "(으)로 닉네임을 변경했습니다."));
+				new AlarmMessage(RandomUtil.generateChatId(), user.getCurrentRoomCode(),
+					"[알림] " + previousNickname + "님이 " + newNickname + "(으)로 닉네임을 변경했습니다."));
 		}
 
 		return new Participant(user);
@@ -46,7 +48,7 @@ public class UserService {
 
 		messageService.sendParticipants(user.getCurrentRoomCode());
 		messageService.sendAlarm(
-			new AlarmMessage(user.getCurrentRoomCode(),
+			new AlarmMessage(RandomUtil.generateChatId(), user.getCurrentRoomCode(),
 				"[알림] " + targetUser.getNickname() + "님의 역할이 " + form.getNewUserRole().name() + "(으)로 변경되었습니다."));
 
 		return new Participant(targetUser);
