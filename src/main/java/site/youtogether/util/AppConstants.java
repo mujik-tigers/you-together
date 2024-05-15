@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 public final class AppConstants {
 
 	public static final int ROOM_CODE_LENGTH = 10;
+	public static final int USER_HISTORY_LENGTH = 10;
 	public static final String STOMP_ENDPOINT = "/stomp";
 	public static final String USER_ID = "userId";
 	public static final String ROOM_CODE = "roomCode";

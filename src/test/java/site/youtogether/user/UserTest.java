@@ -167,4 +167,67 @@ class UserTest {
 		assertThat(user.getNickname()).isEqualTo(updateNickname);
 	}
 
+	@Test
+	@DisplayName("방 참여 기록은 최대 10개까지 저장된다")
+	void historyLength() throws Exception {
+		// given
+		User user = User.builder()
+			.id(1L)
+			.nickname("황똥땡")
+			.build();
+
+		// when
+		for (int i = 0; i < 10; i++) {
+			user.enterRoom("roomCode" + i);
+		}
+
+		// then
+		assertThat(user.getHistory().size()).isEqualTo(10);
+	}
+
+	@Test
+	@DisplayName("방 참여 기록이 10개를 넘어가면, 가장 오래전에 방문한 방의 기록부터 제거한다")
+	void historyLimitExceed() throws Exception {
+		// given
+		User user = User.builder()
+			.id(1L)
+			.nickname("황똥땡")
+			.build();
+
+		String firstRoomCode = "firstRoomCode";
+		user.enterRoom(firstRoomCode);
+
+		// when
+		for (int i = 0; i < 10; i++) {
+			user.enterRoom("roomCode" + i);
+		}
+
+		// then
+		assertThat(user.getHistory().size()).isEqualTo(10);
+		assertThat(user.getHistory()).doesNotContainKey(firstRoomCode);
+	}
+
+	@Test
+	@DisplayName("방을 재입장 한 경우, 방문 순서가 갱신된다")
+	void historyUpdate() throws Exception {
+		// given
+		User user = User.builder()
+			.id(1L)
+			.nickname("황똥땡")
+			.build();
+
+		String firstRoomCode = "firstRoomCode";
+		user.enterRoom(firstRoomCode);
+
+		// when
+		for (int i = 0; i < 3; i++) {
+			user.enterRoom("roomCode" + i);
+		}
+		user.enterRoom(firstRoomCode);
+
+		// then
+		assertThat(user.getHistory().size()).isEqualTo(4);
+		assertThat(user.getRoomCodeQueue()).containsExactly("roomCode0", "roomCode1", "roomCode2", "firstRoomCode");
+	}
+
 }

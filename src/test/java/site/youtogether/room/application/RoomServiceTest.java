@@ -253,6 +253,50 @@ class RoomServiceTest extends IntegrationTestSupport {
 		assertThat(savedRoom.getTitle()).isEqualTo(updateTitle);
 	}
 
+	@Test
+	@DisplayName("유저가 입장한 방 기록은 최대 10개만 방문 순서대로 유지된다")
+	void userHistory() throws Exception {
+		// given
+		User user = createUser(1L);
+
+		// when
+		for (int i = 0; i < 100; i++) {
+			Room room = createRoom(LocalDateTime.now(), "roomCode" + i);
+			roomService.enter(room.getCode(), user.getId(), null);
+		}
+
+		// then
+		User savedUser = userStorage.findById(user.getId()).get();
+		assertThat(savedUser.getHistory().size()).isEqualTo(10);
+	}
+
+	@Test
+	@DisplayName("방을 재입장하는 경우, 방 기록 순서는 갱신된다")
+	void userHistoryUpdate() throws Exception {
+		// given
+		User user = createUser(1L);
+
+		Room firstRoom = createRoom(LocalDateTime.now(), "firstRoomCode");
+		roomService.enter(firstRoom.getCode(), user.getId(), null);
+
+		Room room1 = createRoom(LocalDateTime.now(), "room1");
+		roomService.enter(room1.getCode(), user.getId(), null);
+
+		Room room2 = createRoom(LocalDateTime.now(), "room2");
+		roomService.enter(room2.getCode(), user.getId(), null);
+
+		Room room3 = createRoom(LocalDateTime.now(), "room3");
+		roomService.enter(room3.getCode(), user.getId(), null);
+
+		// when
+		roomService.enter(firstRoom.getCode(), user.getId(), null);
+
+		// then
+		User savedUser = userStorage.findById(user.getId()).get();
+		assertThat(savedUser.getHistory().size()).isEqualTo(4);
+		assertThat(savedUser.getRoomCodeQueue()).containsExactly(room1.getCode(), room2.getCode(), room3.getCode(), firstRoom.getCode());
+	}
+
 	private User createUser(Long userId) {
 		User user = User.builder()
 			.id(userId)
