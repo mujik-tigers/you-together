@@ -18,9 +18,11 @@ import jakarta.servlet.http.Cookie;
 import site.youtogether.RestDocsSupport;
 import site.youtogether.exception.playlist.InvalidVideoOrderException;
 import site.youtogether.exception.playlist.PlaylistEmptyException;
+import site.youtogether.exception.playlist.PlaylistLockAcquisitionFailureException;
 import site.youtogether.exception.user.VideoEditDeniedException;
 import site.youtogether.playlist.dto.NextVideo;
 import site.youtogether.playlist.dto.PlaylistAddForm;
+import site.youtogether.playlist.dto.VideoOrder;
 import site.youtogether.util.api.ResponseResult;
 
 class PlaylistControllerTest extends RestDocsSupport {
@@ -307,6 +309,138 @@ class PlaylistControllerTest extends RestDocsSupport {
 			.andDo(document("delete-playlist-video-fail",
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
+				responseFields(
+					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
+					fieldWithPath("status").type(JsonFieldType.STRING).description("상태"),
+					fieldWithPath("result").type(JsonFieldType.STRING).description("결과"),
+					fieldWithPath("data").type(JsonFieldType.ARRAY).description("응답 데이터"),
+					fieldWithPath("data[].type").type(JsonFieldType.STRING).description("오류 타입"),
+					fieldWithPath("data[].message").type(JsonFieldType.STRING).description("오류 메시지")
+				)
+			));
+	}
+
+	@Test
+	@DisplayName("플레이리스트 순서 변경 성공")
+	void reorderVideo() throws Exception {
+		// given
+		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
+		Cookie sessionCookie = new Cookie(cookieProperties.getName(), token);
+
+		VideoOrder videoOrder = new VideoOrder(0, 1);
+
+		given(jwtService.parse(eq(token)))
+			.willReturn(1L);
+		given(userStorage.existsById(eq(1L)))
+			.willReturn(true);
+		doNothing()
+			.when(playlistService).reorderVideo(eq(1L), eq(videoOrder));
+
+		// when // then
+		mockMvc.perform(patch("/playlists")
+				.content(objectMapper.writeValueAsString(videoOrder))
+				.contentType(MediaType.APPLICATION_JSON)
+				.cookie(sessionCookie))
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
+			.andExpect(jsonPath("$.status").value(HttpStatus.OK.getReasonPhrase()))
+			.andExpect(jsonPath("$.result").value(ResponseResult.PLAYLIST_REORDER_SUCCESS.getDescription()))
+			.andDo(document("reorder-playlist-video-success",
+				preprocessRequest(prettyPrint()),
+				preprocessResponse(prettyPrint()),
+				requestFields(
+					fieldWithPath("from").type(JsonFieldType.NUMBER).description("이동하려는 영상의 현재 인덱스"),
+					fieldWithPath("to").type(JsonFieldType.NUMBER).description("이동한 후의 영상의 인덱스")
+				),
+				responseFields(
+					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
+					fieldWithPath("status").type(JsonFieldType.STRING).description("상태"),
+					fieldWithPath("result").type(JsonFieldType.STRING).description("결과"),
+					fieldWithPath("data").type(JsonFieldType.NULL).description("응답 데이터")
+				)
+			));
+	}
+
+	@Test
+	@DisplayName("플레이리스트 순서 변경 실패: 유효하지 않은 인덱스를 사용한 영상 순서 변경")
+	void reorderVideoFail() throws Exception {
+		// given
+		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
+		Cookie sessionCookie = new Cookie(cookieProperties.getName(), token);
+
+		VideoOrder videoOrder = new VideoOrder(0, 1);
+
+		given(jwtService.parse(eq(token)))
+			.willReturn(1L);
+		given(userStorage.existsById(eq(1L)))
+			.willReturn(true);
+		doThrow(new InvalidVideoOrderException())
+			.when(playlistService).reorderVideo(eq(1L), any(VideoOrder.class));
+
+		// when // then
+		mockMvc.perform(patch("/playlists")
+				.content(objectMapper.writeValueAsString(videoOrder))
+				.contentType(MediaType.APPLICATION_JSON)
+				.cookie(sessionCookie))
+			.andDo(print())
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
+			.andExpect(jsonPath("$.status").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
+			.andExpect(jsonPath("$.result").value(ResponseResult.EXCEPTION_OCCURRED.getDescription()))
+			.andExpect(jsonPath("$.data").isArray())
+			.andDo(document("reorder-playlist-video-fail",
+				preprocessRequest(prettyPrint()),
+				preprocessResponse(prettyPrint()),
+				requestFields(
+					fieldWithPath("from").type(JsonFieldType.NUMBER).description("이동하려는 영상의 현재 인덱스"),
+					fieldWithPath("to").type(JsonFieldType.NUMBER).description("이동한 후의 영상의 인덱스")
+				),
+				responseFields(
+					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
+					fieldWithPath("status").type(JsonFieldType.STRING).description("상태"),
+					fieldWithPath("result").type(JsonFieldType.STRING).description("결과"),
+					fieldWithPath("data").type(JsonFieldType.ARRAY).description("응답 데이터"),
+					fieldWithPath("data[].type").type(JsonFieldType.STRING).description("오류 타입"),
+					fieldWithPath("data[].message").type(JsonFieldType.STRING).description("오류 메시지")
+				)
+			));
+	}
+
+	@Test
+	@DisplayName("플레이리스트 순서 변경 실패: 동시에 비디오 변경이 발생해, 락 획득 실패")
+	void reorderVideoLockAcquireFail() throws Exception {
+		// given
+		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
+		Cookie sessionCookie = new Cookie(cookieProperties.getName(), token);
+
+		VideoOrder videoOrder = new VideoOrder(0, 1);
+
+		given(jwtService.parse(eq(token)))
+			.willReturn(1L);
+		given(userStorage.existsById(eq(1L)))
+			.willReturn(true);
+		doThrow(new PlaylistLockAcquisitionFailureException())
+			.when(playlistService).reorderVideo(eq(1L), any(VideoOrder.class));
+
+		// when // then
+		mockMvc.perform(patch("/playlists")
+				.content(objectMapper.writeValueAsString(videoOrder))
+				.contentType(MediaType.APPLICATION_JSON)
+				.cookie(sessionCookie))
+			.andDo(print())
+			.andExpect(status().isConflict())
+			.andExpect(jsonPath("$.code").value(HttpStatus.CONFLICT.value()))
+			.andExpect(jsonPath("$.status").value(HttpStatus.CONFLICT.getReasonPhrase()))
+			.andExpect(jsonPath("$.result").value(ResponseResult.EXCEPTION_OCCURRED.getDescription()))
+			.andExpect(jsonPath("$.data").isArray())
+			.andDo(document("reorder-playlist-video-fail-lock-acquire",
+				preprocessRequest(prettyPrint()),
+				preprocessResponse(prettyPrint()),
+				requestFields(
+					fieldWithPath("from").type(JsonFieldType.NUMBER).description("이동하려는 영상의 현재 인덱스"),
+					fieldWithPath("to").type(JsonFieldType.NUMBER).description("이동한 후의 영상의 인덱스")
+				),
 				responseFields(
 					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
 					fieldWithPath("status").type(JsonFieldType.STRING).description("상태"),

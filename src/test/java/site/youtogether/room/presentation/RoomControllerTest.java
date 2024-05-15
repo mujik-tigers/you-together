@@ -30,6 +30,8 @@ import site.youtogether.exception.room.PasswordNotMatchException;
 import site.youtogether.exception.room.RoomCapacityExceededException;
 import site.youtogether.exception.room.SingleRoomParticipationViolationException;
 import site.youtogether.exception.user.ChangeRoomTitleDeniedException;
+import site.youtogether.message.ChatHistory;
+import site.youtogether.message.MessageType;
 import site.youtogether.room.Participant;
 import site.youtogether.room.Room;
 import site.youtogether.room.dto.ChangedRoomTitle;
@@ -773,6 +775,15 @@ class RoomControllerTest extends RestDocsSupport {
 				.createdAt(LocalDateTime.of(2024, 4, 6, 19, 43, 0))
 				.build())
 			.toList();
+	}
+
+	private List<ChatHistory> createChatHistory(String roomCode) {
+		return List.of(
+			new ChatHistory(MessageType.CHAT, 1L, "안녕하세요", LocalDateTime.now().toString()),
+			new ChatHistory(MessageType.ALARM, null, "yeon님이 입장하셨습니다.", LocalDateTime.now().toString()),
+			new ChatHistory(MessageType.CHAT, 2L, "방가방가 햄토리", LocalDateTime.now().toString()),
+			new ChatHistory(MessageType.CHAT, 1L, "ㄷㄷ", LocalDateTime.now().toString())
+		);
 	}
 
 }

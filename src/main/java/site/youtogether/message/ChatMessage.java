@@ -4,8 +4,10 @@ import java.time.LocalDateTime;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+@NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
@@ -16,8 +18,7 @@ public class ChatMessage {
 	private String roomCode;
 	private Long chatId;
 	private Long userId;
-	private String nickname;
 	private String content;
-	private final LocalDateTime createdAt = LocalDateTime.now();
+	private final String createdAt = LocalDateTime.now().toString();
 
 }

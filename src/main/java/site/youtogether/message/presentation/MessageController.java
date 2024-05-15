@@ -38,7 +38,6 @@ public class MessageController {
 
 		chatMessage.setChatId(RandomUtil.generateChatId());
 		chatMessage.setUserId(user.getId());
-		chatMessage.setNickname(user.getNickname());
 
 		messageService.sendChat(chatMessage);
 	}

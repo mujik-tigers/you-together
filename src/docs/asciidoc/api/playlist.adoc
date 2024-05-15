@@ -100,3 +100,48 @@ include::{snippets}/delete-playlist-video-fail/http-response.adoc[]
 include::{snippets}/delete-playlist-video-fail/response-fields.adoc[]
 
 {nbsp}
+
+[[reorder-playlist-video-success]]
+=== 플레이리스트 순서 변경 성공
+
+==== HTTP Request
+
+include::{snippets}/reorder-playlist-video-success/http-request.adoc[]
+include::{snippets}/reorder-playlist-video-success/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/reorder-playlist-video-success/http-response.adoc[]
+include::{snippets}/reorder-playlist-video-success/response-fields.adoc[]
+
+{nbsp}
+
+[[reorder-playlist-video-fail]]
+=== 플레이리스트 순서 변경 실패: 유효하지 않은 인덱스를 사용한 영상 순서 변경
+
+==== HTTP Request
+
+include::{snippets}/reorder-playlist-video-fail/http-request.adoc[]
+include::{snippets}/reorder-playlist-video-fail/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/reorder-playlist-video-fail/http-response.adoc[]
+include::{snippets}/reorder-playlist-video-fail/response-fields.adoc[]
+
+{nbsp}
+
+[[reorder-playlist-video-fail-lock-acquire]]
+=== 플레이리스트 순서 변경 실패: 동시에 비디오 변경이 발생해, 락 획득 실패
+
+==== HTTP Request
+
+include::{snippets}/reorder-playlist-video-fail-lock-acquire/http-request.adoc[]
+include::{snippets}/reorder-playlist-video-fail-lock-acquire/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/reorder-playlist-video-fail-lock-acquire/http-response.adoc[]
+include::{snippets}/reorder-playlist-video-fail-lock-acquire/response-fields.adoc[]
+
+{nbsp}

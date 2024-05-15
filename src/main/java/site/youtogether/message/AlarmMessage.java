@@ -14,6 +14,6 @@ public class AlarmMessage {
 	private Long chatId;
 	private String roomCode;
 	private String content;
-	private final LocalDateTime createdAt = LocalDateTime.now();
+	private final String createdAt = LocalDateTime.now().toString();
 
 }

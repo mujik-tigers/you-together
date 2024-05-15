@@ -6,12 +6,16 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.scripting.support.ResourceScriptSource;
 
 import com.redis.om.spring.annotations.EnableRedisDocumentRepositories;
 
 import lombok.RequiredArgsConstructor;
+import site.youtogether.message.ChatHistory;
 
 @Configuration
 @EnableRedisDocumentRepositories(basePackages = "site.youtogether.*")
@@ -35,6 +39,15 @@ public class RedisConfig {
 		redisScript.setScriptSource(new ResourceScriptSource(new ClassPathResource("script/batch-removal-operation.lua")));
 		redisScript.setResultType(Void.class);
 		return redisScript;
+	}
+
+	@Bean
+	public RedisTemplate<String, ChatHistory> redisTemplate() {
+		RedisTemplate<String, ChatHistory> redisTemplate = new RedisTemplate<>();
+		redisTemplate.setConnectionFactory(redisConnectionFactory());
+		redisTemplate.setKeySerializer(new StringRedisSerializer());
+		redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<>(ChatHistory.class));
+		return redisTemplate;
 	}
 
 }

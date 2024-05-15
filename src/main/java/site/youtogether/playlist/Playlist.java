@@ -52,8 +52,8 @@ public class Playlist {
 	}
 
 	public void reorderVideo(int from, int to) {
-		Video video = videos.get(from);
 		try {
+			Video video = videos.get(from);
 			videos.remove(from);
 			videos.add(to, video);
 		} catch (IndexOutOfBoundsException e) {

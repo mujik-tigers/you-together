@@ -18,6 +18,7 @@ import site.youtogether.exception.user.VideoEditDeniedException;
 import site.youtogether.playlist.Playlist;
 import site.youtogether.playlist.Video;
 import site.youtogether.playlist.dto.PlaylistAddForm;
+import site.youtogether.playlist.dto.VideoOrder;
 import site.youtogether.playlist.infrastructure.PlayingVideoStorage;
 import site.youtogether.playlist.infrastructure.PlaylistStorage;
 import site.youtogether.room.Room;
@@ -174,6 +175,34 @@ class PlaylistServiceTest extends IntegrationTestSupport {
 		assertThat(result.getVideos()).hasSize(1);
 	}
 
+	@Test
+	@DisplayName("재생 목록에서 영상 순서를 변경할 수 있다")
+	void reorderVideo() throws Exception {
+		// given
+		String roomCode = RandomUtil.generateRandomCode(ROOM_CODE_LENGTH);
+		User editor = createRoomAndEnterUser(roomCode, Role.EDITOR);
+		Playlist playlist = playlistStorage.findById(roomCode).get();
+
+		Video video1 = createVideo("video1", 1L);
+		playlist.add(video1);
+		Video video2 = createVideo("video2", 2L);
+		playlist.add(video2);
+		Video video3 = createVideo("video3", 3L);
+		playlist.add(video3);
+		Video video4 = createVideo("video4", 4L);
+		playlist.add(video4);
+
+		playlistStorage.save(playlist);
+
+		// when
+		playlistService.reorderVideo(editor.getId(), new VideoOrder(0, 3));
+
+		// then
+		Playlist result = playlistStorage.findById(roomCode).get();
+		assertThat(result.getVideos()).usingRecursiveFieldByFieldElementComparator()
+			.containsExactly(video2, video3, video4, video1);
+	}
+
 	private User createRoomAndEnterUser(String roomCode, Role role) {
 		User user = User.builder()
 			.id(1L)
@@ -202,6 +231,17 @@ class PlaylistServiceTest extends IntegrationTestSupport {
 		playlistStorage.save(playlist);
 
 		return user;
+	}
+
+	private Video createVideo(String id, Long number) {
+		return Video.builder()
+			.videoId(id)
+			.videoNumber(number)
+			.videoTitle("title")
+			.channelTitle("channel")
+			.duration(10L)
+			.thumbnail("thumbnail")
+			.build();
 	}
 
 }

@@ -1,6 +1,7 @@
 package site.youtogether.util;
 
 import static org.assertj.core.api.Assertions.*;
+import static site.youtogether.util.AppConstants.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -70,7 +71,7 @@ class DataCleanerTest extends IntegrationTestSupport {
 	}
 
 	@Test
-	@DisplayName("참가자가 없으면서 activate가 false인 방과 방의 재생목록은 삭제된다")
+	@DisplayName("참가자가 없으면서 activate가 false인 방과 방의 재생목록, 채팅은 삭제된다")
 	void test2() {
 		Room room = Room.builder()
 			.title("title")
@@ -85,6 +86,10 @@ class DataCleanerTest extends IntegrationTestSupport {
 		Playlist playlist = new Playlist(room.getCode());
 		playlistStorage.save(playlist);
 
+		redisTemplate.opsForList().rightPush(CHAT_PREFIX + room.getCode(), "chatting1~");
+		redisTemplate.opsForList().rightPush(CHAT_PREFIX + room.getCode(), "chatting2~");
+		redisTemplate.opsForList().rightPush(CHAT_PREFIX + room.getCode(), "chatting3~");
+
 		// when
 		redisTemplate.execute(batchRemoveScript,
 			List.of("site.youtogether.room.RoomIdx", "site.youtogether.user.UserIdx", "site.youtogether.playlist.PlaylistIdx"));
@@ -92,6 +97,9 @@ class DataCleanerTest extends IntegrationTestSupport {
 		// then
 		assertThat(roomStorage.existsById(room.getCode())).isFalse();
 		assertThat(playlistStorage.existsById(room.getCode())).isFalse();
+
+		List<String> chatHistory = redisTemplate.opsForList().range(CHAT_PREFIX + room.getCode(), 0, -1);
+		assertThat(chatHistory).isEmpty();
 	}
 
 	@Test
