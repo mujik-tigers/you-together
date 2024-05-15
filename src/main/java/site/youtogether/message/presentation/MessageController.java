@@ -16,6 +16,7 @@ import site.youtogether.message.application.MessageService;
 import site.youtogether.playlist.application.PlayingVideoService;
 import site.youtogether.user.User;
 import site.youtogether.user.infrastructure.UserStorage;
+import site.youtogether.util.RandomUtil;
 
 @RestController
 @RequiredArgsConstructor
@@ -34,7 +35,10 @@ public class MessageController {
 		if (user.isViewer()) {
 			throw new ChatMessageSendDeniedException();
 		}
+
+		chatMessage.setChatId(RandomUtil.generateChatId());
 		chatMessage.setUserId(user.getId());
+		chatMessage.setNickname(user.getNickname());
 
 		messageService.sendChat(chatMessage);
 	}
