@@ -3,7 +3,6 @@ package site.youtogether.room.application;
 import static site.youtogether.util.AppConstants.*;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -76,7 +75,6 @@ public class RoomService {
 			.orElseThrow(UserNoExistenceException::new);
 		Room room = roomStorage.findById(roomCode)
 			.orElseThrow(RoomNoExistenceException::new);
-		List<ChatHistory> chatHistories = chatRedisTemplate.opsForList().range(CHAT_PREFIX + roomCode, 0, -1);
 
 		user.enterRoom(roomCode);
 		room.enter(passwordInput);
@@ -84,7 +82,7 @@ public class RoomService {
 		userStorage.save(user);
 		roomStorage.save(room);
 
-		return new RoomDetail(room, user, chatHistories);
+		return new RoomDetail(room, user);
 	}
 
 	@RoomSynchronize
@@ -111,7 +109,7 @@ public class RoomService {
 		roomStorage.save(room);
 
 		messageService.sendRoomTitle(user.getCurrentRoomCode());
-		messageService.sendAlarm(new AlarmMessage(RandomUtil.generateChatId(), room.getCode(), "[알림] 방 제목이 " + newTitle + "(으)로 변경되었습니다."));
+		messageService.sendAlarm(new AlarmMessage(RandomUtil.generateChatId(), room.getCode(), "방 제목이 " + newTitle + "(으)로 변경되었습니다."));
 
 		return new ChangedRoomTitle(room);
 	}

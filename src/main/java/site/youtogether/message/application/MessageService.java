@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import site.youtogether.exception.playlist.PlaylistNoExistenceException;
 import site.youtogether.exception.room.RoomNoExistenceException;
 import site.youtogether.message.AlarmMessage;
+import site.youtogether.message.ChatHistoriesMessage;
 import site.youtogether.message.ChatHistory;
 import site.youtogether.message.ChatMessage;
 import site.youtogether.message.ParticipantsMessage;
@@ -87,4 +88,9 @@ public class MessageService {
 		chatRedisTemplate.opsForList().trim(CHAT_PREFIX + message.getRoomCode(), -100, -1);
 	}
 
+	public void sendChatHistories(String roomCode) {
+		List<ChatHistory> chatHistories = chatRedisTemplate.opsForList().range(CHAT_PREFIX + roomCode, 0, -1);
+
+		messagingTemplate.convertAndSend(SUBSCRIBE_PATH + roomCode, new ChatHistoriesMessage(chatHistories));
+	}
 }

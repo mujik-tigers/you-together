@@ -340,8 +340,7 @@ class RoomControllerTest extends RestDocsSupport {
 		int capacity = 10;
 
 		Participant participantInfo = new Participant(10L, "황똥땡", Role.HOST);
-		List<ChatHistory> chatHistory = createChatHistory(roomCode);
-		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, participantInfo, capacity, 2, false, chatHistory);
+		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, participantInfo, capacity, 2, false);
 		Optional<User> user = Optional.of(User.builder()
 			.currentRoomCode(null)
 			.build());
@@ -367,7 +366,6 @@ class RoomControllerTest extends RestDocsSupport {
 			.andExpect(jsonPath("$.data.capacity").value(capacity))
 			.andExpect(jsonPath("$.data.currentParticipant").value(2))
 			.andExpect(jsonPath("$.data.passwordExist").value(false))
-			.andExpect(jsonPath("$.data.chatHistories").isArray())
 			.andDo(document("enter-room-success",
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
@@ -384,12 +382,7 @@ class RoomControllerTest extends RestDocsSupport {
 					fieldWithPath("data.user.role").type(JsonFieldType.STRING).description("유저 역할"),
 					fieldWithPath("data.capacity").type(JsonFieldType.NUMBER).description("정원"),
 					fieldWithPath("data.currentParticipant").type(JsonFieldType.NUMBER).description("현재 참가자 수"),
-					fieldWithPath("data.passwordExist").type(JsonFieldType.BOOLEAN).description("비밀번호 존재 여부"),
-					fieldWithPath("data.chatHistories").type(JsonFieldType.ARRAY).description("채팅 기록"),
-					fieldWithPath("data.chatHistories[].messageType").type(JsonFieldType.STRING).description("메세지 타입"),
-					fieldWithPath("data.chatHistories[].userId").type(JsonFieldType.NUMBER).optional().description("유저 아이디"),
-					fieldWithPath("data.chatHistories[].content").type(JsonFieldType.STRING).description("메시지 내용"),
-					fieldWithPath("data.chatHistories[].createdAt").type(JsonFieldType.STRING).description("전송 시간")
+					fieldWithPath("data.passwordExist").type(JsonFieldType.BOOLEAN).description("비밀번호 존재 여부")
 				)
 			));
 	}
@@ -404,7 +397,7 @@ class RoomControllerTest extends RestDocsSupport {
 		int capacity = 10;
 
 		Participant participantInfo = new Participant(10L, "황똥땡", Role.HOST);
-		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, participantInfo, capacity, 2, false, null);
+		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, participantInfo, capacity, 2, false);
 		Optional<User> user = Optional.of(User.builder()
 			.currentRoomCode("1e7050f7d7")
 			.build());
@@ -451,8 +444,7 @@ class RoomControllerTest extends RestDocsSupport {
 		int capacity = 10;
 
 		Participant participantInfo = new Participant(10L, "황똥땡", Role.HOST);
-		List<ChatHistory> chatHistory = createChatHistory(roomCode);
-		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, participantInfo, capacity, 2, true, chatHistory);
+		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, participantInfo, capacity, 2, true);
 		Optional<User> user = Optional.of(User.builder()
 			.currentRoomCode(null)
 			.build());
@@ -480,7 +472,6 @@ class RoomControllerTest extends RestDocsSupport {
 			.andExpect(jsonPath("$.data.capacity").value(capacity))
 			.andExpect(jsonPath("$.data.currentParticipant").value(2))
 			.andExpect(jsonPath("$.data.passwordExist").value(true))
-			.andExpect(jsonPath("$.data.chatHistories").isArray())
 			.andDo(document("enter-password-room-success",
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
@@ -500,12 +491,7 @@ class RoomControllerTest extends RestDocsSupport {
 					fieldWithPath("data.user.role").type(JsonFieldType.STRING).description("유저 역할"),
 					fieldWithPath("data.capacity").type(JsonFieldType.NUMBER).description("정원"),
 					fieldWithPath("data.currentParticipant").type(JsonFieldType.NUMBER).description("현재 참가자 수"),
-					fieldWithPath("data.passwordExist").type(JsonFieldType.BOOLEAN).description("비밀번호 존재 여부"),
-					fieldWithPath("data.chatHistories").type(JsonFieldType.ARRAY).description("채팅 기록"),
-					fieldWithPath("data.chatHistories[].messageType").type(JsonFieldType.STRING).description("메세지 타입"),
-					fieldWithPath("data.chatHistories[].userId").type(JsonFieldType.NUMBER).optional().description("유저 아이디"),
-					fieldWithPath("data.chatHistories[].content").type(JsonFieldType.STRING).description("메시지 내용"),
-					fieldWithPath("data.chatHistories[].createdAt").type(JsonFieldType.STRING).description("전송 시간")
+					fieldWithPath("data.passwordExist").type(JsonFieldType.BOOLEAN).description("비밀번호 존재 여부")
 				)
 			));
 	}
@@ -794,7 +780,7 @@ class RoomControllerTest extends RestDocsSupport {
 	private List<ChatHistory> createChatHistory(String roomCode) {
 		return List.of(
 			new ChatHistory(MessageType.CHAT, 1L, "안녕하세요", LocalDateTime.now().toString()),
-			new ChatHistory(MessageType.ALARM, null, "[알림] yeon님이 입장하셨습니다.", LocalDateTime.now().toString()),
+			new ChatHistory(MessageType.ALARM, null, "yeon님이 입장하셨습니다.", LocalDateTime.now().toString()),
 			new ChatHistory(MessageType.CHAT, 2L, "방가방가 햄토리", LocalDateTime.now().toString()),
 			new ChatHistory(MessageType.CHAT, 1L, "ㄷㄷ", LocalDateTime.now().toString())
 		);

@@ -11,12 +11,10 @@ import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import site.youtogether.exception.user.UserNoExistenceException;
-import site.youtogether.message.AlarmMessage;
 import site.youtogether.message.application.MessageService;
 import site.youtogether.room.application.RoomService;
 import site.youtogether.user.User;
 import site.youtogether.user.infrastructure.UserStorage;
-import site.youtogether.util.RandomUtil;
 
 @Component
 @RequiredArgsConstructor
@@ -42,7 +40,7 @@ public class MessageEventListener {
 
 		messageService.sendParticipants(roomCode);
 		messageService.sendPlaylist(roomCode);
-		messageService.sendAlarm(new AlarmMessage(RandomUtil.generateChatId(), roomCode, "[알림] " + user.getNickname() + "님이 입장하셨습니다."));
+		messageService.sendChatHistories(roomCode);
 	}
 
 	@EventListener
@@ -57,7 +55,6 @@ public class MessageEventListener {
 		log.info("--USER {} 웹 소켓 커넥션 종료 시도--", userId);
 		roomService.leave(userId);
 		messageService.sendParticipants(roomCode);
-		messageService.sendAlarm(new AlarmMessage(RandomUtil.generateChatId(), roomCode, "[알림] " + user.getNickname() + "님이 퇴장하셨습니다."));
 	}
 
 }
