@@ -1,8 +1,12 @@
 package site.youtogether.user;
 
+import static site.youtogether.util.AppConstants.*;
+
+import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Queue;
 
 import org.springframework.data.annotation.Id;
 
@@ -36,6 +40,7 @@ public class User {
 
 	private String nickname;
 	private Map<String, Role> history = new HashMap<>();
+	private Queue<String> roomCodeQueue = new ArrayDeque<>();
 
 	@Builder
 	private User(Long id, String nickname, String currentRoomCode, boolean activate) {
@@ -103,7 +108,13 @@ public class User {
 	public void enterRoom(String roomCode) {
 		if (isFirstTimeEntering(roomCode)) {
 			history.put(roomCode, Role.GUEST);
+			if (roomCodeQueue.size() >= USER_HISTORY_LENGTH) {
+				removeOldestRoomCode();
+			}
+		} else {
+			roomCodeQueue.remove(roomCode);
 		}
+		roomCodeQueue.offer(roomCode);
 		currentRoomCode = roomCode;
 		activate = true;
 	}
@@ -131,6 +142,11 @@ public class User {
 
 	private boolean isFirstTimeEntering(String roomCode) {
 		return !history.containsKey(roomCode);
+	}
+
+	private void removeOldestRoomCode() {
+		String deletedRoomCode = roomCodeQueue.poll();
+		history.remove(deletedRoomCode);
 	}
 
 	private boolean isInSameRoom(User user, User targetUser) {
