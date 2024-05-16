@@ -88,7 +88,7 @@ public class RoomService {
 		userStorage.save(user);
 		roomStorage.save(room);
 
-		return new RoomDetail(room, user);
+		return new RoomDetail(room, user, playingVideoStorage.findById(roomCode));
 	}
 
 	@RoomSynchronize
