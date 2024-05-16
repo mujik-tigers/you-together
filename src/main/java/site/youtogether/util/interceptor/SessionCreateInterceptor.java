@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import site.youtogether.config.property.CookieProperties;
 import site.youtogether.jwt.JwtService;
 import site.youtogether.user.User;
+import site.youtogether.user.infrastructure.UniqueNicknameStorage;
 import site.youtogether.user.infrastructure.UserStorage;
 import site.youtogether.util.RandomUtil;
 
@@ -30,6 +31,7 @@ public class SessionCreateInterceptor implements HandlerInterceptor {
 	private final CookieProperties cookieProperties;
 	private final UserStorage userStorage;
 	private final JwtService jwtService;
+	private final UniqueNicknameStorage uniqueNicknameStorage;
 
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
@@ -55,13 +57,19 @@ public class SessionCreateInterceptor implements HandlerInterceptor {
 		request.setAttribute(USER_ID, userId);
 		generateCookie(response, newToken);
 
+		String randomNickname = RandomUtil.generateUserNickname();
+		while (uniqueNicknameStorage.exist(randomNickname)) {
+			randomNickname = RandomUtil.generateUserNickname();
+		}
+
 		User user = User.builder()
 			.id(userId)
-			.nickname(RandomUtil.generateUserNickname())
+			.nickname(randomNickname)
 			.currentRoomCode(null)
 			.activate(true)
 			.build();
 		userStorage.save(user);
+		uniqueNicknameStorage.save(randomNickname);
 
 		return userId;
 	}

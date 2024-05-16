@@ -11,12 +11,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import site.youtogether.IntegrationTestSupport;
+import site.youtogether.exception.user.UserNicknameDuplicateException;
 import site.youtogether.room.Participant;
 import site.youtogether.room.Room;
 import site.youtogether.room.infrastructure.RoomStorage;
 import site.youtogether.user.Role;
 import site.youtogether.user.User;
 import site.youtogether.user.dto.UserRoleChangeForm;
+import site.youtogether.user.infrastructure.UniqueNicknameStorage;
 import site.youtogether.user.infrastructure.UserStorage;
 import site.youtogether.util.RandomUtil;
 
@@ -33,10 +35,14 @@ class UserServiceTest extends IntegrationTestSupport {
 	@Autowired
 	private RoomStorage roomStorage;
 
+	@Autowired
+	private UniqueNicknameStorage uniqueNicknameStorage;
+
 	@AfterEach
 	void clean() {
 		userStorage.deleteAll();
 		roomStorage.deleteAll();
+		uniqueNicknameStorage.delete();
 	}
 
 	@Test
@@ -60,6 +66,18 @@ class UserServiceTest extends IntegrationTestSupport {
 
 		assertThat(participant.getNickname()).isEqualTo(newNickname);
 		assertThat(savedUser.getNickname()).isEqualTo(newNickname);
+	}
+
+	@Test
+	@DisplayName("다른 유저가 사용하는 닉네임으로 변경할 수 없다")
+	void changeUserNicknameFail() throws Exception {
+		// given
+		User user1 = createUser(1L, "hyun");
+		User user2 = createUser(2L, "yeon");
+
+		// when // then
+		assertThatThrownBy(() -> userService.changeUserNickname(user2.getId(), user1.getNickname()))
+			.isInstanceOf(UserNicknameDuplicateException.class);
 	}
 
 	@Test
@@ -118,6 +136,17 @@ class UserServiceTest extends IntegrationTestSupport {
 		user.enterRoom(currentRoomCode);
 		userStorage.save(user);
 
+		return user;
+	}
+
+	private User createUser(Long userId, String nickname) {
+		User user = User.builder()
+			.id(userId)
+			.nickname(nickname)
+			.build();
+
+		userStorage.save(user);
+		uniqueNicknameStorage.save(nickname);
 		return user;
 	}
 

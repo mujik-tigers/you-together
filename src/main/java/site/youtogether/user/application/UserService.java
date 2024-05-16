@@ -9,6 +9,7 @@ import site.youtogether.message.application.MessageService;
 import site.youtogether.room.Participant;
 import site.youtogether.user.User;
 import site.youtogether.user.dto.UserRoleChangeForm;
+import site.youtogether.user.infrastructure.UniqueNicknameStorage;
 import site.youtogether.user.infrastructure.UserStorage;
 import site.youtogether.util.RandomUtil;
 import site.youtogether.util.aop.UserSynchronize;
@@ -19,10 +20,13 @@ public class UserService {
 
 	private final UserStorage userStorage;
 	private final MessageService messageService;
+	private final UniqueNicknameStorage uniqueNicknameStorage;
 
 	public Participant changeUserNickname(Long userId, String newNickname) {
 		User user = userStorage.findById(userId)
 			.orElseThrow(UserNoExistenceException::new);
+
+		uniqueNicknameStorage.update(user.getNickname(), newNickname);
 		user.changeNickname(newNickname);
 		userStorage.save(user);
 

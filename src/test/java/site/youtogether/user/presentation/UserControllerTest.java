@@ -21,6 +21,7 @@ import site.youtogether.exception.user.HigherOrEqualRoleChangeException;
 import site.youtogether.exception.user.HigherOrEqualRoleUserChangeException;
 import site.youtogether.exception.user.NotManageableUserException;
 import site.youtogether.exception.user.SelfRoleChangeException;
+import site.youtogether.exception.user.UserNicknameDuplicateException;
 import site.youtogether.room.Participant;
 import site.youtogether.user.Role;
 import site.youtogether.user.dto.NicknameInput;
@@ -116,6 +117,58 @@ class UserControllerTest extends RestDocsSupport {
 			.andExpect(jsonPath("$.result").value(ResponseResult.EXCEPTION_OCCURRED.getDescription()))
 			.andExpect(jsonPath("$.data").isArray())
 			.andDo(document("change-nickname-fail",
+				preprocessRequest(prettyPrint()),
+				preprocessResponse(prettyPrint()),
+				requestFields(
+					fieldWithPath("newNickname").type(JsonFieldType.STRING).description("새로운 닉네임")
+				),
+				responseFields(
+					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
+					fieldWithPath("status").type(JsonFieldType.STRING).description("상태"),
+					fieldWithPath("result").type(JsonFieldType.STRING).description("결과"),
+					fieldWithPath("data").type(JsonFieldType.ARRAY).description("응답 데이터"),
+					fieldWithPath("data[].type").type(JsonFieldType.STRING).description("오류 타입"),
+					fieldWithPath("data[].message").type(JsonFieldType.STRING).description("오류 메시지")
+				)
+			));
+	}
+
+	@Test
+	@DisplayName("닉네임 변경 실패: 중복된 닉네임입니다")
+	void changeNicknameFailDuplicate() throws Exception {
+		// given
+		// Setting session cookie for request
+		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
+		Cookie sessionCookie = new Cookie(cookieProperties.getName(), token);
+
+		// Setting new user nickname for request
+		String newNickname = "hyun";
+		NicknameInput form = new NicknameInput(newNickname);
+
+		// Setting up response data
+		Participant participant = new Participant(1L, newNickname, Role.GUEST);
+
+		given(jwtService.parse(eq(token)))
+			.willReturn(1L);
+		given(userStorage.existsById(eq(1L)))
+			.willReturn(true);
+		given(userService.changeUserNickname(eq(participant.getUserId()), eq(newNickname)))
+			.willThrow(new UserNicknameDuplicateException());
+
+		// when // then
+		mockMvc.perform(patch("/users")
+				.content(objectMapper.writeValueAsString(form))
+				.contentType(MediaType.APPLICATION_JSON)
+				.cookie(sessionCookie))
+			.andDo(print())
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
+			.andExpect(jsonPath("$.status").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
+			.andExpect(jsonPath("$.result").value(ResponseResult.EXCEPTION_OCCURRED.getDescription()))
+			.andExpect(jsonPath("$.data").isArray())
+			.andExpect(jsonPath("$.data[0].type").value(UserNicknameDuplicateException.class.getSimpleName()))
+			.andExpect(jsonPath("$.data[0].message").value(ErrorType.USER_NICKNAME_DUPLICATE.getMessage()))
+			.andDo(document("change-nickname-fail-duplicate",
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
 				requestFields(

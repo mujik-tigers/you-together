@@ -12,6 +12,7 @@ public final class AppConstants {
 	public static final String USER_ID = "userId";
 	public static final String ROOM_CODE = "roomCode";
 	public static final String CHAT_PREFIX = "chat:";
+	public static final String USER_NICKNAME_SET = "userNicknames";
 	public static final String SUBSCRIBE_PATH = "/sub/messages/rooms/";
 
 }
