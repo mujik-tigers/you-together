@@ -15,6 +15,9 @@ public class PlayingVideo {
 
 	private final String roomCode;
 	private final String videoId;
+	private final String videoTitle;
+	private final String channelTitle;
+	private final String thumbnail;
 	private final long totalTime;
 	private final MessageService messageService;
 	private final PlaylistService playlistService;
@@ -27,6 +30,9 @@ public class PlayingVideo {
 	public PlayingVideo(String roomCode, Video video, MessageService messageService, PlaylistService playlistService) {
 		this.roomCode = roomCode;
 		this.videoId = video.getVideoId();
+		this.videoTitle = video.getVideoTitle();
+		this.channelTitle = video.getChannelTitle();
+		this.thumbnail = video.getThumbnail();
 		this.totalTime = video.getDuration();
 		this.currentTime = 0.0;
 
