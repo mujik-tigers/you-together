@@ -45,6 +45,14 @@ public class Playlist {
 		return videos.remove(0);
 	}
 
+	public Video playNextCallByTimer() {            // PlayingVideo 타이머에 의해 수동적으로 호출되는 메서드
+		if (videos.isEmpty()) {
+			throw new PlaylistEmptyException();
+		}
+
+		return videos.remove(0);
+	}
+
 	public void delete(Long videoNumber) {
 		videos = videos.stream()
 			.filter(v -> !v.getVideoNumber().equals(videoNumber))
@@ -59,14 +67,6 @@ public class Playlist {
 		} catch (IndexOutOfBoundsException e) {
 			throw new InvalidVideoOrderException();
 		}
-	}
-
-	public Long findNextVideoNumber() {
-		if (videos.isEmpty()) {
-			throw new PlaylistEmptyException();
-		}
-
-		return videos.get(0).getVideoNumber();
 	}
 
 }

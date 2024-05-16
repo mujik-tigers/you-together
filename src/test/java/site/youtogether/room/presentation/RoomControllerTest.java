@@ -11,6 +11,7 @@ import static site.youtogether.exception.ErrorType.*;
 import static site.youtogether.util.AppConstants.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.IntStream;
@@ -19,6 +20,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -30,8 +32,6 @@ import site.youtogether.exception.room.PasswordNotMatchException;
 import site.youtogether.exception.room.RoomCapacityExceededException;
 import site.youtogether.exception.room.SingleRoomParticipationViolationException;
 import site.youtogether.exception.user.ChangeRoomTitleDeniedException;
-import site.youtogether.message.ChatHistory;
-import site.youtogether.message.MessageType;
 import site.youtogether.room.Participant;
 import site.youtogether.room.Room;
 import site.youtogether.room.dto.ChangedRoomTitle;
@@ -39,6 +39,7 @@ import site.youtogether.room.dto.NewRoom;
 import site.youtogether.room.dto.PasswordInput;
 import site.youtogether.room.dto.RoomDetail;
 import site.youtogether.room.dto.RoomList;
+import site.youtogether.room.dto.RoomListDetail;
 import site.youtogether.room.dto.RoomSettings;
 import site.youtogether.room.dto.TitleInput;
 import site.youtogether.user.Role;
@@ -277,7 +278,9 @@ class RoomControllerTest extends RestDocsSupport {
 			.currentRoomCode("1e7050f7d7")
 			.build());
 		SliceImpl<Room> roomSlice = new SliceImpl<>(generateRooms(3), PageRequest.of(0, 10), false);
-		RoomList roomList = new RoomList(roomSlice);
+
+		RoomList roomList = new RoomList(roomSlice.getNumber(), roomSlice.getPageable().getPageSize(), roomSlice.hasNext(),
+			createRoomListDetails(roomSlice));
 
 		given(jwtService.parse(token))
 			.willReturn(1L);
@@ -302,8 +305,6 @@ class RoomControllerTest extends RestDocsSupport {
 			.andExpect(jsonPath("$.data.hasNext").value(roomList.isHasNext()))
 			.andExpect(jsonPath("$.data.rooms[0].roomCode").value(roomList.getRooms().get(0).getRoomCode()))
 			.andExpect(jsonPath("$.data.rooms[0].roomTitle").value(roomList.getRooms().get(0).getRoomTitle()))
-			.andExpect(jsonPath("$.data.rooms[0].videoTitle").value(roomList.getRooms().get(0).getVideoTitle()))
-			.andExpect(jsonPath("$.data.rooms[0].videoThumbnail").value(roomList.getRooms().get(0).getVideoThumbnail()))
 			.andExpect(jsonPath("$.data.rooms[0].capacity").value(roomList.getRooms().get(0).getCapacity()))
 			.andExpect(jsonPath("$.data.rooms[0].currentParticipant").value(roomList.getRooms().get(0).getCurrentParticipant()))
 			.andExpect(jsonPath("$.data.rooms[0].passwordExist").value(roomList.getRooms().get(0).isPasswordExist()))
@@ -321,8 +322,8 @@ class RoomControllerTest extends RestDocsSupport {
 					fieldWithPath("data.rooms").type(JsonFieldType.ARRAY).description("방 목록 조회 결과"),
 					fieldWithPath("data.rooms[].roomCode").type(JsonFieldType.STRING).description("방 식별 코드"),
 					fieldWithPath("data.rooms[].roomTitle").type(JsonFieldType.STRING).description("방 제목"),
-					fieldWithPath("data.rooms[].videoTitle").type(JsonFieldType.STRING).description("영상 제목"),
-					fieldWithPath("data.rooms[].videoThumbnail").type(JsonFieldType.STRING).description("영상 썸네일 URL"),
+					fieldWithPath("data.rooms[].videoTitle").type(JsonFieldType.STRING).description("영상 제목").optional(),
+					fieldWithPath("data.rooms[].videoThumbnail").type(JsonFieldType.STRING).description("영상 썸네일 URL").optional(),
 					fieldWithPath("data.rooms[].capacity").type(JsonFieldType.NUMBER).description("정원"),
 					fieldWithPath("data.rooms[].currentParticipant").type(JsonFieldType.NUMBER).description("현재 참여자 수"),
 					fieldWithPath("data.rooms[].passwordExist").type(JsonFieldType.BOOLEAN).description("비밀번호 존재 여부")
@@ -340,7 +341,7 @@ class RoomControllerTest extends RestDocsSupport {
 		int capacity = 10;
 
 		Participant participantInfo = new Participant(10L, "황똥땡", Role.HOST);
-		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, participantInfo, capacity, 2, false);
+		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, participantInfo, capacity, 2, false, "aespa 에스파 'Supernova' MV", "SMTOWN");
 		Optional<User> user = Optional.of(User.builder()
 			.currentRoomCode(null)
 			.build());
@@ -366,6 +367,8 @@ class RoomControllerTest extends RestDocsSupport {
 			.andExpect(jsonPath("$.data.capacity").value(capacity))
 			.andExpect(jsonPath("$.data.currentParticipant").value(2))
 			.andExpect(jsonPath("$.data.passwordExist").value(false))
+			.andExpect(jsonPath("$.data.currentVideoTitle").value(createdRoomDetail.getCurrentVideoTitle()))
+			.andExpect(jsonPath("$.data.currentChannelTitle").value(createdRoomDetail.getCurrentChannelTitle()))
 			.andDo(document("enter-room-success",
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
@@ -382,7 +385,9 @@ class RoomControllerTest extends RestDocsSupport {
 					fieldWithPath("data.user.role").type(JsonFieldType.STRING).description("유저 역할"),
 					fieldWithPath("data.capacity").type(JsonFieldType.NUMBER).description("정원"),
 					fieldWithPath("data.currentParticipant").type(JsonFieldType.NUMBER).description("현재 참가자 수"),
-					fieldWithPath("data.passwordExist").type(JsonFieldType.BOOLEAN).description("비밀번호 존재 여부")
+					fieldWithPath("data.passwordExist").type(JsonFieldType.BOOLEAN).description("비밀번호 존재 여부"),
+					fieldWithPath("data.currentVideoTitle").type(JsonFieldType.STRING).description("현재 재생중인 영상의 제목").optional(),
+					fieldWithPath("data.currentChannelTitle").type(JsonFieldType.STRING).description("현재 재생중인 영상의 채널 이름").optional()
 				)
 			));
 	}
@@ -397,7 +402,7 @@ class RoomControllerTest extends RestDocsSupport {
 		int capacity = 10;
 
 		Participant participantInfo = new Participant(10L, "황똥땡", Role.HOST);
-		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, participantInfo, capacity, 2, false);
+		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, participantInfo, capacity, 2, false, "aespa 에스파 'Supernova' MV", "SMTOWN");
 		Optional<User> user = Optional.of(User.builder()
 			.currentRoomCode("1e7050f7d7")
 			.build());
@@ -444,7 +449,7 @@ class RoomControllerTest extends RestDocsSupport {
 		int capacity = 10;
 
 		Participant participantInfo = new Participant(10L, "황똥땡", Role.HOST);
-		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, participantInfo, capacity, 2, true);
+		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, participantInfo, capacity, 2, true, "aespa 에스파 'Supernova' MV", "SMTOWN");
 		Optional<User> user = Optional.of(User.builder()
 			.currentRoomCode(null)
 			.build());
@@ -472,6 +477,8 @@ class RoomControllerTest extends RestDocsSupport {
 			.andExpect(jsonPath("$.data.capacity").value(capacity))
 			.andExpect(jsonPath("$.data.currentParticipant").value(2))
 			.andExpect(jsonPath("$.data.passwordExist").value(true))
+			.andExpect(jsonPath("$.data.currentVideoTitle").value(createdRoomDetail.getCurrentVideoTitle()))
+			.andExpect(jsonPath("$.data.currentChannelTitle").value(createdRoomDetail.getCurrentChannelTitle()))
 			.andDo(document("enter-password-room-success",
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
@@ -491,7 +498,9 @@ class RoomControllerTest extends RestDocsSupport {
 					fieldWithPath("data.user.role").type(JsonFieldType.STRING).description("유저 역할"),
 					fieldWithPath("data.capacity").type(JsonFieldType.NUMBER).description("정원"),
 					fieldWithPath("data.currentParticipant").type(JsonFieldType.NUMBER).description("현재 참가자 수"),
-					fieldWithPath("data.passwordExist").type(JsonFieldType.BOOLEAN).description("비밀번호 존재 여부")
+					fieldWithPath("data.passwordExist").type(JsonFieldType.BOOLEAN).description("비밀번호 존재 여부"),
+					fieldWithPath("data.currentVideoTitle").type(JsonFieldType.STRING).description("현재 재생중인 영상의 제목").optional(),
+					fieldWithPath("data.currentChannelTitle").type(JsonFieldType.STRING).description("현재 재생중인 영상의 채널 이름").optional()
 				)
 			));
 	}
@@ -764,8 +773,6 @@ class RoomControllerTest extends RestDocsSupport {
 			));
 	}
 
-	// TODO: Reorder 테스트는 프론트와 협의 후 작성
-
 	private List<Room> generateRooms(int count) {
 		return IntStream.rangeClosed(1, count)
 			.mapToObj(number -> Room.builder()
@@ -777,13 +784,20 @@ class RoomControllerTest extends RestDocsSupport {
 			.toList();
 	}
 
-	private List<ChatHistory> createChatHistory(String roomCode) {
-		return List.of(
-			new ChatHistory(MessageType.CHAT, 123L, 1L, "안녕하세요", LocalDateTime.now().toString()),
-			new ChatHistory(MessageType.ALARM, 124L, null, "yeon님이 입장하셨습니다.", LocalDateTime.now().toString()),
-			new ChatHistory(MessageType.CHAT, 125L, 2L, "방가방가 햄토리", LocalDateTime.now().toString()),
-			new ChatHistory(MessageType.CHAT, 126L, 1L, "ㄷㄷ", LocalDateTime.now().toString())
-		);
+	private List<RoomListDetail> createRoomListDetails(Slice<Room> roomSlice) {
+		List<Room> rooms = roomSlice.getContent();
+		List<RoomListDetail> roomListDetails = new ArrayList<>();
+		for (int i = 0; i < rooms.size(); i++) {
+			if (i == 2) {
+				roomListDetails.add(new RoomListDetail(rooms.get(i).getCode(), rooms.get(i).getTitle(), null, null, rooms.get(i).getCapacity(),
+					rooms.get(i).getParticipantCount(), rooms.get(i).hasPassword()));
+			} else {
+				roomListDetails.add(new RoomListDetail(rooms.get(i).getCode(), rooms.get(i).getTitle(), "궤도 '연애의 과학' 특강",
+					"https://i.ytimg.com/vi/TXI1npEFNss/hqdefault.jpg", rooms.get(i).getCapacity(),
+					rooms.get(i).getParticipantCount(), rooms.get(i).hasPassword()));
+			}
+		}
+		return roomListDetails;
 	}
 
 }

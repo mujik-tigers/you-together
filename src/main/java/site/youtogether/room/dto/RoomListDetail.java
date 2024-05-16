@@ -1,8 +1,13 @@
 package site.youtogether.room.dto;
 
+import java.util.Optional;
+
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import site.youtogether.playlist.PlayingVideo;
 import site.youtogether.room.Room;
 
+@AllArgsConstructor
 @Getter
 public class RoomListDetail {
 
@@ -14,14 +19,16 @@ public class RoomListDetail {
 	private int currentParticipant;
 	private boolean passwordExist;
 
-	public RoomListDetail(Room room) {    // TODO: videoTitle, videoThumbnail 은 추후 결정
+	public RoomListDetail(Room room, Optional<PlayingVideo> playingVideo) {
 		this.roomCode = room.getCode();
 		this.roomTitle = room.getTitle();
 		this.capacity = room.getCapacity();
 		this.currentParticipant = room.getParticipantCount();
 		this.passwordExist = room.hasPassword();
-		this.videoThumbnail = "https://i.ytimg.com/vi/sl7ih5rLfYM/hq720.jpg?sqp=-oaymwEcCNAFEJQDSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLDbjCXvhBJSBKs9bX_XMy_EfUtvSw";
-		this.videoTitle = "궤도 '연애의 과학' 특강 1";
+		playingVideo.ifPresent((p) -> {
+			this.videoThumbnail = p.getThumbnail();
+			this.videoTitle = p.getVideoTitle();
+		});
 	}
 
 }
