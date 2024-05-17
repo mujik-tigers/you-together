@@ -21,6 +21,7 @@ public enum ErrorType {
 	ROOM_TITLE_CHANGE_DENIED(HttpStatus.FORBIDDEN, "방 제목을 변경할 권한이 없습니다"),
 	USERS_IN_DIFFERENT_ROOM(HttpStatus.BAD_REQUEST, "해당 방에 두 유저가 존재하지 않습니다"),
 	VIDEO_EDIT_DENIED(HttpStatus.FORBIDDEN, "영상 관련 작업을 할 권한이 없습니다"),
+	USER_NICKNAME_DUPLICATE(HttpStatus.BAD_REQUEST, "이미 사용중인 닉네임입니다"),
 
 	// Room
 	ROOM_NO_EXISTENCE(HttpStatus.NOT_FOUND, "방이 없습니다"),

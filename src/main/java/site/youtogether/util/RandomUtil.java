@@ -49,9 +49,10 @@ public final class RandomUtil {
 			"GoldenGlider", "CrimsonFalcon", "EchoingWhisper", "EmberPhoenix", "RadiantRebel"
 		);
 
-		int randomIndex = ThreadLocalRandom.current().nextInt(samples.size());
+		int prefixIndex = ThreadLocalRandom.current().nextInt(samples.size());
+		int suffixNumber = ThreadLocalRandom.current().nextInt(1000);
 
-		return samples.get(randomIndex);
+		return samples.get(prefixIndex) + suffixNumber;
 	}
 
 }
