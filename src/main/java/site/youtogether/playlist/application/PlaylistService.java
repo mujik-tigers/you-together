@@ -46,6 +46,7 @@ public class PlaylistService {
 		if (!playingVideoStorage.existsById(user.getCurrentRoomCode())) {
 			Video nextVideo = playlist.playNext(video.getVideoNumber());
 			playingVideoStorage.saveAndPlay(new PlayingVideo(user.getCurrentRoomCode(), nextVideo, messageService, this));
+			messageService.sendStartVideoInfo(user.getCurrentRoomCode(), nextVideo.getVideoTitle(), nextVideo.getChannelTitle());
 		}
 		playlistStorage.save(playlist);
 
