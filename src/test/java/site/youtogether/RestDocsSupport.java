@@ -17,6 +17,7 @@ import site.youtogether.playlist.presentation.PlaylistController;
 import site.youtogether.room.application.RoomService;
 import site.youtogether.room.presentation.RoomController;
 import site.youtogether.user.application.UserService;
+import site.youtogether.user.infrastructure.UniqueNicknameStorage;
 import site.youtogether.user.infrastructure.UserStorage;
 import site.youtogether.user.presentation.UserController;
 
@@ -52,5 +53,8 @@ public abstract class RestDocsSupport {
 
 	@MockBean
 	protected PlaylistService playlistService;
+
+	@MockBean
+	protected UniqueNicknameStorage uniqueNicknameStorage;
 
 }

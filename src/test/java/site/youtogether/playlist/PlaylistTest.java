@@ -56,7 +56,7 @@ class PlaylistTest {
 		playlist.add(video2);
 
 		// when
-		playlist.playNext(video1.getVideoNumber());
+		playlist.playNextCallByTimer();
 
 		// then
 		assertThat(playlist.getVideos()).hasSize(1);
@@ -70,7 +70,7 @@ class PlaylistTest {
 		Playlist playlist = new Playlist("room code");
 
 		// when / then
-		assertThatThrownBy(() -> playlist.playNext(1L))
+		assertThatThrownBy(() -> playlist.playNextCallByTimer())
 			.isInstanceOf(PlaylistEmptyException.class);
 	}
 

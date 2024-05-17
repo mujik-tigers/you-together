@@ -19,6 +19,7 @@ import site.youtogether.playlist.infrastructure.PlaylistStorage;
 import site.youtogether.room.Room;
 import site.youtogether.room.infrastructure.RoomStorage;
 import site.youtogether.user.User;
+import site.youtogether.user.infrastructure.UniqueNicknameStorage;
 import site.youtogether.user.infrastructure.UserStorage;
 
 class DataCleanerTest extends IntegrationTestSupport {
@@ -33,6 +34,9 @@ class DataCleanerTest extends IntegrationTestSupport {
 	private PlaylistStorage playlistStorage;
 
 	@Autowired
+	private UniqueNicknameStorage uniqueNicknameStorage;
+
+	@Autowired
 	private StringRedisTemplate redisTemplate;
 
 	@Autowired
@@ -43,6 +47,7 @@ class DataCleanerTest extends IntegrationTestSupport {
 		userStorage.deleteAll();
 		roomStorage.deleteAll();
 		playlistStorage.deleteAll();
+		uniqueNicknameStorage.delete();
 	}
 
 	@Test
@@ -62,7 +67,7 @@ class DataCleanerTest extends IntegrationTestSupport {
 
 		// when
 		redisTemplate.execute(batchRemoveScript,
-			List.of("site.youtogether.room.RoomIdx", "site.youtogether.user.UserIdx", "site.youtogether.playlist.PlaylistIdx"));
+			List.of("site.youtogether.room.RoomIdx", "site.youtogether.user.UserIdx", USER_NICKNAME_SET));
 
 		// then
 		Room result = roomStorage.findById(room.getCode()).get();
@@ -92,7 +97,7 @@ class DataCleanerTest extends IntegrationTestSupport {
 
 		// when
 		redisTemplate.execute(batchRemoveScript,
-			List.of("site.youtogether.room.RoomIdx", "site.youtogether.user.UserIdx", "site.youtogether.playlist.PlaylistIdx"));
+			List.of("site.youtogether.room.RoomIdx", "site.youtogether.user.UserIdx", USER_NICKNAME_SET));
 
 		// then
 		assertThat(roomStorage.existsById(room.getCode())).isFalse();
@@ -122,7 +127,7 @@ class DataCleanerTest extends IntegrationTestSupport {
 
 		// when
 		redisTemplate.execute(batchRemoveScript,
-			List.of("site.youtogether.room.RoomIdx", "site.youtogether.user.UserIdx", "site.youtogether.playlist.PlaylistIdx"));
+			List.of("site.youtogether.room.RoomIdx", "site.youtogether.user.UserIdx", USER_NICKNAME_SET));
 
 		// then
 		Room result = roomStorage.findById(room.getCode()).get();
@@ -143,12 +148,14 @@ class DataCleanerTest extends IntegrationTestSupport {
 			.build();
 
 		userStorage.save(user);
+		uniqueNicknameStorage.save(user.getNickname());
 
 		// when
 		redisTemplate.execute(batchRemoveScript,
-			List.of("site.youtogether.room.RoomIdx", "site.youtogether.user.UserIdx", "site.youtogether.playlist.PlaylistIdx"));
+			List.of("site.youtogether.room.RoomIdx", "site.youtogether.user.UserIdx", USER_NICKNAME_SET));
 
 		// then
+		assertThat(uniqueNicknameStorage.exist(user.getNickname())).isTrue();
 		User result = userStorage.findById(user.getId()).get();
 
 		assertThat(result.isActivate()).isFalse();
@@ -165,12 +172,14 @@ class DataCleanerTest extends IntegrationTestSupport {
 			.build();
 
 		userStorage.save(user);
+		uniqueNicknameStorage.save(user.getNickname());
 
 		// when
 		redisTemplate.execute(batchRemoveScript,
-			List.of("site.youtogether.room.RoomIdx", "site.youtogether.user.UserIdx", "site.youtogether.playlist.PlaylistIdx"));
+			List.of("site.youtogether.room.RoomIdx", "site.youtogether.user.UserIdx", USER_NICKNAME_SET));
 
 		// then
+		assertThat(uniqueNicknameStorage.exist(user.getNickname())).isFalse();
 		assertThat(userStorage.existsById(user.getId())).isFalse();
 	}
 
@@ -185,14 +194,16 @@ class DataCleanerTest extends IntegrationTestSupport {
 			.build();
 
 		userStorage.save(user);
-
+		uniqueNicknameStorage.save(user.getNickname());
+		
 		// when
 		redisTemplate.execute(batchRemoveScript,
-			List.of("site.youtogether.room.RoomIdx", "site.youtogether.user.UserIdx", "site.youtogether.playlist.PlaylistIdx"));
+			List.of("site.youtogether.room.RoomIdx", "site.youtogether.user.UserIdx", USER_NICKNAME_SET));
 
 		// then
 		User result = userStorage.findById(user.getId()).get();
 
+		assertThat(uniqueNicknameStorage.exist(user.getNickname())).isTrue();
 		assertThat(result.isActivate()).isTrue();
 	}
 

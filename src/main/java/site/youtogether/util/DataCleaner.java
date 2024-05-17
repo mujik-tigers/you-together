@@ -1,5 +1,7 @@
 package site.youtogether.util;
 
+import static site.youtogether.util.AppConstants.*;
+
 import java.util.List;
 
 import org.springframework.data.redis.core.RedisTemplate;
@@ -19,7 +21,7 @@ public class DataCleaner {
 	@Scheduled(cron = "0 0 6 * * *", zone = "Asia/Seoul")
 	public void clean() {
 		redisTemplate.execute(batchRemoveScript,
-			List.of("site.youtogether.room.RoomIdx", "site.youtogether.user.UserIdx", "site.youtogether.playlist.PlaylistIdx"));
+			List.of("site.youtogether.room.RoomIdx", "site.youtogether.user.UserIdx", USER_NICKNAME_SET));
 	}
 
 }

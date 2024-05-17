@@ -42,6 +42,14 @@ public class RedisConfig {
 	}
 
 	@Bean
+	public DefaultRedisScript<Boolean> updateUniqueNicknameScript() {
+		DefaultRedisScript<Boolean> redisScript = new DefaultRedisScript<>();
+		redisScript.setScriptSource(new ResourceScriptSource(new ClassPathResource("script/update-unique-nickname.lua")));
+		redisScript.setResultType(Boolean.class);
+		return redisScript;
+	}
+
+	@Bean
 	public RedisTemplate<String, ChatHistory> redisTemplate() {
 		RedisTemplate<String, ChatHistory> redisTemplate = new RedisTemplate<>();
 		redisTemplate.setConnectionFactory(redisConnectionFactory());

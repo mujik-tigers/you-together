@@ -56,11 +56,12 @@ public class PlaylistService {
 		Playlist playlist = playlistStorage.findById(roomCode)
 			.orElseThrow(PlaylistNoExistenceException::new);
 
-		playingVideoStorage.delete(roomCode);
-		Video nextVideo = playlist.playNext(playlist.findNextVideoNumber());
+		playingVideoStorage.delete(roomCode);                    // 다음에 재생할 영상이 없더라도, 현재 재생중인 영상을 제거해야 하므로, delete 가 선행
+		Video nextVideo = playlist.playNextCallByTimer();
 		playingVideoStorage.saveAndPlay(new PlayingVideo(roomCode, nextVideo, messageService, this));
 		playlistStorage.save(playlist);
 
+		messageService.sendStartVideoInfo(roomCode, nextVideo.getVideoTitle(), nextVideo.getChannelTitle());
 		messageService.sendPlaylist(roomCode);
 	}
 
@@ -75,10 +76,11 @@ public class PlaylistService {
 			.orElseThrow(PlaylistNoExistenceException::new);
 
 		Video nextVideo = playlist.playNext(videoNumber);
-		playingVideoStorage.delete(user.getCurrentRoomCode());
+		playingVideoStorage.delete(user.getCurrentRoomCode());            // 다음에 재생할 영상이 올바르지 않은 경우, 현재 재생중인 영상을 제거하면 안되므로, delete 가 후행
 		playingVideoStorage.saveAndPlay(new PlayingVideo(user.getCurrentRoomCode(), nextVideo, messageService, this));
 		playlistStorage.save(playlist);
 
+		messageService.sendStartVideoInfo(user.getCurrentRoomCode(), nextVideo.getVideoTitle(), nextVideo.getChannelTitle());
 		messageService.sendPlaylist(user.getCurrentRoomCode());
 	}
 
@@ -97,7 +99,7 @@ public class PlaylistService {
 
 		messageService.sendPlaylist(user.getCurrentRoomCode());
 	}
-	
+
 	@PlaylistSynchronize
 	public void deleteVideo(Long userId, Long videoNumber) {
 		User user = userStorage.findById(userId)

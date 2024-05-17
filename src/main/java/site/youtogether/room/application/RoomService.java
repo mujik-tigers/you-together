@@ -3,10 +3,11 @@ package site.youtogether.room.application;
 import static site.youtogether.util.AppConstants.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -15,12 +16,14 @@ import site.youtogether.exception.user.UserNoExistenceException;
 import site.youtogether.message.AlarmMessage;
 import site.youtogether.message.application.MessageService;
 import site.youtogether.playlist.Playlist;
+import site.youtogether.playlist.infrastructure.PlayingVideoStorage;
 import site.youtogether.playlist.infrastructure.PlaylistStorage;
 import site.youtogether.room.Room;
 import site.youtogether.room.dto.ChangedRoomTitle;
 import site.youtogether.room.dto.NewRoom;
 import site.youtogether.room.dto.RoomDetail;
 import site.youtogether.room.dto.RoomList;
+import site.youtogether.room.dto.RoomListDetail;
 import site.youtogether.room.dto.RoomSettings;
 import site.youtogether.room.infrastructure.RoomStorage;
 import site.youtogether.user.User;
@@ -36,7 +39,7 @@ public class RoomService {
 	private final PlaylistStorage playlistStorage;
 	private final UserStorage userStorage;
 	private final MessageService messageService;
-	private final StringRedisTemplate redisTemplate;
+	private final PlayingVideoStorage playingVideoStorage;
 
 	public NewRoom create(Long userId, RoomSettings roomSettings, LocalDateTime now) {
 		String roomCode = RandomUtil.generateRandomCode(ROOM_CODE_LENGTH);
@@ -65,7 +68,11 @@ public class RoomService {
 	public RoomList fetchAll(Pageable pageable, String keyword) {
 		Slice<Room> roomSlice = roomStorage.findSliceBy(pageable, keyword);
 
-		return new RoomList(roomSlice);
+		List<RoomListDetail> rooms = roomSlice.getContent().stream()
+			.map(room -> new RoomListDetail(room, playingVideoStorage.findById(room.getCode())))
+			.collect(Collectors.toList());
+
+		return new RoomList(roomSlice.getNumber(), roomSlice.getPageable().getPageSize(), roomSlice.hasNext(), rooms);
 	}
 
 	@RoomSynchronize
@@ -81,7 +88,7 @@ public class RoomService {
 		userStorage.save(user);
 		roomStorage.save(room);
 
-		return new RoomDetail(room, user);
+		return new RoomDetail(room, user, playingVideoStorage.findById(roomCode));
 	}
 
 	@RoomSynchronize

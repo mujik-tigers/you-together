@@ -18,6 +18,7 @@ import site.youtogether.message.ChatMessage;
 import site.youtogether.message.ParticipantsMessage;
 import site.youtogether.message.PlaylistMessage;
 import site.youtogether.message.RoomTitleMessage;
+import site.youtogether.message.StartVideoInfoMessage;
 import site.youtogether.message.VideoSyncInfoMessage;
 import site.youtogether.playlist.Playlist;
 import site.youtogether.playlist.dto.VideoInfo;
@@ -93,4 +94,9 @@ public class MessageService {
 
 		messagingTemplate.convertAndSend(SUBSCRIBE_PATH + roomCode, new ChatHistoriesMessage(chatHistories));
 	}
+
+	public void sendStartVideoInfo(String roomCode, String videoTitle, String channelTitle) {
+		messagingTemplate.convertAndSend(SUBSCRIBE_PATH + roomCode, new StartVideoInfoMessage(videoTitle, channelTitle));
+	}
+
 }
