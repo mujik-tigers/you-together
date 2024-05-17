@@ -37,6 +37,7 @@ public class WebConfig implements WebMvcConfigurer {
 	public void addInterceptors(InterceptorRegistry registry) {
 		registry.addInterceptor(sessionCreateInterceptor)
 			.addPathPatterns("/**")
+			.excludePathPatterns("/docs/index.html")
 			.order(Ordered.HIGHEST_PRECEDENCE);
 		registry.addInterceptor(singleRoomCheckInterceptor)
 			.addPathPatterns("/rooms/**");
