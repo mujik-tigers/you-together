@@ -1,5 +1,6 @@
 package site.youtogether.playlist;
 
+import java.time.Duration;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -33,7 +34,7 @@ public class PlayingVideo {
 		this.videoTitle = video.getVideoTitle();
 		this.channelTitle = video.getChannelTitle();
 		this.thumbnail = video.getThumbnail();
-		this.totalTime = video.getDuration();
+		this.totalTime = video.getDuration() > 0 ? video.getDuration() : Duration.ofDays(1).toSeconds();
 		this.currentTime = 0.0;
 
 		this.messageService = messageService;
