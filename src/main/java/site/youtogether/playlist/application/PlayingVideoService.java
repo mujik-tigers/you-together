@@ -21,13 +21,11 @@ public class PlayingVideoService {
 
 		PlayerState playerState = videoSyncInfoMessage.getPlayerState();
 		if (playerState == PlayerState.PAUSE) {
-			playingVideo.pause(videoSyncInfoMessage.getPlayerCurrentTime());
+			playingVideo.pauseAt(videoSyncInfoMessage.getPlayerCurrentTime());
 		} else if (playerState == PlayerState.RATE) {
 			playingVideo.changeRate(videoSyncInfoMessage.getPlayerRate());
 		} else if (playerState == PlayerState.PLAY) {
-			playingVideo.start(videoSyncInfoMessage.getPlayerCurrentTime());
-		} else if (playerState == PlayerState.SKIP) {
-			playingVideo.changeCurrentTime(videoSyncInfoMessage.getPlayerCurrentTime());
+			playingVideo.startAt(videoSyncInfoMessage.getPlayerCurrentTime());
 		}
 	}
 

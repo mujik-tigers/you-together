@@ -23,7 +23,7 @@ public class PlayingVideoStorage {
 
 	public void saveAndPlay(PlayingVideo playingVideo) {
 		storage.put(playingVideo.getRoomCode(), playingVideo);
-		playingVideo.start(0);
+		playingVideo.startAt(0);
 	}
 
 	public void delete(String roomCode) {
