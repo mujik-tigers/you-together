@@ -41,14 +41,14 @@ public class PlayingVideo {
 		this.playlistService = playlistService;
 	}
 
-	public void start(double time) {
+	public void startAt(double time) {
 		timer.cancel();
 		timer.purge();
 		currentTime = Math.round(time * 100) / 100.0;
 		createTimer(playerRate);
 	}
 
-	public void pause(double time) {
+	public void pauseAt(double time) {
 		timer.cancel();
 		timer.purge();
 		currentTime = Math.round(time * 100) / 100.0;
@@ -73,10 +73,6 @@ public class PlayingVideo {
 		this.playerRate = playerRate;
 		this.timerPeriod = Math.round(1000 / playerRate);
 		createTimer(playerRate);
-	}
-
-	public void changeCurrentTime(double time) {
-		this.currentTime = time;
 	}
 
 	private void createTimer(double playerRate) {
