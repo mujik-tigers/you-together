@@ -31,6 +31,84 @@ import site.youtogether.util.api.ResponseResult;
 class UserControllerTest extends RestDocsSupport {
 
 	@Test
+	@DisplayName("닉네임 중복 검사 성공")
+	void checkNicknameDuplication() throws Exception {
+		// Setting session cookie for request
+		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
+		Cookie sessionCookie = new Cookie(cookieProperties.getName(), token);
+
+		// Setting new user nickname for request
+		String newNickname = "new nickname";
+
+		given(jwtService.parse(eq(token)))
+			.willReturn(1L);
+		given(userStorage.existsById(eq(1L)))
+			.willReturn(true);
+
+		// when // then
+		mockMvc.perform(get("/users/nicknames/check")
+				.param("nickname", newNickname)
+				.cookie(sessionCookie))
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
+			.andExpect(jsonPath("$.status").value(HttpStatus.OK.getReasonPhrase()))
+			.andExpect(jsonPath("$.result").value(ResponseResult.USER_NICKNAME_IS_UNIQUE.getDescription()))
+			.andDo(document("check-nickname-success",
+				preprocessRequest(prettyPrint()),
+				preprocessResponse(prettyPrint()),
+				responseFields(
+					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
+					fieldWithPath("status").type(JsonFieldType.STRING).description("상태"),
+					fieldWithPath("result").type(JsonFieldType.STRING).description("결과"),
+					fieldWithPath("data").type(JsonFieldType.NULL).description("응답 데이터")
+				)
+			));
+	}
+
+	@Test
+	@DisplayName("닉네임 중복 검사 실패")
+	void checkNicknameDuplicationFail() throws Exception {
+		// Setting session cookie for request
+		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
+		Cookie sessionCookie = new Cookie(cookieProperties.getName(), token);
+
+		// Setting new user nickname for request
+		String newNickname = "new nickname";
+
+		given(jwtService.parse(eq(token)))
+			.willReturn(1L);
+		given(userStorage.existsById(eq(1L)))
+			.willReturn(true);
+		doThrow(new UserNicknameDuplicateException())
+			.when(userService).checkUserNicknameDuplication(any());
+
+		// when // then
+		mockMvc.perform(get("/users/nicknames/check")
+				.param("nickname", newNickname)
+				.cookie(sessionCookie))
+			.andDo(print())
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
+			.andExpect(jsonPath("$.status").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
+			.andExpect(jsonPath("$.result").value(ResponseResult.EXCEPTION_OCCURRED.getDescription()))
+			.andExpect(jsonPath("$.data[0].type").value(UserNicknameDuplicateException.class.getSimpleName()))
+			.andExpect(jsonPath("$.data[0].message").value(ErrorType.USER_NICKNAME_DUPLICATE.getMessage()))
+			.andDo(document("check-nickname-fail",
+				preprocessRequest(prettyPrint()),
+				preprocessResponse(prettyPrint()),
+				responseFields(
+					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
+					fieldWithPath("status").type(JsonFieldType.STRING).description("상태"),
+					fieldWithPath("result").type(JsonFieldType.STRING).description("결과"),
+					fieldWithPath("data").type(JsonFieldType.ARRAY).description("응답 데이터"),
+					fieldWithPath("data[].type").type(JsonFieldType.STRING).description("오류 타입"),
+					fieldWithPath("data[].message").type(JsonFieldType.STRING).description("오류 메시지")
+				)
+			));
+	}
+
+	@Test
 	@DisplayName("닉네임 변경 성공")
 	void changeNickname() throws Exception {
 		// given
