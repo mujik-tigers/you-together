@@ -1,8 +1,10 @@
 package site.youtogether.user.presentation;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
@@ -20,6 +22,14 @@ import site.youtogether.util.resolver.UserTracking;
 public class UserController {
 
 	private final UserService userService;
+
+	@GetMapping("/users/nicknames/check")
+	public ResponseEntity<ApiResponse<Void>> checkUserNicknameDuplication(@RequestParam @Valid NicknameInput nickname) {
+		userService.checkUserNicknameDuplication(nickname.getNewNickname());
+
+		return ResponseEntity.ok()
+			.body(ApiResponse.ok(ResponseResult.USER_NICKNAME_IS_UNIQUE, null));
+	}
 
 	@PatchMapping("/users")
 	public ResponseEntity<ApiResponse<Participant>> changeUserNickname(@UserTracking Long userId, @RequestBody @Valid NicknameInput form) {

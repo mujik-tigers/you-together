@@ -17,6 +17,7 @@ public enum ResponseResult {
 	// User
 	USER_NICKNAME_CHANGE_SUCCESS("유저 닉네임 변경에 성공했습니다"),
 	USER_ROLE_CHANGE_SUCCESS("유저의 역할 변경에 성공했습니다"),
+	USER_NICKNAME_IS_UNIQUE("사용 가능한 닉네임입니다"),
 
 	// Playlist
 	PLAYLIST_ADD_SUCCESS("플레이리스트에 비디오 추가를 성공했습니다"),

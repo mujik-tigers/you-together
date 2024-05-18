@@ -3,6 +3,7 @@ package site.youtogether.user.application;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
+import site.youtogether.exception.user.UserNicknameDuplicateException;
 import site.youtogether.exception.user.UserNoExistenceException;
 import site.youtogether.message.AlarmMessage;
 import site.youtogether.message.application.MessageService;
@@ -52,6 +53,12 @@ public class UserService {
 				targetUser.getNickname() + "님의 역할이 " + form.getNewUserRole().name() + "(으)로 변경되었습니다."));
 
 		return new Participant(targetUser);
+	}
+
+	public void checkUserNicknameDuplication(String nickname) {
+		if (uniqueNicknameStorage.exist(nickname)) {
+			throw new UserNicknameDuplicateException();
+		}
 	}
 
 }
