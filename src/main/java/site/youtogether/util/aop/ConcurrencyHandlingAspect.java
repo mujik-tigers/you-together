@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import site.youtogether.exception.CustomException;
 import site.youtogether.exception.playlist.PlaylistLockAcquisitionFailureException;
 import site.youtogether.exception.user.UserNoExistenceException;
+import site.youtogether.message.VideoSyncInfoMessage;
 import site.youtogether.playlist.dto.VideoOrder;
 import site.youtogether.user.User;
 import site.youtogether.user.dto.UserRoleChangeForm;
@@ -76,6 +77,12 @@ public class ConcurrencyHandlingAspect {
 		} finally {
 			lock.unlock();
 		}
+	}
+
+	@Around("@annotation(VideoSynchronize) && args(videoSyncInfoMessage)")
+	public void updateVideo(ProceedingJoinPoint joinPoint, VideoSyncInfoMessage videoSyncInfoMessage) {
+		RLock lock = redissonClient.getLock("video-" + videoSyncInfoMessage.getRoomCode());
+		synchronize(joinPoint, lock);
 	}
 
 	private Object synchronize(ProceedingJoinPoint joinPoint, RLock lock) {

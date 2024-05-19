@@ -8,6 +8,7 @@ import site.youtogether.message.VideoSyncInfoMessage;
 import site.youtogether.playlist.PlayerState;
 import site.youtogether.playlist.PlayingVideo;
 import site.youtogether.playlist.infrastructure.PlayingVideoStorage;
+import site.youtogether.util.aop.VideoSynchronize;
 
 @Service
 @RequiredArgsConstructor
@@ -15,6 +16,7 @@ public class PlayingVideoService {
 
 	private final PlayingVideoStorage playingVideoStorage;
 
+	@VideoSynchronize
 	public void manageVideo(VideoSyncInfoMessage videoSyncInfoMessage) {
 		PlayingVideo playingVideo = playingVideoStorage.findById(videoSyncInfoMessage.getRoomCode())
 			.orElseThrow(PlayingVideoNoExistenceException::new);
