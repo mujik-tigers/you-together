@@ -24,6 +24,7 @@ import site.youtogether.exception.user.SelfRoleChangeException;
 import site.youtogether.exception.user.UserNicknameDuplicateException;
 import site.youtogether.room.Participant;
 import site.youtogether.user.Role;
+import site.youtogether.user.dto.NicknameDuplicationFlag;
 import site.youtogether.user.dto.NicknameInput;
 import site.youtogether.user.dto.UserRoleChangeForm;
 import site.youtogether.util.api.ResponseResult;
@@ -31,7 +32,7 @@ import site.youtogether.util.api.ResponseResult;
 class UserControllerTest extends RestDocsSupport {
 
 	@Test
-	@DisplayName("닉네임 중복 검사 성공")
+	@DisplayName("닉네임 중복 검사 성공 : 사용 가능한 닉네임입니다")
 	void checkNicknameDuplication() throws Exception {
 		// Setting session cookie for request
 		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
@@ -42,8 +43,8 @@ class UserControllerTest extends RestDocsSupport {
 
 		given(jwtService.parse(eq(token)))
 			.willReturn(1L);
-		given(userStorage.existsById(eq(1L)))
-			.willReturn(true);
+		given(userService.checkUserNicknameDuplication(any()))
+			.willReturn(new NicknameDuplicationFlag(true));
 
 		// when // then
 		mockMvc.perform(get("/users/nicknames/check")
@@ -53,7 +54,8 @@ class UserControllerTest extends RestDocsSupport {
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
 			.andExpect(jsonPath("$.status").value(HttpStatus.OK.getReasonPhrase()))
-			.andExpect(jsonPath("$.result").value(ResponseResult.USER_NICKNAME_IS_UNIQUE.getDescription()))
+			.andExpect(jsonPath("$.result").value(ResponseResult.USER_NICKNAME_DUPLICATION_CHECK_SUCCESS.getDescription()))
+			.andExpect(jsonPath("$.data.nicknameIsUnique").value(true))
 			.andDo(document("check-nickname-success",
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
@@ -61,13 +63,14 @@ class UserControllerTest extends RestDocsSupport {
 					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
 					fieldWithPath("status").type(JsonFieldType.STRING).description("상태"),
 					fieldWithPath("result").type(JsonFieldType.STRING).description("결과"),
-					fieldWithPath("data").type(JsonFieldType.NULL).description("응답 데이터")
+					fieldWithPath("data").type(JsonFieldType.OBJECT).description("응답 데이터"),
+					fieldWithPath("data.nicknameIsUnique").type(JsonFieldType.BOOLEAN).description("사용 가능 여부")
 				)
 			));
 	}
 
 	@Test
-	@DisplayName("닉네임 중복 검사 실패")
+	@DisplayName("닉네임 중복 검사 성공 : 이미 사용 중인 닉네임입니다")
 	void checkNicknameDuplicationFail() throws Exception {
 		// Setting session cookie for request
 		String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.XJHPNpgWMty0iKr1FQKCBeOapvlqk1RjcPQUzT2dFlA";
@@ -78,22 +81,19 @@ class UserControllerTest extends RestDocsSupport {
 
 		given(jwtService.parse(eq(token)))
 			.willReturn(1L);
-		given(userStorage.existsById(eq(1L)))
-			.willReturn(true);
-		doThrow(new UserNicknameDuplicateException())
-			.when(userService).checkUserNicknameDuplication(any());
+		given(userService.checkUserNicknameDuplication(any()))
+			.willReturn(new NicknameDuplicationFlag(false));
 
 		// when // then
 		mockMvc.perform(get("/users/nicknames/check")
 				.param("nickname", newNickname)
 				.cookie(sessionCookie))
 			.andDo(print())
-			.andExpect(status().isBadRequest())
-			.andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
-			.andExpect(jsonPath("$.status").value(HttpStatus.BAD_REQUEST.getReasonPhrase()))
-			.andExpect(jsonPath("$.result").value(ResponseResult.EXCEPTION_OCCURRED.getDescription()))
-			.andExpect(jsonPath("$.data[0].type").value(UserNicknameDuplicateException.class.getSimpleName()))
-			.andExpect(jsonPath("$.data[0].message").value(ErrorType.USER_NICKNAME_DUPLICATE.getMessage()))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
+			.andExpect(jsonPath("$.status").value(HttpStatus.OK.getReasonPhrase()))
+			.andExpect(jsonPath("$.result").value(ResponseResult.USER_NICKNAME_DUPLICATION_CHECK_SUCCESS.getDescription()))
+			.andExpect(jsonPath("$.data.nicknameIsUnique").value(false))
 			.andDo(document("check-nickname-fail",
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
@@ -101,9 +101,8 @@ class UserControllerTest extends RestDocsSupport {
 					fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
 					fieldWithPath("status").type(JsonFieldType.STRING).description("상태"),
 					fieldWithPath("result").type(JsonFieldType.STRING).description("결과"),
-					fieldWithPath("data").type(JsonFieldType.ARRAY).description("응답 데이터"),
-					fieldWithPath("data[].type").type(JsonFieldType.STRING).description("오류 타입"),
-					fieldWithPath("data[].message").type(JsonFieldType.STRING).description("오류 메시지")
+					fieldWithPath("data").type(JsonFieldType.OBJECT).description("응답 데이터"),
+					fieldWithPath("data.nicknameIsUnique").type(JsonFieldType.BOOLEAN).description("사용 가능 여부")
 				)
 			));
 	}
