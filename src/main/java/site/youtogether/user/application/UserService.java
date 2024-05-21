@@ -3,12 +3,12 @@ package site.youtogether.user.application;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
-import site.youtogether.exception.user.UserNicknameDuplicateException;
 import site.youtogether.exception.user.UserNoExistenceException;
 import site.youtogether.message.AlarmMessage;
 import site.youtogether.message.application.MessageService;
 import site.youtogether.room.Participant;
 import site.youtogether.user.User;
+import site.youtogether.user.dto.NicknameDuplicationFlag;
 import site.youtogether.user.dto.UserRoleChangeForm;
 import site.youtogether.user.infrastructure.UniqueNicknameStorage;
 import site.youtogether.user.infrastructure.UserStorage;
@@ -55,10 +55,8 @@ public class UserService {
 		return new Participant(targetUser);
 	}
 
-	public void checkUserNicknameDuplication(String nickname) {
-		if (uniqueNicknameStorage.exist(nickname)) {
-			throw new UserNicknameDuplicateException();
-		}
+	public NicknameDuplicationFlag checkUserNicknameDuplication(String nickname) {
+		return new NicknameDuplicationFlag(!uniqueNicknameStorage.exist(nickname));
 	}
 
 }

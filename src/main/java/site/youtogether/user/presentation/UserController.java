@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import site.youtogether.room.Participant;
 import site.youtogether.user.application.UserService;
+import site.youtogether.user.dto.NicknameDuplicationFlag;
 import site.youtogether.user.dto.NicknameInput;
 import site.youtogether.user.dto.UserRoleChangeForm;
 import site.youtogether.util.api.ApiResponse;
@@ -24,11 +25,11 @@ public class UserController {
 	private final UserService userService;
 
 	@GetMapping("/users/nicknames/check")
-	public ResponseEntity<ApiResponse<Void>> checkUserNicknameDuplication(@RequestParam @Valid NicknameInput nickname) {
-		userService.checkUserNicknameDuplication(nickname.getNewNickname());
+	public ResponseEntity<ApiResponse<NicknameDuplicationFlag>> checkUserNicknameDuplication(@RequestParam @Valid NicknameInput nickname) {
+		NicknameDuplicationFlag nicknameDuplicationFlag = userService.checkUserNicknameDuplication(nickname.getNewNickname());
 
 		return ResponseEntity.ok()
-			.body(ApiResponse.ok(ResponseResult.USER_NICKNAME_IS_UNIQUE, null));
+			.body(ApiResponse.ok(ResponseResult.USER_NICKNAME_DUPLICATION_CHECK_SUCCESS, nicknameDuplicationFlag));
 	}
 
 	@PatchMapping("/users")
