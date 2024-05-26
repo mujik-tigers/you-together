@@ -11,7 +11,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.script.DefaultRedisScript;
 
 import site.youtogether.IntegrationTestSupport;
 import site.youtogether.playlist.Playlist;
@@ -40,7 +39,7 @@ class DataCleanerTest extends IntegrationTestSupport {
 	private StringRedisTemplate redisTemplate;
 
 	@Autowired
-	private DefaultRedisScript<Void> batchRemoveScript;
+	private DataCleaner dataCleaner;
 
 	@AfterEach
 	void clean() {
@@ -66,8 +65,7 @@ class DataCleanerTest extends IntegrationTestSupport {
 		roomStorage.save(room);
 
 		// when
-		redisTemplate.execute(batchRemoveScript,
-			List.of("site.youtogether.room.RoomIdx", "site.youtogether.user.UserIdx", USER_NICKNAME_SET));
+		dataCleaner.clean();
 
 		// then
 		Room result = roomStorage.findById(room.getCode()).get();
@@ -96,8 +94,7 @@ class DataCleanerTest extends IntegrationTestSupport {
 		redisTemplate.opsForList().rightPush(CHAT_PREFIX + room.getCode(), "chatting3~");
 
 		// when
-		redisTemplate.execute(batchRemoveScript,
-			List.of("site.youtogether.room.RoomIdx", "site.youtogether.user.UserIdx", USER_NICKNAME_SET));
+		dataCleaner.clean();
 
 		// then
 		assertThat(roomStorage.existsById(room.getCode())).isFalse();
@@ -126,8 +123,7 @@ class DataCleanerTest extends IntegrationTestSupport {
 		playlistStorage.save(playlist);
 
 		// when
-		redisTemplate.execute(batchRemoveScript,
-			List.of("site.youtogether.room.RoomIdx", "site.youtogether.user.UserIdx", USER_NICKNAME_SET));
+		dataCleaner.clean();
 
 		// then
 		Room result = roomStorage.findById(room.getCode()).get();
@@ -151,8 +147,7 @@ class DataCleanerTest extends IntegrationTestSupport {
 		uniqueNicknameStorage.save(user.getNickname());
 
 		// when
-		redisTemplate.execute(batchRemoveScript,
-			List.of("site.youtogether.room.RoomIdx", "site.youtogether.user.UserIdx", USER_NICKNAME_SET));
+		dataCleaner.clean();
 
 		// then
 		assertThat(uniqueNicknameStorage.exist(user.getNickname())).isTrue();
@@ -175,8 +170,7 @@ class DataCleanerTest extends IntegrationTestSupport {
 		uniqueNicknameStorage.save(user.getNickname());
 
 		// when
-		redisTemplate.execute(batchRemoveScript,
-			List.of("site.youtogether.room.RoomIdx", "site.youtogether.user.UserIdx", USER_NICKNAME_SET));
+		dataCleaner.clean();
 
 		// then
 		assertThat(uniqueNicknameStorage.exist(user.getNickname())).isFalse();
@@ -195,10 +189,9 @@ class DataCleanerTest extends IntegrationTestSupport {
 
 		userStorage.save(user);
 		uniqueNicknameStorage.save(user.getNickname());
-		
+
 		// when
-		redisTemplate.execute(batchRemoveScript,
-			List.of("site.youtogether.room.RoomIdx", "site.youtogether.user.UserIdx", USER_NICKNAME_SET));
+		dataCleaner.clean();
 
 		// then
 		User result = userStorage.findById(user.getId()).get();

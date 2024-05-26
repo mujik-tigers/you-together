@@ -1,32 +1,28 @@
 package site.youtogether.playlist;
 
-import java.time.Duration;
 import java.util.Timer;
-import java.util.TimerTask;
 
 import lombok.Getter;
 import site.youtogether.exception.playlist.InvalidVideoRateException;
-import site.youtogether.exception.playlist.PlaylistEmptyException;
 import site.youtogether.message.VideoSyncInfoMessage;
 import site.youtogether.message.application.MessageService;
 import site.youtogether.playlist.application.PlaylistService;
 
 @Getter
-public class PlayingVideo {
+public abstract class PlayingVideo {
 
-	private final String roomCode;
-	private final String videoId;
-	private final String videoTitle;
-	private final String channelTitle;
-	private final String thumbnail;
-	private final long totalTime;
-	private final MessageService messageService;
-	private final PlaylistService playlistService;
+	protected final String roomCode;
+	protected final String videoId;
+	protected final String videoTitle;
+	protected final String channelTitle;
+	protected final String thumbnail;
+	protected final MessageService messageService;
+	protected final PlaylistService playlistService;
 
-	private double currentTime;
-	private Timer timer = new Timer();
-	private double playerRate = 1.0;
-	private long timerPeriod = 1000;
+	protected double currentTime = 0.0;
+	protected Timer timer = new Timer();
+	protected double playerRate = 1.0;
+	protected long timerPeriod = 1000;
 
 	public PlayingVideo(String roomCode, Video video, MessageService messageService, PlaylistService playlistService) {
 		this.roomCode = roomCode;
@@ -34,8 +30,6 @@ public class PlayingVideo {
 		this.videoTitle = video.getVideoTitle();
 		this.channelTitle = video.getChannelTitle();
 		this.thumbnail = video.getThumbnail();
-		this.totalTime = video.getDuration() > 0 ? video.getDuration() : Duration.ofDays(1).toSeconds();
-		this.currentTime = 0.0;
 
 		this.messageService = messageService;
 		this.playlistService = playlistService;
@@ -75,29 +69,6 @@ public class PlayingVideo {
 		createTimer(playerRate);
 	}
 
-	private void createTimer(double playerRate) {
-		timer = new Timer();
-		timer.scheduleAtFixedRate(new TimerTask() {
-			@Override
-			public void run() {
-				if (currentTime >= totalTime) {
-					messageService.sendVideoSyncInfo(
-						new VideoSyncInfoMessage(roomCode, videoId, PlayerState.END, totalTime, playerRate)
-					);
-					try {
-						playlistService.callNextVideoByTimer(roomCode);
-					} catch (PlaylistEmptyException ignored) {
-					}
-					timer.cancel();
-					timer.purge();
-					return;
-				}
-				messageService.sendVideoSyncInfo(
-					new VideoSyncInfoMessage(roomCode, videoId, PlayerState.PLAY, currentTime, playerRate)
-				);
-				currentTime += 1;
-			}
-		}, 0, timerPeriod);
-	}
+	protected abstract void createTimer(double playerRate);
 
 }

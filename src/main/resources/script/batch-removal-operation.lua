@@ -26,4 +26,5 @@ for _, key in ipairs(userList) do
     end
 end
 
+return eraseRoomList
 

@@ -9,6 +9,8 @@ import site.youtogether.exception.playlist.PlaylistNoExistenceException;
 import site.youtogether.exception.user.UserNoExistenceException;
 import site.youtogether.exception.user.VideoEditDeniedException;
 import site.youtogether.message.application.MessageService;
+import site.youtogether.playlist.PlayingDefaultVideo;
+import site.youtogether.playlist.PlayingLiveVideo;
 import site.youtogether.playlist.PlayingVideo;
 import site.youtogether.playlist.Playlist;
 import site.youtogether.playlist.Video;
@@ -45,7 +47,7 @@ public class PlaylistService {
 
 		if (!playingVideoStorage.existsById(user.getCurrentRoomCode())) {
 			Video nextVideo = playlist.playNext(video.getVideoNumber());
-			playingVideoStorage.saveAndPlay(new PlayingVideo(user.getCurrentRoomCode(), nextVideo, messageService, this));
+			playingVideoStorage.saveAndPlay(createPlayingVideo(user.getCurrentRoomCode(), nextVideo));
 			messageService.sendStartVideoInfo(user.getCurrentRoomCode(), nextVideo.getVideoTitle(), nextVideo.getChannelTitle());
 		}
 		playlistStorage.save(playlist);
@@ -59,7 +61,7 @@ public class PlaylistService {
 
 		playingVideoStorage.delete(roomCode);                    // 다음에 재생할 영상이 없더라도, 현재 재생중인 영상을 제거해야 하므로, delete 가 선행
 		Video nextVideo = playlist.playNextCallByTimer();
-		playingVideoStorage.saveAndPlay(new PlayingVideo(roomCode, nextVideo, messageService, this));
+		playingVideoStorage.saveAndPlay(createPlayingVideo(roomCode, nextVideo));
 		playlistStorage.save(playlist);
 
 		messageService.sendStartVideoInfo(roomCode, nextVideo.getVideoTitle(), nextVideo.getChannelTitle());
@@ -78,7 +80,7 @@ public class PlaylistService {
 
 		Video nextVideo = playlist.playNext(videoNumber);
 		playingVideoStorage.delete(user.getCurrentRoomCode());            // 다음에 재생할 영상이 올바르지 않은 경우, 현재 재생중인 영상을 제거하면 안되므로, delete 가 후행
-		playingVideoStorage.saveAndPlay(new PlayingVideo(user.getCurrentRoomCode(), nextVideo, messageService, this));
+		playingVideoStorage.saveAndPlay(createPlayingVideo(user.getCurrentRoomCode(), nextVideo));
 		playlistStorage.save(playlist);
 
 		messageService.sendStartVideoInfo(user.getCurrentRoomCode(), nextVideo.getVideoTitle(), nextVideo.getChannelTitle());
@@ -126,6 +128,14 @@ public class PlaylistService {
 			.channelTitle(form.getChannelTitle())
 			.duration(Duration.parse(form.getDuration()).getSeconds())
 			.build();
+	}
+
+	private PlayingVideo createPlayingVideo(String roomCode, Video nextVideo) {
+		if (nextVideo.isLiveStreaming()) {
+			return new PlayingLiveVideo(roomCode, nextVideo, messageService, this);
+		}
+
+		return new PlayingDefaultVideo(roomCode, nextVideo, messageService, this);
 	}
 
 }

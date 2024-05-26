@@ -1,5 +1,7 @@
 package site.youtogether.config;
 
+import java.util.List;
+
 import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,10 +36,10 @@ public class RedisConfig {
 	}
 
 	@Bean
-	public DefaultRedisScript<Void> batchRemoveScript() {
-		DefaultRedisScript<Void> redisScript = new DefaultRedisScript<>();
+	public DefaultRedisScript<List> batchRemoveScript() {
+		DefaultRedisScript<List> redisScript = new DefaultRedisScript<>();
 		redisScript.setScriptSource(new ResourceScriptSource(new ClassPathResource("script/batch-removal-operation.lua")));
-		redisScript.setResultType(Void.class);
+		redisScript.setResultType(List.class);
 		return redisScript;
 	}
 
