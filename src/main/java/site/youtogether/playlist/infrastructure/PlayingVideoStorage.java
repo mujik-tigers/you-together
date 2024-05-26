@@ -27,8 +27,8 @@ public class PlayingVideoStorage {
 	}
 
 	public void delete(String roomCode) {
-		PlayingVideo removed = storage.remove(roomCode);
-		removed.stop();
+		Optional.ofNullable(storage.remove(roomCode))
+			.ifPresent(PlayingVideo::stop);
 	}
 
 }

@@ -20,7 +20,7 @@ import site.youtogether.IntegrationTestSupport;
 import site.youtogether.exception.playlist.InvalidVideoNumberException;
 import site.youtogether.message.ChatHistory;
 import site.youtogether.message.application.MessageService;
-import site.youtogether.playlist.PlayingVideo;
+import site.youtogether.playlist.PlayingDefaultVideo;
 import site.youtogether.playlist.Playlist;
 import site.youtogether.playlist.Video;
 import site.youtogether.playlist.application.PlaylistService;
@@ -291,7 +291,7 @@ class ConcurrencyHandlingAspectTest extends IntegrationTestSupport {
 			.videoId("videoId" + 9999)
 			.duration(100000)
 			.build();
-		playingVideoStorage.saveAndPlay(new PlayingVideo(room.getCode(), video, messageService, playlistService));
+		playingVideoStorage.saveAndPlay(new PlayingDefaultVideo(room.getCode(), video, messageService, playlistService));
 
 		return room;
 	}
