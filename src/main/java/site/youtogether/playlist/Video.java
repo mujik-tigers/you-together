@@ -23,4 +23,8 @@ public class Video {
 		this.channelTitle = channelTitle;
 	}
 
+	public boolean isLiveStreaming() {
+		return duration == 0;
+	}
+
 }
