@@ -52,6 +52,7 @@ public class MessageController {
 			throw new VideoEditDeniedException();
 		}
 
+		videoSyncInfoMessage.setRoomCode(user.getCurrentRoomCode());
 		playingVideoService.manageVideo(videoSyncInfoMessage);
 	}
 
