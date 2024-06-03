@@ -1,0 +1,147 @@
+[[Playlist-API]]
+== Playlist API
+
+[[playlist-add-success]]
+=== 플레이리스트 추가 성공
+
+==== HTTP Request
+
+include::{snippets}/playlist-add-success/http-request.adoc[]
+include::{snippets}/playlist-add-success/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/playlist-add-success/http-response.adoc[]
+include::{snippets}/playlist-add-success/response-fields.adoc[]
+
+{nbsp}
+
+[[playlist-add-fail]]
+=== 플레이리스트 추가 실패: EDITOR보다 낮은 역할입니다
+
+==== HTTP Request
+
+include::{snippets}/playlist-add-fail/http-request.adoc[]
+include::{snippets}/playlist-add-fail/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/playlist-add-fail/http-response.adoc[]
+include::{snippets}/playlist-add-fail/response-fields.adoc[]
+
+{nbsp}
+
+[[play-next-video-success]]
+=== 다음 영상 재생 성공
+
+==== HTTP Request
+
+include::{snippets}/play-next-video-success/http-request.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/play-next-video-success/http-response.adoc[]
+include::{snippets}/play-next-video-success/response-fields.adoc[]
+
+{nbsp}
+
+[[play-next-video-fail-not-editable]]
+=== 다음 영상 재생 실패: EDITOR보다 낮은 역할입니다
+
+==== HTTP Request
+
+include::{snippets}/play-next-video-fail-not-editable/http-request.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/play-next-video-fail-not-editable/http-response.adoc[]
+include::{snippets}/play-next-video-fail-not-editable/response-fields.adoc[]
+
+{nbsp}
+
+[[play-next-video-fail-playlist-empty]]
+=== 다음 영상 재생 실패: 플레이리스트가 비었습니다
+
+==== HTTP Request
+
+include::{snippets}/play-next-video-fail-playlist-empty/http-request.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/play-next-video-fail-playlist-empty/http-response.adoc[]
+include::{snippets}/play-next-video-fail-playlist-empty/response-fields.adoc[]
+
+{nbsp}
+
+[[delete-playlist-video-success]]
+=== 플레이리스트내의 영상 제거 성공
+
+==== HTTP Request
+
+include::{snippets}/delete-playlist-video-success/http-request.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/delete-playlist-video-success/http-response.adoc[]
+include::{snippets}/delete-playlist-video-success/response-fields.adoc[]
+
+{nbsp}
+
+[[delete-playlist-video-fail]]
+=== 플레이리스트내의 영상 제거 실패: 유효하지 않은 인덱스의 영상입니다
+
+==== HTTP Request
+
+include::{snippets}/delete-playlist-video-fail/http-request.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/delete-playlist-video-fail/http-response.adoc[]
+include::{snippets}/delete-playlist-video-fail/response-fields.adoc[]
+
+{nbsp}
+
+[[reorder-playlist-video-success]]
+=== 플레이리스트 순서 변경 성공
+
+==== HTTP Request
+
+include::{snippets}/reorder-playlist-video-success/http-request.adoc[]
+include::{snippets}/reorder-playlist-video-success/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/reorder-playlist-video-success/http-response.adoc[]
+include::{snippets}/reorder-playlist-video-success/response-fields.adoc[]
+
+{nbsp}
+
+[[reorder-playlist-video-fail]]
+=== 플레이리스트 순서 변경 실패: 유효하지 않은 인덱스를 사용한 영상 순서 변경
+
+==== HTTP Request
+
+include::{snippets}/reorder-playlist-video-fail/http-request.adoc[]
+include::{snippets}/reorder-playlist-video-fail/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/reorder-playlist-video-fail/http-response.adoc[]
+include::{snippets}/reorder-playlist-video-fail/response-fields.adoc[]
+
+{nbsp}
+
+[[reorder-playlist-video-fail-lock-acquire]]
+=== 플레이리스트 순서 변경 실패: 동시에 비디오 변경이 발생해, 락 획득 실패
+
+==== HTTP Request
+
+include::{snippets}/reorder-playlist-video-fail-lock-acquire/http-request.adoc[]
+include::{snippets}/reorder-playlist-video-fail-lock-acquire/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/reorder-playlist-video-fail-lock-acquire/http-response.adoc[]
+include::{snippets}/reorder-playlist-video-fail-lock-acquire/response-fields.adoc[]
+
+{nbsp}
