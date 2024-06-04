@@ -22,6 +22,7 @@ public class RoomDetail {
 	private String currentVideoId;
 	private String currentVideoTitle;
 	private String currentChannelTitle;
+	private double currentVideoTime;
 
 	public RoomDetail(Room room, User user, Optional<PlayingVideo> playingVideo) {
 		this.roomCode = room.getCode();
@@ -34,6 +35,7 @@ public class RoomDetail {
 			this.currentVideoId = p.getVideoId();
 			this.currentVideoTitle = p.getVideoTitle();
 			this.currentChannelTitle = p.getChannelTitle();
+			this.currentVideoTime = p.getCurrentTime();
 		});
 	}
 
