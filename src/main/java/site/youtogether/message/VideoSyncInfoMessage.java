@@ -13,6 +13,7 @@ public class VideoSyncInfoMessage {
 
 	@Setter
 	private String roomCode;
+	private final Long videoNumber;
 	private final String videoId;
 	private final PlayerState playerState;
 	private final double playerCurrentTime;

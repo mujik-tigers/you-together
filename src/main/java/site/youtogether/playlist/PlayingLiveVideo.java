@@ -20,7 +20,7 @@ public class PlayingLiveVideo extends PlayingVideo {
 			@Override
 			public void run() {
 				messageService.sendVideoSyncInfo(
-					new VideoSyncInfoMessage(roomCode, videoId, PlayerState.PLAY, currentTime, playerRate)
+					new VideoSyncInfoMessage(roomCode, videoNumber, videoId, PlayerState.PLAY, currentTime, playerRate)
 				);
 				currentTime += 1;
 			}
