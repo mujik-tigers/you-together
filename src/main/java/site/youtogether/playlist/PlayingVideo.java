@@ -13,6 +13,7 @@ public abstract class PlayingVideo {
 
 	protected final String roomCode;
 	protected final String videoId;
+	protected final Long videoNumber;
 	protected final String videoTitle;
 	protected final String channelTitle;
 	protected final String thumbnail;
@@ -27,6 +28,7 @@ public abstract class PlayingVideo {
 	public PlayingVideo(String roomCode, Video video, MessageService messageService, PlaylistService playlistService) {
 		this.roomCode = roomCode;
 		this.videoId = video.getVideoId();
+		this.videoNumber = video.getVideoNumber();
 		this.videoTitle = video.getVideoTitle();
 		this.channelTitle = video.getChannelTitle();
 		this.thumbnail = video.getThumbnail();
@@ -48,7 +50,7 @@ public abstract class PlayingVideo {
 		currentTime = Math.round(time * 100) / 100.0;
 
 		messageService.sendVideoSyncInfo(
-			new VideoSyncInfoMessage(roomCode, videoId, PlayerState.PAUSE, currentTime, playerRate)
+			new VideoSyncInfoMessage(roomCode, videoNumber, videoId, PlayerState.PAUSE, currentTime, playerRate)
 		);
 	}
 

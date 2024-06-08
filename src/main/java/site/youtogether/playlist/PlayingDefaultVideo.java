@@ -25,7 +25,7 @@ public class PlayingDefaultVideo extends PlayingVideo {
 			public void run() {
 				if (currentTime >= totalTime) {
 					messageService.sendVideoSyncInfo(
-						new VideoSyncInfoMessage(roomCode, videoId, PlayerState.END, totalTime, playerRate)
+						new VideoSyncInfoMessage(roomCode, videoNumber, videoId, PlayerState.END, totalTime, playerRate)
 					);
 					try {
 						playlistService.callNextVideoByTimer(roomCode);
@@ -36,7 +36,7 @@ public class PlayingDefaultVideo extends PlayingVideo {
 					return;
 				}
 				messageService.sendVideoSyncInfo(
-					new VideoSyncInfoMessage(roomCode, videoId, PlayerState.PLAY, currentTime, playerRate)
+					new VideoSyncInfoMessage(roomCode, videoNumber, videoId, PlayerState.PLAY, currentTime, playerRate)
 				);
 				currentTime += 1;
 			}
