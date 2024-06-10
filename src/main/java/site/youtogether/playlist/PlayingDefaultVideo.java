@@ -24,9 +24,6 @@ public class PlayingDefaultVideo extends PlayingVideo {
 			@Override
 			public void run() {
 				if (currentTime >= totalTime) {
-					messageService.sendVideoSyncInfo(
-						new VideoSyncInfoMessage(roomCode, videoNumber, videoId, PlayerState.END, totalTime, playerRate)
-					);
 					try {
 						playlistService.callNextVideoByTimer(roomCode);
 					} catch (PlaylistEmptyException ignored) {
