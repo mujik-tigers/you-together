@@ -57,6 +57,9 @@ public abstract class PlayingVideo {
 	public void stop() {
 		timer.cancel();
 		timer.purge();
+		messageService.sendVideoSyncInfo(
+			new VideoSyncInfoMessage(roomCode, videoNumber, videoId, PlayerState.END, currentTime, playerRate)
+		);
 	}
 
 	public void changeRate(double playerRate) {
