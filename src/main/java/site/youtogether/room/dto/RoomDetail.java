@@ -20,6 +20,7 @@ public class RoomDetail {
 	private final int currentParticipant;
 	private final boolean passwordExist;
 	private String currentVideoId;
+	private Long currentVideoNumber;
 	private String currentVideoTitle;
 	private String currentChannelTitle;
 	private double currentVideoTime;
@@ -33,6 +34,7 @@ public class RoomDetail {
 		this.passwordExist = room.getPassword() != null;
 		playingVideo.ifPresent((p) -> {
 			this.currentVideoId = p.getVideoId();
+			this.currentVideoNumber = p.getVideoNumber();
 			this.currentVideoTitle = p.getVideoTitle();
 			this.currentChannelTitle = p.getChannelTitle();
 			this.currentVideoTime = p.getCurrentTime();
