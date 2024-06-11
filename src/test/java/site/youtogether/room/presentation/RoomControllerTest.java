@@ -341,7 +341,7 @@ class RoomControllerTest extends RestDocsSupport {
 		int capacity = 10;
 
 		Participant participantInfo = new Participant(10L, "황똥땡", Role.HOST);
-		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, participantInfo, capacity, 2, false, "phuiiNCxRMg", "aespa 에스파 'Supernova' MV",
+		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, participantInfo, capacity, 2, false, "phuiiNCxRMg", 21L, "aespa 에스파 'Supernova' MV",
 			"SMTOWN", 10.0);
 		Optional<User> user = Optional.of(User.builder()
 			.currentRoomCode(null)
@@ -389,6 +389,7 @@ class RoomControllerTest extends RestDocsSupport {
 					fieldWithPath("data.currentParticipant").type(JsonFieldType.NUMBER).description("현재 참가자 수"),
 					fieldWithPath("data.passwordExist").type(JsonFieldType.BOOLEAN).description("비밀번호 존재 여부"),
 					fieldWithPath("data.currentVideoId").type(JsonFieldType.STRING).description("현재 재생중인 영상의 아이디").optional(),
+					fieldWithPath("data.currentVideoNumber").type(JsonFieldType.NUMBER).description("현재 재생중인 영상 식별 번호").optional(),
 					fieldWithPath("data.currentVideoTitle").type(JsonFieldType.STRING).description("현재 재생중인 영상의 제목").optional(),
 					fieldWithPath("data.currentChannelTitle").type(JsonFieldType.STRING).description("현재 재생중인 영상의 채널 이름").optional(),
 					fieldWithPath("data.currentVideoTime").type(JsonFieldType.NUMBER).description("현재 재생중인 영상의 재생 시간").optional()
@@ -406,7 +407,7 @@ class RoomControllerTest extends RestDocsSupport {
 		int capacity = 10;
 
 		Participant participantInfo = new Participant(10L, "황똥땡", Role.HOST);
-		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, participantInfo, capacity, 2, false, "phuiiNCxRMg", "aespa 에스파 'Supernova' MV",
+		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, participantInfo, capacity, 2, false, "phuiiNCxRMg", 21L, "aespa 에스파 'Supernova' MV",
 			"SMTOWN", 10.0);
 		Optional<User> user = Optional.of(User.builder()
 			.currentRoomCode("1e7050f7d7")
@@ -454,7 +455,7 @@ class RoomControllerTest extends RestDocsSupport {
 		int capacity = 10;
 
 		Participant participantInfo = new Participant(10L, "황똥땡", Role.HOST);
-		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, participantInfo, capacity, 2, true, "phuiiNCxRMg", "aespa 에스파 'Supernova' MV",
+		RoomDetail createdRoomDetail = new RoomDetail(roomCode, roomTitle, participantInfo, capacity, 2, true, "phuiiNCxRMg", 21L, "aespa 에스파 'Supernova' MV",
 			"SMTOWN", 10.0);
 		Optional<User> user = Optional.of(User.builder()
 			.currentRoomCode(null)
@@ -507,6 +508,7 @@ class RoomControllerTest extends RestDocsSupport {
 					fieldWithPath("data.currentParticipant").type(JsonFieldType.NUMBER).description("현재 참가자 수"),
 					fieldWithPath("data.passwordExist").type(JsonFieldType.BOOLEAN).description("비밀번호 존재 여부"),
 					fieldWithPath("data.currentVideoId").type(JsonFieldType.STRING).description("현재 재생중인 영상의 아이디").optional(),
+					fieldWithPath("data.currentVideoNumber").type(JsonFieldType.NUMBER).description("현재 재생중인 영상 식별 번호").optional(),
 					fieldWithPath("data.currentVideoTitle").type(JsonFieldType.STRING).description("현재 재생중인 영상의 제목").optional(),
 					fieldWithPath("data.currentChannelTitle").type(JsonFieldType.STRING).description("현재 재생중인 영상의 채널 이름").optional(),
 					fieldWithPath("data.currentVideoTime").type(JsonFieldType.NUMBER).description("현재 재생중인 영상의 재생 시간").optional()
