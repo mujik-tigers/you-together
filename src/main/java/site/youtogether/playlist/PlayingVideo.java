@@ -11,6 +11,7 @@ import site.youtogether.playlist.application.PlaylistService;
 @Getter
 public abstract class PlayingVideo {
 
+	protected PlayerState playerState;
 	protected final String roomCode;
 	protected final String videoId;
 	protected final Long videoNumber;
@@ -41,6 +42,8 @@ public abstract class PlayingVideo {
 		timer.cancel();
 		timer.purge();
 		currentTime = Math.round(time * 100) / 100.0;
+		playerState = PlayerState.PLAY;
+
 		createTimer(playerRate);
 	}
 
@@ -48,17 +51,20 @@ public abstract class PlayingVideo {
 		timer.cancel();
 		timer.purge();
 		currentTime = Math.round(time * 100) / 100.0;
+		playerState = PlayerState.PAUSE;
 
 		messageService.sendVideoSyncInfo(
-			new VideoSyncInfoMessage(roomCode, videoNumber, videoId, PlayerState.PAUSE, currentTime, playerRate)
+			new VideoSyncInfoMessage(roomCode, videoNumber, videoId, playerState, currentTime, playerRate)
 		);
 	}
 
 	public void stop() {
 		timer.cancel();
 		timer.purge();
+		playerState = PlayerState.END;
+
 		messageService.sendVideoSyncInfo(
-			new VideoSyncInfoMessage(roomCode, videoNumber, videoId, PlayerState.END, currentTime, playerRate)
+			new VideoSyncInfoMessage(roomCode, videoNumber, videoId, playerState, currentTime, playerRate)
 		);
 	}
 
@@ -71,7 +77,14 @@ public abstract class PlayingVideo {
 
 		this.playerRate = playerRate;
 		this.timerPeriod = Math.round(1000 / playerRate);
-		createTimer(playerRate);
+
+		if (playerState == PlayerState.PLAY) {
+			createTimer(playerRate);
+		} else if (playerState == PlayerState.PAUSE) {
+			messageService.sendVideoSyncInfo(
+				new VideoSyncInfoMessage(roomCode, videoNumber, videoId, playerState, currentTime, playerRate)
+			);
+		}
 	}
 
 	protected abstract void createTimer(double playerRate);
