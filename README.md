@@ -51,22 +51,45 @@
 ## Demo
 
 1. 방을 생성할 수 있습니다.
+![1](https://github.com/mujik-tigers/you-together/assets/91525492/0dbff660-e93b-4430-b61c-6b8d52a7b6a7)
+
+<br/>
 
 2. 방 목록을 조회할 수 있습니다.
+![2](https://github.com/mujik-tigers/you-together/assets/91525492/73b63a6a-01df-4f08-9724-bce3a5cc68d5)
+
+<br/>
 
 3. 방에 입장할 수 있습니다.
+![3](https://github.com/mujik-tigers/you-together/assets/91525492/61ee8f1b-9eff-496b-aed7-ea4146cafe67)
+
+<br/>
 
 4. 비밀번호를 입력하여 비밀방에 입장할 수 있습니다.
+![4](https://github.com/mujik-tigers/you-together/assets/91525492/9d47261d-be82-42eb-bfbf-5f4a7b14773a)
+
+<br/>
 
 5. 방 안의 구성원들은 자유롭게 채팅을 할 수 있습니다.
+![5](https://github.com/mujik-tigers/you-together/assets/91525492/21eb42fc-c27d-427c-b293-095b7363fe9d)
+
+<br/>
 
 6. 사용자의 역할을 변경할 수 있습니다.
 
+<br/>
+
 7. 재생목록에 영상을 추가하거나 삭제할 수 있습니다.
+
+<br/>
 
 8. 호스트 역할의 사용자는 방 제목을 변경할 수 있습니다.
 
+<br/>
+
 9. 자신의 닉네임을 변경할 수 있습니다.
+
+<br/>
 
 10. 방 구성원들은 유튜브 싱크를 맞춰 같이 볼 수 있습니다.
 
