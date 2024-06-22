@@ -32,6 +32,11 @@
 
 <br/>
 
+## 데이터 모델
+![image](https://github.com/mujik-tigers/you-together/assets/91525492/6ef93caa-4f5b-435d-a1c9-d61a787ec712)
+
+<br/>
+
 ## 유저 역할에 따른 권한표
 호스트가 가장 높은 권한을 가지고 있고, 뷰어는 가장 낮은 권한을 가집니다. <br/>
 특정 역할이 가진 권한은 특정 역할의 상위 역할들도 행사할 수 있습니다.
@@ -76,22 +81,27 @@
 <br/>
 
 6. 사용자의 역할을 변경할 수 있습니다.
+![6-4](https://github.com/mujik-tigers/you-together/assets/91525492/3a1fa84e-db22-418a-b000-a81a8be7df20)
 
 <br/>
 
 7. 재생목록에 영상을 추가하거나 삭제할 수 있습니다.
+![7-3](https://github.com/mujik-tigers/you-together/assets/91525492/998b0fc4-c951-4a42-b82e-c77f6970d38a)
 
 <br/>
 
 8. 호스트 역할의 사용자는 방 제목을 변경할 수 있습니다.
+![8-3](https://github.com/mujik-tigers/you-together/assets/91525492/01dde580-b861-4c2a-886c-c43c4ac762ce)
 
 <br/>
 
 9. 자신의 닉네임을 변경할 수 있습니다.
+![9-3](https://github.com/mujik-tigers/you-together/assets/91525492/b1809e88-76cf-48d2-84da-9c4f9a9232f7)
 
 <br/>
 
 10. 방 구성원들은 유튜브 싱크를 맞춰 같이 볼 수 있습니다.
+![10-6 (1)](https://github.com/mujik-tigers/you-together/assets/91525492/d70b50ac-b6df-483e-a1df-d0b7b29cfe29)
 
 <br/>
 
