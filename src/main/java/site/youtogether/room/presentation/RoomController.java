@@ -7,17 +7,18 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import site.youtogether.room.application.RoomService;
 import site.youtogether.room.dto.ChangedRoomTitle;
+import site.youtogether.room.dto.KeywordInput;
 import site.youtogether.room.dto.NewRoom;
 import site.youtogether.room.dto.PasswordInput;
 import site.youtogether.room.dto.RoomDetail;
@@ -35,8 +36,8 @@ public class RoomController {
 	private final RoomService roomService;
 
 	@GetMapping("/rooms")
-	public ResponseEntity<ApiResponse<RoomList>> fetchRoomList(@PageableDefault Pageable pageable, @RequestParam(required = false) String keyword) {
-		RoomList roomList = roomService.fetchAll(pageable, keyword);
+	public ResponseEntity<ApiResponse<RoomList>> fetchRoomList(@PageableDefault Pageable pageable, @Valid @ModelAttribute KeywordInput keywordInput) {
+		RoomList roomList = roomService.fetchAll(pageable, keywordInput.getKeyword());
 
 		return ResponseEntity.ok()
 			.body(ApiResponse.ok(ResponseResult.ROOM_LIST_FETCH_SUCCESS, roomList));
