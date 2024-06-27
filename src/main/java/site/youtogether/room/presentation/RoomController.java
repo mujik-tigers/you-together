@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import site.youtogether.room.application.RoomService;
 import site.youtogether.room.dto.ChangedRoomTitle;
 import site.youtogether.room.dto.NewRoom;
@@ -31,14 +30,12 @@ import site.youtogether.util.resolver.UserTracking;
 
 @RestController
 @RequiredArgsConstructor
-@Slf4j
 public class RoomController {
 
 	private final RoomService roomService;
 
 	@GetMapping("/rooms")
 	public ResponseEntity<ApiResponse<RoomList>> fetchRoomList(@PageableDefault Pageable pageable, @RequestParam(required = false) String keyword) {
-		log.info("넘어온 keyword:{}", keyword);
 		RoomList roomList = roomService.fetchAll(pageable, keyword);
 
 		return ResponseEntity.ok()
