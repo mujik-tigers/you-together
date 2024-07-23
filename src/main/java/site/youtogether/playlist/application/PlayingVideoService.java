@@ -25,7 +25,7 @@ public class PlayingVideoService {
 		if (playerState == PlayerState.PAUSE) {
 			playingVideo.pauseAt(videoSyncInfoMessage.getPlayerCurrentTime());
 		} else if (playerState == PlayerState.RATE) {
-			playingVideo.changeRate(videoSyncInfoMessage.getPlayerRate());
+			playingVideo.changeRate(videoSyncInfoMessage.getPlayerCurrentTime(), videoSyncInfoMessage.getPlayerRate());
 		} else if (playerState == PlayerState.PLAY) {
 			playingVideo.startAt(videoSyncInfoMessage.getPlayerCurrentTime());
 		}

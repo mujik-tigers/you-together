@@ -68,7 +68,7 @@ public abstract class PlayingVideo {
 		);
 	}
 
-	public void changeRate(double playerRate) {
+	public void changeRate(double time, double playerRate) {
 		if (playerRate < 0.25 || playerRate > 2 || (int)(playerRate * 100) % 5 != 0) {
 			throw new InvalidVideoRateException();
 		}
@@ -82,7 +82,7 @@ public abstract class PlayingVideo {
 			createTimer(playerRate);
 		} else if (playerState == PlayerState.PAUSE) {
 			messageService.sendVideoSyncInfo(
-				new VideoSyncInfoMessage(roomCode, videoNumber, videoId, playerState, currentTime, playerRate)
+				new VideoSyncInfoMessage(roomCode, videoNumber, videoId, playerState, time, playerRate)
 			);
 		}
 	}
