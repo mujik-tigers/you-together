@@ -14,7 +14,6 @@ import com.redis.om.spring.annotations.Document;
 import com.redis.om.spring.annotations.Indexed;
 
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import site.youtogether.exception.user.HigherOrEqualRoleChangeException;
@@ -32,22 +31,49 @@ public class User {
 	@Id
 	private Long id;
 
+	private String nickname;
+
 	@Indexed
 	private String currentRoomCode;
 
 	@Indexed
 	private boolean activate;
 
-	private String nickname;
 	private Map<String, Role> history = new HashMap<>();
 	private Queue<String> roomCodeQueue = new ArrayDeque<>();
 
-	@Builder
-	private User(Long id, String nickname, String currentRoomCode, boolean activate) {
-		this.id = id;
-		this.nickname = nickname;
-		this.currentRoomCode = currentRoomCode;
-		this.activate = activate;
+	public static class Builder {
+		private final Long id;
+		private final String nickname;
+
+		private String currentRoomCode = null;
+		private boolean activate = false;
+
+		public Builder(Long id, String nickname) {
+			this.id = id;
+			this.nickname = nickname;
+		}
+
+		public Builder currentRoomCode(String val) {
+			currentRoomCode = val;
+			return this;
+		}
+
+		public Builder activate(boolean val) {
+			activate = val;
+			return this;
+		}
+
+		public User build() {
+			return new User(this);
+		}
+	}
+
+	private User(Builder builder) {
+		id = builder.id;
+		nickname = builder.nickname;
+		currentRoomCode = builder.currentRoomCode;
+		activate = builder.activate;
 	}
 
 	public String getCurrentRoomCode() {
