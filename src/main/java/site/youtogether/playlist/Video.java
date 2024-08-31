@@ -1,30 +1,23 @@
 package site.youtogether.playlist;
 
-import lombok.Builder;
-import lombok.Getter;
+public record Video(
+	String id,
+	Long number,
+	String thumbnail,
+	String title,
+	String channelName,
+	long duration) {
 
-@Getter
-public class Video {
-
-	private final Long videoNumber;
-	private final String videoId;
-	private final long duration;
-	private final String thumbnail;
-	private final String videoTitle;
-	private final String channelTitle;
-
-	@Builder
-	public Video(Long videoNumber, String videoId, long duration, String thumbnail, String videoTitle, String channelTitle) {
-		this.videoNumber = videoNumber;
-		this.videoId = videoId;
-		this.duration = duration;
-		this.thumbnail = thumbnail;
-		this.videoTitle = videoTitle;
-		this.channelTitle = channelTitle;
+	public Video {
+		// 생성자에서 예외 처리
 	}
 
-	public boolean isLiveStreaming() {
-		return duration == 0;
+	public boolean matches(Long number) {
+		return this.number.equals(number);
+	}
+
+	public boolean doesNotMatch(Long number) {
+		return !matches(number);
 	}
 
 }

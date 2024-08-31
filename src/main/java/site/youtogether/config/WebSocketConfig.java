@@ -27,7 +27,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 	@Override
 	public void registerStompEndpoints(StompEndpointRegistry registry) {
 		registry.addEndpoint(STOMP_ENDPOINT)
-			.setAllowedOriginPatterns("http://localhost:3000", "https://you-together-web.vercel.app", "https://localhost:3001")
+			.setAllowedOriginPatterns("http://localhost:3000",
+				"https://you-together-web.vercel.app",
+				"https://localhost:3001",
+				"https://you-together.site",
+				"https://www.you-together.site")
 			.addInterceptors(stompHandshakeInterceptor)
 			.withSockJS();
 	}

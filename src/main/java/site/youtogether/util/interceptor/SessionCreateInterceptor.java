@@ -57,19 +57,18 @@ public class SessionCreateInterceptor implements HandlerInterceptor {
 		request.setAttribute(USER_ID, userId);
 		generateCookie(response, newToken);
 
-		String randomNickname = RandomUtil.generateUserNickname();
-		while (uniqueNicknameStorage.exist(randomNickname)) {
-			randomNickname = RandomUtil.generateUserNickname();
+		String nickname = RandomUtil.generateUserNickname();
+		while (uniqueNicknameStorage.exist(nickname)) {
+			nickname = RandomUtil.generateUserNickname();
 		}
 
-		User user = User.builder()
-			.id(userId)
-			.nickname(randomNickname)
-			.currentRoomCode(null)
+		User user = new User
+			.Builder(userId, nickname)
 			.activate(true)
 			.build();
+
 		userStorage.save(user);
-		uniqueNicknameStorage.save(randomNickname);
+		uniqueNicknameStorage.save(nickname);
 
 		return userId;
 	}

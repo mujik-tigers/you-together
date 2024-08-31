@@ -44,8 +44,7 @@ public class RoomService {
 	public NewRoom create(Long userId, RoomSettings roomSettings, LocalDateTime now) {
 		String roomCode = RandomUtil.generateRandomCode(ROOM_CODE_LENGTH);
 
-		User host = userStorage.findById(userId)
-			.orElseThrow(UserNoExistenceException::new);
+		User host = userStorage.getById(userId);
 		host.createRoom(roomCode);
 		userStorage.save(host);
 

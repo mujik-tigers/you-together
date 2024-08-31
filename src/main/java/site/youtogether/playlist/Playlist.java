@@ -2,7 +2,6 @@ package site.youtogether.playlist;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.data.annotation.Id;
 
@@ -16,57 +15,69 @@ import site.youtogether.exception.playlist.InvalidVideoOrderException;
 import site.youtogether.exception.playlist.PlaylistEmptyException;
 
 @Document(value = "playlist")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
 public class Playlist {
+
+	/**
+	 * 재생 목록
+	 * <p> key : roomCode
+	 * <p> - 재생 목록 조회
+	 * <p> - 재생 목록에 영상 추가
+	 * <p> - 재생 목록의 영상 순서 변경
+	 * <p> - 재생 목록의 영상 삭제
+	 */
+
+	private static final int FIRST = 0;
 
 	@Id
 	private String roomCode;
 
-	private List<Video> videos = new ArrayList<>();
+	private final List<Video> videos = new ArrayList<>();
 
-	public Playlist(String roomCode) {
-		this.roomCode = roomCode;
-	}
-
-	public void add(Video video) {
+	// 재생 목록의 맨 끝에 영상을 추가합니다
+	public void addVideo(Video video) {
 		videos.add(video);
 	}
 
-	public Video playNext(Long videoNumber) {
-		if (videos.isEmpty()) {
-			throw new PlaylistEmptyException();
-		}
+	// 다음 영상을 제공합니다
+	public Video getNextVideo(Long nextVideoNumber) {
+		validateNextVideoNumber(nextVideoNumber);
 
-		if (!videos.get(0).getVideoNumber().equals(videoNumber)) {
-			throw new InvalidVideoNumberException();
-		}
-
-		return videos.remove(0);
+		return videos.remove(FIRST);
 	}
 
-	public Video playNextCallByTimer() {            // PlayingVideo 타이머에 의해 수동적으로 호출되는 메서드
-		if (videos.isEmpty()) {
-			throw new PlaylistEmptyException();
+	// 특정 영상을 삭제합니다
+	// TODO: 시간 복잡도를 개선할 방법이 있는지 알아보기
+	public void deleteVideo(Long videoNumber) {
+		for (int i = 0; i < videos.size(); i++) {
+			if (videos.get(i).matches(videoNumber)) {
+				videos.remove(i);
+				break;
+			}
 		}
-
-		return videos.remove(0);
 	}
 
-	public void delete(Long videoNumber) {
-		videos = videos.stream()
-			.filter(v -> !v.getVideoNumber().equals(videoNumber))
-			.collect(Collectors.toList());
-	}
-
+	// 영상의 순서를 변경합니다
 	public void reorderVideo(int from, int to) {
-		try {
-			Video video = videos.get(from);
-			videos.remove(from);
-			videos.add(to, video);
-		} catch (IndexOutOfBoundsException e) {
+		validateVideoOrder(from, to);
+
+		Video video = videos.get(from);
+		videos.remove(from);
+		videos.add(to, video);
+	}
+
+	private void validateNextVideoNumber(Long nextVideoNumber) {
+		if (videos.isEmpty())
+			throw new PlaylistEmptyException();
+
+		if (videos.get(FIRST).doesNotMatch(nextVideoNumber))
+			throw new InvalidVideoNumberException();
+	}
+
+	private void validateVideoOrder(int from, int to) {
+		if (from < 0 || to < 0 || from >= videos.size() || to >= videos.size() || from == to)
 			throw new InvalidVideoOrderException();
-		}
 	}
 
 }
