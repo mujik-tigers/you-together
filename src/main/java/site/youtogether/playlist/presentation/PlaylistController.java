@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import lombok.RequiredArgsConstructor;
 import site.youtogether.playlist.application.PlaylistService;
 import site.youtogether.playlist.dto.NextVideo;
-import site.youtogether.playlist.dto.PlaylistAddForm;
+import site.youtogether.playlist.dto.VideoForm;
 import site.youtogether.playlist.dto.VideoOrder;
 import site.youtogether.util.api.ApiResponse;
 import site.youtogether.util.api.ResponseResult;
@@ -25,7 +25,7 @@ public class PlaylistController {
 	private final PlaylistService playlistService;
 
 	@PostMapping("/playlists")
-	public ResponseEntity<ApiResponse<Void>> addVideo(@UserTracking Long userId, @RequestBody PlaylistAddForm form) {
+	public ResponseEntity<ApiResponse<Void>> addVideo(@UserTracking Long userId, @RequestBody VideoForm form) {
 		playlistService.addVideo(userId, form);
 
 		return ResponseEntity.status(HttpStatus.CREATED)
@@ -34,7 +34,7 @@ public class PlaylistController {
 
 	@PostMapping("/playlists/next")
 	public ResponseEntity<ApiResponse<Void>> playNextVideo(@UserTracking Long userId, @RequestBody NextVideo nextVideo) {
-		playlistService.playNextVideo(userId, nextVideo.getVideoNumber());
+		playlistService.playNextVideo(userId, nextVideo.videoNumber());
 
 		return ResponseEntity.ok(
 			ApiResponse.ok(ResponseResult.PLAY_NEXT_VIDEO_SUCCESS, null));

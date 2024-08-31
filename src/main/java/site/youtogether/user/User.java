@@ -24,7 +24,7 @@ import site.youtogether.exception.user.UserNotEnteringException;
 import site.youtogether.exception.user.UsersInDifferentRoomException;
 
 @Document(value = "user")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
 public class User {
 
@@ -39,8 +39,8 @@ public class User {
 	@Indexed
 	private boolean activate;
 
-	private Map<String, Role> history = new HashMap<>();
-	private Queue<String> roomCodeQueue = new ArrayDeque<>();
+	private final Map<String, Role> roleHistory = new HashMap<>();
+	private final Queue<String> roomCodeQueue = new ArrayDeque<>();
 
 	public static class Builder {
 		private final Long id;
@@ -133,7 +133,7 @@ public class User {
 
 	public void enterRoom(String roomCode) {
 		if (isFirstTimeEntering(roomCode)) {
-			history.put(roomCode, Role.GUEST);
+			roleHistory.put(roomCode, Role.GUEST);
 			if (roomCodeQueue.size() >= USER_HISTORY_LENGTH) {
 				removeOldestRoomCode();
 			}
@@ -146,7 +146,7 @@ public class User {
 	}
 
 	public void createRoom(String createRoomCode) {
-		history.put(createRoomCode, Role.HOST);
+		roleHistory.put(createRoomCode, Role.HOST);
 	}
 
 	public boolean isNotEditable() {
@@ -158,7 +158,7 @@ public class User {
 	}
 
 	public Role getRoleInCurrentRoom() {
-		return history.get(getCurrentRoomCode());
+		return roleHistory.get(getCurrentRoomCode());
 	}
 
 	private boolean hasLowerRoleThan(Role compareRole) {
@@ -167,12 +167,12 @@ public class User {
 	}
 
 	private boolean isFirstTimeEntering(String roomCode) {
-		return !history.containsKey(roomCode);
+		return !roleHistory.containsKey(roomCode);
 	}
 
 	private void removeOldestRoomCode() {
 		String deletedRoomCode = roomCodeQueue.poll();
-		history.remove(deletedRoomCode);
+		roleHistory.remove(deletedRoomCode);
 	}
 
 	private boolean isInSameRoom(User user, User targetUser) {
@@ -180,7 +180,7 @@ public class User {
 	}
 
 	private void changeRole(Role changeRole) {
-		history.put(getCurrentRoomCode(), changeRole);
+		roleHistory.put(getCurrentRoomCode(), changeRole);
 	}
 
 }

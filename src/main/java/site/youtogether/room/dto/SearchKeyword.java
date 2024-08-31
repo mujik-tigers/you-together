@@ -8,9 +8,9 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
-public class KeywordInput {
+public class SearchKeyword {
 
-	@Pattern(regexp = "^[a-zA-Z0-9가-힣ㄱ-ㅎㅏ-ㅣ ]+$", message = "특수문자를 제거해주세요")
+	@Pattern(regexp = "^[a-zA-Z0-9가-힣ㄱ-ㅎㅏ-ㅣ ]+$", message = "특수문자를 제거해 주세요")
 	private String keyword;
 
 }

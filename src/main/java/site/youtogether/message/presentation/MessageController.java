@@ -13,7 +13,7 @@ import site.youtogether.exception.user.VideoEditDeniedException;
 import site.youtogether.message.ChatMessage;
 import site.youtogether.message.VideoSyncInfoMessage;
 import site.youtogether.message.application.MessageService;
-import site.youtogether.playlist.application.PlayingVideoService;
+import site.youtogether.player.application.VideoPlayerService;
 import site.youtogether.user.User;
 import site.youtogether.user.infrastructure.UserStorage;
 import site.youtogether.util.RandomUtil;
@@ -24,7 +24,7 @@ public class MessageController {
 
 	private final UserStorage userStorage;
 	private final MessageService messageService;
-	private final PlayingVideoService playingVideoService;
+	private final VideoPlayerService videoPlayerService;
 
 	@MessageMapping("/messages/chat")
 	public void handleChatMessage(ChatMessage chatMessage, SimpMessageHeaderAccessor headerAccessor) {
@@ -53,7 +53,7 @@ public class MessageController {
 		}
 
 		videoSyncInfoMessage.setRoomCode(user.getCurrentRoomCode());
-		playingVideoService.manageVideo(videoSyncInfoMessage);
+		videoPlayerService.control(videoSyncInfoMessage);
 	}
 
 }

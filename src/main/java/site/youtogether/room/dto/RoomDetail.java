@@ -4,7 +4,7 @@ import java.util.Optional;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import site.youtogether.playlist.PlayingVideo;
+import site.youtogether.player.PlayingVideo;
 import site.youtogether.room.Participant;
 import site.youtogether.room.Room;
 import site.youtogether.user.User;

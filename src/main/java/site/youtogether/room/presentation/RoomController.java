@@ -18,13 +18,13 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import site.youtogether.room.application.RoomService;
 import site.youtogether.room.dto.ChangedRoomTitle;
-import site.youtogether.room.dto.KeywordInput;
+import site.youtogether.room.dto.EnteredPassword;
+import site.youtogether.room.dto.EnteredTitle;
 import site.youtogether.room.dto.NewRoom;
-import site.youtogether.room.dto.PasswordInput;
 import site.youtogether.room.dto.RoomDetail;
 import site.youtogether.room.dto.RoomList;
 import site.youtogether.room.dto.RoomSettings;
-import site.youtogether.room.dto.TitleInput;
+import site.youtogether.room.dto.SearchKeyword;
 import site.youtogether.util.api.ApiResponse;
 import site.youtogether.util.api.ResponseResult;
 import site.youtogether.util.resolver.UserTracking;
@@ -36,8 +36,8 @@ public class RoomController {
 	private final RoomService roomService;
 
 	@GetMapping("/rooms")
-	public ResponseEntity<ApiResponse<RoomList>> fetchRoomList(@PageableDefault Pageable pageable, @Valid @ModelAttribute KeywordInput keywordInput) {
-		RoomList roomList = roomService.fetchAll(pageable, keywordInput.getKeyword());
+	public ResponseEntity<ApiResponse<RoomList>> fetchRoomList(@PageableDefault Pageable pageable, @Valid @ModelAttribute SearchKeyword searchKeyword) {
+		RoomList roomList = roomService.fetchAll(pageable, searchKeyword.getKeyword());
 
 		return ResponseEntity.ok()
 			.body(ApiResponse.ok(ResponseResult.ROOM_LIST_FETCH_SUCCESS, roomList));
@@ -53,17 +53,17 @@ public class RoomController {
 
 	@PostMapping("/rooms/{roomCode}")
 	public ResponseEntity<ApiResponse<RoomDetail>> enterRoom(@PathVariable String roomCode, @UserTracking Long userId,
-		@Valid @RequestBody(required = false) PasswordInput form) {
+		@Valid @RequestBody(required = false) EnteredPassword enteredPassword) {
 
-		String passwordInput = form == null ? null : form.getPasswordInput();
-		RoomDetail roomDetail = roomService.enter(roomCode, userId, passwordInput);
+		String password = enteredPassword == null ? null : enteredPassword.getPassword();
+		RoomDetail roomDetail = roomService.enter(roomCode, userId, password);
 
 		return ResponseEntity.ok()
 			.body(ApiResponse.ok(ResponseResult.ROOM_ENTER_SUCCESS, roomDetail));
 	}
 
 	@PatchMapping("/rooms/title")
-	public ResponseEntity<ApiResponse<ChangedRoomTitle>> changeRoomTitle(@UserTracking Long userId, @Valid @RequestBody TitleInput form) {
+	public ResponseEntity<ApiResponse<ChangedRoomTitle>> changeRoomTitle(@UserTracking Long userId, @Valid @RequestBody EnteredTitle form) {
 		ChangedRoomTitle changedRoomTitle = roomService.changeRoomTitle(userId, form.getNewTitle());
 
 		return ResponseEntity.ok()

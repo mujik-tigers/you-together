@@ -18,7 +18,7 @@ import site.youtogether.exception.user.ChangeRoomTitleDeniedException;
 import site.youtogether.user.User;
 
 @Document(value = "room")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
 public class Room {
 
